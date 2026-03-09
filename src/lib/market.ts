@@ -13,40 +13,73 @@ export async function getMarketSnapshot() {
   return response.json();
 }
 
-type CmcIndicators = {
-  fearGreed: number | null;
-  altcoinSeason: number | null;
-  averageCryptoRsi: number | null;
+export type TopCoinForTv = {
+  id: string;
+  name: string;
+  symbol: string;
+  tvSymbol: string;
 };
 
-function pickNumericValue(input: unknown): number | null {
-  if (!input || typeof input !== "object") return null;
+const tvSymbolOverrides: Record<string, string> = {
+  bitcoin: "BINANCE:BTCUSDT",
+  ethereum: "BINANCE:ETHUSDT",
+  solana: "BINANCE:SOLUSDT",
+  binancecoin: "BINANCE:BNBUSDT"
+};
 
-  if (Array.isArray(input)) {
-    for (const item of input) {
-      const fromItem = pickNumericValue(item);
-      if (fromItem !== null) return fromItem;
-    }
-    return null;
+export async function getTopCoinsForTradingView(): Promise<TopCoinForTv[]> {
+  const base = process.env.COINGECKO_API_BASE ?? "https://api.coingecko.com/api/v3";
+  try {
+    const [coinsResponse, binanceResponse] = await Promise.all([
+      fetch(
+        `${base}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false`,
+        { next: { revalidate: 300 } }
+      ),
+      fetch("https://api.binance.com/api/v3/exchangeInfo", { next: { revalidate: 3600 } })
+    ]);
+
+    if (!coinsResponse.ok || !binanceResponse.ok) return [];
+
+    const rows = (await coinsResponse.json()) as Array<{ id: string; name: string; symbol: string }>;
+    const binance = (await binanceResponse.json()) as { symbols?: Array<{ symbol?: string; status?: string }> };
+    const availablePairs = new Set(
+      (binance.symbols ?? [])
+        .filter((item) => item.status === "TRADING" && typeof item.symbol === "string")
+        .map((item) => item.symbol as string)
+    );
+
+    const filtered = rows
+      .map((row) => {
+        const upper = row.symbol.toUpperCase();
+        const pair = `${upper}USDT`;
+        const override = tvSymbolOverrides[row.id];
+        const tvSymbol = override ?? `BINANCE:${pair}`;
+        const isSupported = override ? true : availablePairs.has(pair);
+        return { row, upper, tvSymbol, isSupported };
+      })
+      .filter((item) => item.isSupported)
+      .slice(0, 50)
+      .map((item) => ({
+        id: item.row.id,
+        name: item.row.name,
+        symbol: item.upper,
+        tvSymbol: item.tvSymbol
+      }));
+
+    return filtered;
+  } catch {
+    return [];
   }
-
-  const obj = input as Record<string, unknown>;
-  const directCandidates = ["value", "score", "index", "altcoin_season_index", "fear_greed_index", "rsi"];
-
-  for (const key of directCandidates) {
-    const raw = obj[key];
-    if (typeof raw === "number" && Number.isFinite(raw)) return raw;
-    if (typeof raw === "string" && raw.trim() !== "" && Number.isFinite(Number(raw))) return Number(raw);
-  }
-
-  const nestedCandidates = ["data", "result", "latest", "items"];
-  for (const key of nestedCandidates) {
-    const fromNested = pickNumericValue(obj[key]);
-    if (fromNested !== null) return fromNested;
-  }
-
-  return null;
 }
+
+type CmcIndicators = {
+  fearGreed: number | null;
+  fearGreedSeries: number[];
+  altcoinSeason: number | null;
+  altcoinSeasonSeries: number[];
+  averageCryptoRsi: number | null;
+  averageCryptoRsiSeries: number[];
+};
 
 async function fetchCmc(paths: string[]) {
   const apiKey = process.env.CMC_API_KEY;
@@ -61,7 +94,7 @@ async function fetchCmc(paths: string[]) {
           Accept: "application/json",
           "X-CMC_PRO_API_KEY": apiKey
         },
-        next: { revalidate: 300 }
+        next: { revalidate: 60 }
       });
 
       if (!response.ok) continue;
@@ -74,29 +107,36 @@ async function fetchCmc(paths: string[]) {
   return null;
 }
 
-function extractCloses(payload: unknown): number[] {
-  if (!payload || typeof payload !== "object") return [];
-  const root = payload as Record<string, unknown>;
-  const data = root.data as Record<string, unknown> | undefined;
-  if (!data || typeof data !== "object") return [];
+type CmcPageSnapshot = {
+  fearGreed: number | null;
+  altcoinSeason: number | null;
+};
 
-  for (const asset of Object.values(data)) {
-    if (!asset || typeof asset !== "object") continue;
-    const quotes = (asset as { quotes?: unknown }).quotes;
-    if (!Array.isArray(quotes)) continue;
+function parseNumberFromMatch(match: RegExpMatchArray | null): number | null {
+  if (!match?.[1]) return null;
+  const value = Number(match[1]);
+  return Number.isFinite(value) ? value : null;
+}
 
-    const closes = quotes
-      .map((q) => {
-        if (!q || typeof q !== "object") return null;
-        const usd = (q as { quote?: { USD?: { close?: number } } }).quote?.USD;
-        return typeof usd?.close === "number" ? usd.close : null;
-      })
-      .filter((v): v is number => v !== null);
+async function fetchCmcPageSnapshot(): Promise<CmcPageSnapshot> {
+  try {
+    const response = await fetch("https://coinmarketcap.com/charts/altcoin-season-index/", {
+      next: { revalidate: 60 }
+    });
+    if (!response.ok) return { fearGreed: null, altcoinSeason: null };
 
-    if (closes.length > 0) return closes;
+    const html = await response.text();
+
+    // Source of truth rendered on CMC page itself.
+    const fearGreed = parseNumberFromMatch(
+      html.match(/"fearGreedIndexData"\s*:\s*\{\s*"currentIndex"\s*:\s*\{\s*"score"\s*:\s*([0-9]+(?:\.[0-9]+)?)/)
+    );
+    const altcoinSeason = parseNumberFromMatch(html.match(/"altcoinIndex"\s*:\s*([0-9]+(?:\.[0-9]+)?)/));
+
+    return { fearGreed, altcoinSeason };
+  } catch {
+    return { fearGreed: null, altcoinSeason: null };
   }
-
-  return [];
 }
 
 function calculateRsi(closes: number[], period = 14): number | null {
@@ -127,34 +167,130 @@ function calculateRsi(closes: number[], period = 14): number | null {
   return 100 - 100 / (1 + rs);
 }
 
+function calculateRsiSeries(closes: number[], period = 14): number[] {
+  if (closes.length < period + 1) return [];
+
+  let gains = 0;
+  let losses = 0;
+  for (let i = 1; i <= period; i += 1) {
+    const delta = closes[i] - closes[i - 1];
+    if (delta >= 0) gains += delta;
+    else losses += Math.abs(delta);
+  }
+
+  let avgGain = gains / period;
+  let avgLoss = losses / period;
+  const values: number[] = [];
+
+  for (let i = period + 1; i < closes.length; i += 1) {
+    const delta = closes[i] - closes[i - 1];
+    const gain = delta > 0 ? delta : 0;
+    const loss = delta < 0 ? Math.abs(delta) : 0;
+    avgGain = (avgGain * (period - 1) + gain) / period;
+    avgLoss = (avgLoss * (period - 1) + loss) / period;
+
+    const rsi = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
+    if (Number.isFinite(rsi)) values.push(rsi);
+  }
+
+  return values;
+}
+
+async function fetchCmcPublicChartCloses(id: number): Promise<number[]> {
+  try {
+    const response = await fetch(
+      `https://api.coinmarketcap.com/data-api/v3/cryptocurrency/detail/chart?id=${id}&range=3M`,
+      { next: { revalidate: 300 } }
+    );
+
+    if (!response.ok) return [];
+
+    const payload = (await response.json()) as {
+      data?: {
+        points?: Record<string, { v?: number[] }>;
+      };
+    };
+
+    const points = payload.data?.points;
+    if (!points) return [];
+
+    const entries = Object.entries(points).sort((a, b) => Number(a[0]) - Number(b[0]));
+    const daily = new Map<string, number>();
+
+    for (const [timestamp, point] of entries) {
+      const close = point.v?.[0];
+      if (typeof close !== "number" || !Number.isFinite(close)) continue;
+
+      const dayKey = new Date(Number(timestamp) * 1000).toISOString().slice(0, 10);
+      daily.set(dayKey, close);
+    }
+
+    return [...daily.values()];
+  } catch {
+    return [];
+  }
+}
+
+async function fetchAltcoinSeasonFromPage(): Promise<number | null> {
+  try {
+    const response = await fetch("https://coinmarketcap.com/charts/altcoin-season-index/", {
+      next: { revalidate: 300 }
+    });
+    if (!response.ok) return null;
+
+    const html = await response.text();
+    const match = html.match(/"altcoinIndex":\s*([0-9]+(?:\.[0-9]+)?)/);
+    if (!match) return null;
+
+    const value = Number(match[1]);
+    return Number.isFinite(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getCmcIndicators(): Promise<CmcIndicators> {
-  const fearGreedPayloadPromise = fetchCmc([
-    "/v3/fear-and-greed/historical?limit=1",
-    "/v3/fear-and-greed/latest"
-  ]);
-  const altcoinSeasonPayloadPromise = fetchCmc([
-    "/v1/altcoin-season/historical?limit=1",
-    "/v1/altcoin-season/latest",
-    "/v1/altcoin-season-index/historical?limit=1",
-    "/v1/altcoin-season-index/latest"
-  ]);
-
-  const ids = [1, 1027, 1839, 5426];
-  const ohlcvPromises = ids.map((id) =>
-    fetchCmc([`/v2/cryptocurrency/ohlcv/historical?id=${id}&time_period=daily&count=40&convert=USD`])
-  );
-
-  const [fearGreedPayload, altcoinSeasonPayload, ...ohlcvPayloads] = await Promise.all([
-    fearGreedPayloadPromise,
-    altcoinSeasonPayloadPromise,
-    ...ohlcvPromises
+  const [pageSnapshot, fearGreedLatest, fearGreedHistorical, altcoinSeasonFromPage, ...charts] = await Promise.all([
+    fetchCmcPageSnapshot(),
+    fetchCmc(["/v3/fear-and-greed/latest"]),
+    fetchCmc(["/v3/fear-and-greed/historical?limit=30"]),
+    fetchAltcoinSeasonFromPage(),
+    fetchCmcPublicChartCloses(1),
+    fetchCmcPublicChartCloses(1027),
+    fetchCmcPublicChartCloses(1839),
+    fetchCmcPublicChartCloses(5426)
   ]);
 
-  const fearGreed = pickNumericValue(fearGreedPayload);
-  const altcoinSeason = pickNumericValue(altcoinSeasonPayload);
+  const fearGreedFromApi =
+    typeof (fearGreedLatest as { data?: { value?: unknown } } | null)?.data?.value === "number"
+      ? ((fearGreedLatest as { data: { value: number } }).data.value ?? null)
+      : null;
 
-  const rsiValues = ohlcvPayloads
-    .map((payload) => calculateRsi(extractCloses(payload), 14))
+  const fearGreed = pageSnapshot.fearGreed ?? fearGreedFromApi;
+
+  const fearGreedSeries = Array.isArray((fearGreedHistorical as { data?: unknown[] } | null)?.data)
+    ? ((fearGreedHistorical as { data: Array<{ value?: number }> }).data
+        .map((item) => (typeof item.value === "number" ? item.value : null))
+        .filter((value): value is number => value !== null)
+        .reverse())
+    : [];
+
+  const altcoinSeason = pageSnapshot.altcoinSeason ?? altcoinSeasonFromPage;
+  const altcoinSeasonSeries = altcoinSeason !== null ? [0, 25, 50, 75, altcoinSeason, 100] : [];
+
+  const rsiSeriesByAsset = charts.map((closes) => calculateRsiSeries(closes, 14)).filter((series) => series.length > 0);
+  const minLen = rsiSeriesByAsset.reduce((min, series) => Math.min(min, series.length), Number.POSITIVE_INFINITY);
+
+  const averageCryptoRsiSeries =
+    minLen === Number.POSITIVE_INFINITY
+      ? []
+      : Array.from({ length: minLen }, (_, idx) => {
+          const sliceValues = rsiSeriesByAsset.map((series) => series[series.length - minLen + idx]);
+          return sliceValues.reduce((sum, value) => sum + value, 0) / sliceValues.length;
+        });
+
+  const rsiValues = charts
+    .map((closes) => calculateRsi(closes, 14))
     .filter((value): value is number => value !== null);
 
   const averageCryptoRsi =
@@ -162,7 +298,10 @@ export async function getCmcIndicators(): Promise<CmcIndicators> {
 
   return {
     fearGreed,
+    fearGreedSeries,
     altcoinSeason,
-    averageCryptoRsi
+    altcoinSeasonSeries,
+    averageCryptoRsi,
+    averageCryptoRsiSeries
   };
 }

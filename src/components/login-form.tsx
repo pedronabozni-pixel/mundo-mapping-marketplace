@@ -40,7 +40,7 @@ export function LoginForm() {
   return (
     <form className="card w-full max-w-md space-y-4 border-brand/30" onSubmit={onSubmit}>
       <div className="glass-line -mx-4 -mt-4 rounded-t-2xl px-4 pb-4 pt-3">
-        <Image alt="Decentralized Club" className="h-20 w-auto" height={80} src="/brand/logo.svg" width={240} />
+        <Image alt="Decentralized Club" className="h-20 w-auto" height={80} src="/brand/logo.svg?v=2" width={240} />
         <p className="text-xs tracking-[0.22em] text-muted">MEMBER ACCESS</p>
       </div>
 

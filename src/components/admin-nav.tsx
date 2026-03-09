@@ -14,7 +14,7 @@ export function AdminNav() {
   return (
     <aside className="card h-fit space-y-4 border-brand/25">
       <div className="glass-line -mx-4 -mt-4 rounded-t-2xl px-4 pb-3 pt-3">
-        <Image alt="Decentralized Club" className="h-14 w-auto" height={56} src="/brand/logo.svg" width={180} />
+        <Image alt="Decentralized Club" className="h-14 w-auto" height={56} src="/brand/logo.svg?v=2" width={180} />
         <h2 className="brand-title text-xl">Área Admin</h2>
       </div>
       <nav className="space-y-2">

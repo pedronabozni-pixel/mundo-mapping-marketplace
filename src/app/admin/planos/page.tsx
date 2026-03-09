@@ -3,16 +3,38 @@ import { requireAdminSession } from "@/lib/access";
 import { db } from "@/lib/db";
 import { formatMoney } from "@/lib/utils";
 
+function parsePriceToCents(value: string): number | null {
+  const normalized = value.trim().replace(/\s/g, "");
+  if (!normalized) return null;
+
+  const commaFormat = normalized.match(/^(\d+)(?:,(\d{1,2}))?$/);
+  if (commaFormat) {
+    const reais = Number(commaFormat[1]);
+    const cents = Number((commaFormat[2] ?? "0").padEnd(2, "0"));
+    return reais * 100 + cents;
+  }
+
+  const dotFormat = normalized.match(/^(\d+)(?:\.(\d{1,2}))?$/);
+  if (dotFormat) {
+    const reais = Number(dotFormat[1]);
+    const cents = Number((dotFormat[2] ?? "0").padEnd(2, "0"));
+    return reais * 100 + cents;
+  }
+
+  return null;
+}
+
 async function createPlan(formData: FormData) {
   "use server";
   await requireAdminSession();
 
   const name = String(formData.get("name") ?? "");
-  const priceCents = Number(formData.get("priceCents") ?? "0");
+  const priceInput = String(formData.get("price") ?? "");
+  const priceCents = parsePriceToCents(priceInput);
   const kirvanoProductId = String(formData.get("kirvanoProductId") ?? "");
   const permissionsRaw = String(formData.get("permissionsJson") ?? "{}");
 
-  if (!name || !kirvanoProductId || Number.isNaN(priceCents)) return;
+  if (!name || !kirvanoProductId || priceCents === null) return;
 
   let permissionsJson: object = {};
   try {
@@ -81,7 +103,14 @@ export default async function AdminPlansPage() {
         <h2 className="text-lg font-semibold">Criar plano</h2>
         <form action={createPlan} className="grid gap-2">
           <input className="input" name="name" placeholder="Nome do plano" required />
-          <input className="input" name="priceCents" placeholder="Preço em centavos" required type="number" />
+          <input
+            className="input"
+            inputMode="decimal"
+            name="price"
+            placeholder="Preço (ex: 99 ou 99,90)"
+            required
+            type="text"
+          />
           <input className="input" name="kirvanoProductId" placeholder="ID do produto na Kirvano" required />
           <textarea
             className="input min-h-24"

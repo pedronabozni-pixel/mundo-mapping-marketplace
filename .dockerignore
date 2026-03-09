@@ -1,0 +1,11 @@
+.git
+.next
+node_modules
+npm-debug.log
+Dockerfile*
+.env
+.env.*
+*.local
+tsconfig.tsbuildinfo
+prisma/dev.db
+prisma/*.db

@@ -138,8 +138,59 @@ npm run prisma:db:push:prod
 - Reset senha: `/reset-password`
 - Membro: `/app/dashboard`
 - Admin: `/admin`
+- Loja Genesis: `/loja`
+- Loja Admin (isolado): `/loja/admin` (login em `/loja/admin/login`)
+- Loja Admin alternativo: `/admin-loja` (login em `/admin-loja/login`)
 
 ## Observacoes
 - Conteudo foi estruturado com foco educacional (sem promessa de rentabilidade).
 - Reset de senha esta simplificado para MVP; em producao use fluxo com token por email.
 - Upload de arquivo esta modelado via URL; para upload fisico, integrar storage (S3/Supabase Storage).
+
+---
+
+## Loja Genesis Distribuidora (E-commerce isolado)
+
+Implementacao front-end da loja foi adicionada sem interromper a plataforma cripto existente.
+
+### Caracteristicas
+- Next.js + React + Tailwind CSS
+- Tema premium escuro com detalhes dourados
+- Home com destaque do produto ancora (`H12 Ultra SE`)
+- Prova social, escassez visual e CTAs de alta conversao
+- Favoritos com `localStorage`
+- SEO dinamico por produto
+- Newsletter (mock local em `src/data/newsletter-leads.json`)
+- Estrutura pronta para Pixel (`src/lib/pixel.ts`)
+- Painel admin da loja com senha e cookie proprio (sem conflito com `/admin` da cripto)
+
+### Dados da loja
+- Produtos: `src/data/products.json`
+- Leads newsletter: `src/data/newsletter-leads.json`
+- Configuracao admin: `src/lib/store-config.ts`
+  - `STORE_ADMIN_PASSWORD`
+  - `STORE_ADMIN_SESSION_TOKEN`
+
+### Rotas da loja
+- Home: `/loja`
+- Produto: `/loja/produtos/[slug]`
+- Favoritos: `/loja/favoritos`
+- Sobre: `/loja/sobre`
+- Contato: `/loja/contato`
+- Admin loja: `/loja/admin`
+
+### APIs da loja
+- `GET /api/loja/products`
+- `GET /api/loja/products/[slug]`
+- `POST /api/loja/newsletter`
+- `POST /api/loja-admin/login`
+- `POST /api/loja-admin/logout`
+- `PUT /api/loja-admin/products/[slug]`
+
+### Deploy na Vercel
+1. Suba o repositorio no GitHub.
+2. Importe no painel da Vercel.
+3. Configure variaveis de ambiente:
+   - `STORE_ADMIN_PASSWORD`
+   - `STORE_ADMIN_SESSION_TOKEN`
+4. Deploy com preset `Next.js`.
