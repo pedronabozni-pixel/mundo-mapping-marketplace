@@ -13,7 +13,7 @@ body {
     linear-gradient(160deg, #0e0e11 0%, #141418 50%, #0f0f13 100%);
   color: #f1f1f2;
   min-height: 100vh;
-  font-family: var(--font-body), sans-serif;
+  font-family: Montserrat, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
 a {

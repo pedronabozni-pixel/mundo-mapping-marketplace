@@ -15,8 +15,8 @@ const config: Config = {
         danger: "#f87171"
       },
       fontFamily: {
-        serif: ["var(--font-display)"],
-        sans: ["var(--font-body)"]
+        serif: ["Cormorant Garamond", "Georgia", "Times New Roman", "serif"],
+        sans: ["Montserrat", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Arial", "sans-serif"]
       }
     }
   },
