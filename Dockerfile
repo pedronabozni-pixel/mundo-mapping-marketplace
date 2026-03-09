@@ -13,5 +13,5 @@ RUN npm run build
 ENV NODE_ENV=production
 EXPOSE 3000
 
-# Keep schema in sync on deploy/start and then run Next.js.
-CMD sh -c "npx prisma db push --schema prisma/schema.postgres.prisma && npm run start -- -p ${PORT:-3000}"
+# Keep schema in sync, seed baseline users/plans, and then run Next.js.
+CMD sh -c "npx prisma db push --schema prisma/schema.postgres.prisma && npm run prisma:seed && npm run start -- -p ${PORT:-3000}"

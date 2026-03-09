@@ -30,41 +30,34 @@ const tvSymbolOverrides: Record<string, string> = {
 export async function getTopCoinsForTradingView(): Promise<TopCoinForTv[]> {
   const base = process.env.COINGECKO_API_BASE ?? "https://api.coingecko.com/api/v3";
   try {
-    const [coinsResponse, binanceResponse] = await Promise.all([
-      fetch(
-        `${base}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false`,
-        { next: { revalidate: 300 } }
-      ),
-      fetch("https://api.binance.com/api/v3/exchangeInfo", { next: { revalidate: 3600 } })
-    ]);
-
-    if (!coinsResponse.ok || !binanceResponse.ok) return [];
-
-    const rows = (await coinsResponse.json()) as Array<{ id: string; name: string; symbol: string }>;
-    const binance = (await binanceResponse.json()) as { symbols?: Array<{ symbol?: string; status?: string }> };
-    const availablePairs = new Set(
-      (binance.symbols ?? [])
-        .filter((item) => item.status === "TRADING" && typeof item.symbol === "string")
-        .map((item) => item.symbol as string)
+    const coinsResponse = await fetch(
+      `${base}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false`,
+      { next: { revalidate: 300 } }
     );
 
+    if (!coinsResponse.ok) return [];
+
+    const rows = (await coinsResponse.json()) as Array<{ id: string; name: string; symbol: string }>;
+
+    const seen = new Set<string>();
     const filtered = rows
       .map((row) => {
         const upper = row.symbol.toUpperCase();
-        const pair = `${upper}USDT`;
         const override = tvSymbolOverrides[row.id];
-        const tvSymbol = override ?? `BINANCE:${pair}`;
-        const isSupported = override ? true : availablePairs.has(pair);
-        return { row, upper, tvSymbol, isSupported };
+        const tvSymbol = override ?? `BINANCE:${upper}USDT`;
+        return {
+          id: row.id,
+          name: row.name,
+          symbol: upper,
+          tvSymbol
+        };
       })
-      .filter((item) => item.isSupported)
-      .slice(0, 50)
-      .map((item) => ({
-        id: item.row.id,
-        name: item.row.name,
-        symbol: item.upper,
-        tvSymbol: item.tvSymbol
-      }));
+      .filter((item) => {
+        if (seen.has(item.tvSymbol)) return false;
+        seen.add(item.tvSymbol);
+        return true;
+      })
+      .slice(0, 50);
 
     return filtered;
   } catch {

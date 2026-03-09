@@ -36,6 +36,7 @@ async function main() {
   ]);
 
   const passwordHash = await bcrypt.hash("Admin@12345", 10);
+  const memberPasswordHash = await bcrypt.hash("User@12345", 10);
 
   const admin = await prisma.user.upsert({
     where: { email: "admin@decentralized.club" },
@@ -48,6 +49,23 @@ async function main() {
     }
   });
 
+  const member = await prisma.user.upsert({
+    where: { email: "membro@decentralized.club" },
+    update: {
+      name: "Membro Teste",
+      passwordHash: memberPasswordHash,
+      role: Role.USER,
+      isBlocked: false
+    },
+    create: {
+      name: "Membro Teste",
+      email: "membro@decentralized.club",
+      passwordHash: memberPasswordHash,
+      role: Role.USER,
+      isBlocked: false
+    }
+  });
+
   await prisma.subscription.upsert({
     where: { userId: admin.id },
     update: { planId: pro.id, status: "ACTIVE" },
@@ -56,6 +74,23 @@ async function main() {
       planId: pro.id,
       status: "ACTIVE",
       kirvanoTransactionId: "seed_admin_tx",
+      renewalDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30)
+    }
+  });
+
+  await prisma.subscription.upsert({
+    where: { userId: member.id },
+    update: {
+      planId: starter.id,
+      status: "ACTIVE",
+      renewalDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+      canceledAt: null
+    },
+    create: {
+      userId: member.id,
+      planId: starter.id,
+      status: "ACTIVE",
+      kirvanoTransactionId: "seed_member_tx",
       renewalDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30)
     }
   });
