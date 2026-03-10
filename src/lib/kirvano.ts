@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { SubscriptionStatus } from "@prisma/client";
+import { issueActivationForUser } from "@/lib/activation";
 import { db } from "@/lib/db";
 
 type KirvanoEventType =
@@ -38,7 +39,8 @@ export function verifyKirvanoSignature(rawBody: string, signature?: string | nul
   if (!secret) return false;
 
   // Some Kirvano setups send a static token instead of HMAC signature.
-  if (token && safeCompare(token, secret)) return true;
+  const tokenNormalized = token?.replace(/^Bearer\s+/i, "").trim();
+  if (tokenNormalized && safeCompare(tokenNormalized, secret)) return true;
 
   if (!signature) return false;
 
@@ -130,6 +132,8 @@ export async function processKirvanoWebhook(payload: KirvanoPayload) {
   if (existing) return { ignored: true };
 
   const status = mapStatus(payload.event_type);
+  const existingUser = await db.user.findUnique({ where: { email: payload.customer.email }, select: { id: true } });
+  const userWasCreated = !existingUser;
 
   let plan = await db.plan.findUnique({
     where: { kirvanoProductId: payload.subscription.product_id }
@@ -204,6 +208,14 @@ export async function processKirvanoWebhook(payload: KirvanoPayload) {
       status: "processed"
     }
   });
+
+  if (status === SubscriptionStatus.ACTIVE && (userWasCreated || payload.event_type === "pagamento_aprovado")) {
+    try {
+      await issueActivationForUser(user.email, user.name);
+    } catch (error) {
+      console.error("Kirvano activation email error", error);
+    }
+  }
 
   return { ignored: false };
 }

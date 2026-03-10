@@ -27,6 +27,7 @@ Plataforma SaaS com:
   - Cria usuario no pagamento aprovado
   - Ativa/atualiza plano e status
   - Bloqueia acesso em cancelamento/falha
+  - Dispara email de ativacao de conta para definir senha
 - Idempotencia por `event_id`
 - Salva no banco:
   - id de transacao
@@ -36,7 +37,8 @@ Plataforma SaaS com:
 
 ### 2) Area do Usuario
 - Login com email/senha
-- Reset de senha (MVP simplificado)
+- Ativacao de conta por email (definicao de senha)
+- Reset de senha
 - Bloqueio de acesso por status da assinatura
 - Dashboard com:
   - Precos BTC/ETH/SOL/BNB (CoinGecko)
@@ -128,6 +130,10 @@ npm run prisma:generate:prod
 npm run prisma:db:push:prod
 ```
 2. Defina `DATABASE_URL` de PostgreSQL no ambiente da Railway.
+3. Para envio de email de ativacao, configure:
+   - `RESEND_API_KEY`
+   - `EMAIL_FROM`
+   - `NEXTAUTH_URL` (URL publica da aplicacao)
 
 ## Credenciais seed
 - Admin: `admin@decentralized.club`
@@ -135,6 +141,7 @@ npm run prisma:db:push:prod
 
 ## Rotas principais
 - Login: `/login`
+- Ativacao de conta: `/activate-account?token=...`
 - Reset senha: `/reset-password`
 - Membro: `/app/dashboard`
 - Admin: `/admin`
@@ -144,7 +151,7 @@ npm run prisma:db:push:prod
 
 ## Observacoes
 - Conteudo foi estruturado com foco educacional (sem promessa de rentabilidade).
-- Reset de senha esta simplificado para MVP; em producao use fluxo com token por email.
+- O fluxo de ativacao usa token com expiracao de 24h enviado por email.
 - Upload de arquivo esta modelado via URL; para upload fisico, integrar storage (S3/Supabase Storage).
 
 ---
