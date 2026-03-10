@@ -27,6 +27,59 @@ const tvSymbolOverrides: Record<string, string> = {
   binancecoin: "BINANCE:BNBUSDT"
 };
 
+const fallbackTopCoins: TopCoinForTv[] = [
+  { id: "bitcoin", name: "Bitcoin", symbol: "BTC", tvSymbol: "BINANCE:BTCUSDT" },
+  { id: "ethereum", name: "Ethereum", symbol: "ETH", tvSymbol: "BINANCE:ETHUSDT" },
+  { id: "xrp", name: "XRP", symbol: "XRP", tvSymbol: "BINANCE:XRPUSDT" },
+  { id: "bnb", name: "BNB", symbol: "BNB", tvSymbol: "BINANCE:BNBUSDT" },
+  { id: "solana", name: "Solana", symbol: "SOL", tvSymbol: "BINANCE:SOLUSDT" },
+  { id: "stacks", name: "Stacks", symbol: "STX", tvSymbol: "BINANCE:STXUSDT" },
+  { id: "multiversx", name: "MultiversX", symbol: "EGLD", tvSymbol: "BINANCE:EGLDUSDT" },
+  { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", tvSymbol: "BINANCE:DOGEUSDT" },
+  { id: "cardano", name: "Cardano", symbol: "ADA", tvSymbol: "BINANCE:ADAUSDT" },
+  { id: "tron", name: "TRON", symbol: "TRX", tvSymbol: "BINANCE:TRXUSDT" },
+  { id: "chainlink", name: "Chainlink", symbol: "LINK", tvSymbol: "BINANCE:LINKUSDT" },
+  { id: "avalanche-2", name: "Avalanche", symbol: "AVAX", tvSymbol: "BINANCE:AVAXUSDT" },
+  { id: "stellar", name: "Stellar", symbol: "XLM", tvSymbol: "BINANCE:XLMUSDT" },
+  { id: "toncoin", name: "Toncoin", symbol: "TON", tvSymbol: "BINANCE:TONUSDT" },
+  { id: "sui", name: "Sui", symbol: "SUI", tvSymbol: "BINANCE:SUIUSDT" },
+  { id: "shiba-inu", name: "Shiba Inu", symbol: "SHIB", tvSymbol: "BINANCE:SHIBUSDT" },
+  { id: "polkadot", name: "Polkadot", symbol: "DOT", tvSymbol: "BINANCE:DOTUSDT" },
+  { id: "bitcoin-cash", name: "Bitcoin Cash", symbol: "BCH", tvSymbol: "BINANCE:BCHUSDT" },
+  { id: "near", name: "NEAR", symbol: "NEAR", tvSymbol: "BINANCE:NEARUSDT" },
+  { id: "litecoin", name: "Litecoin", symbol: "LTC", tvSymbol: "BINANCE:LTCUSDT" },
+  { id: "aptos", name: "Aptos", symbol: "APT", tvSymbol: "BINANCE:APTUSDT" },
+  { id: "internet-computer", name: "Internet Computer", symbol: "ICP", tvSymbol: "BINANCE:ICPUSDT" },
+  { id: "uniswap", name: "Uniswap", symbol: "UNI", tvSymbol: "BINANCE:UNIUSDT" },
+  { id: "ethereum-classic", name: "Ethereum Classic", symbol: "ETC", tvSymbol: "BINANCE:ETCUSDT" },
+  { id: "render-token", name: "Render", symbol: "RNDR", tvSymbol: "BINANCE:RNDRUSDT" },
+  { id: "injective-protocol", name: "Injective", symbol: "INJ", tvSymbol: "BINANCE:INJUSDT" },
+  { id: "cosmos", name: "Cosmos", symbol: "ATOM", tvSymbol: "BINANCE:ATOMUSDT" },
+  { id: "arbitrum", name: "Arbitrum", symbol: "ARB", tvSymbol: "BINANCE:ARBUSDT" },
+  { id: "optimism", name: "Optimism", symbol: "OP", tvSymbol: "BINANCE:OPUSDT" },
+  { id: "filecoin", name: "Filecoin", symbol: "FIL", tvSymbol: "BINANCE:FILUSDT" },
+  { id: "vechain", name: "VeChain", symbol: "VET", tvSymbol: "BINANCE:VETUSDT" },
+  { id: "maker", name: "Maker", symbol: "MKR", tvSymbol: "BINANCE:MKRUSDT" },
+  { id: "aave", name: "Aave", symbol: "AAVE", tvSymbol: "BINANCE:AAVEUSDT" },
+  { id: "sei-network", name: "Sei", symbol: "SEI", tvSymbol: "BINANCE:SEIUSDT" },
+  { id: "kaspa", name: "Kaspa", symbol: "KAS", tvSymbol: "BINANCE:KASUSDT" },
+  { id: "the-graph", name: "The Graph", symbol: "GRT", tvSymbol: "BINANCE:GRTUSDT" },
+  { id: "algorand", name: "Algorand", symbol: "ALGO", tvSymbol: "BINANCE:ALGOUSDT" },
+  { id: "immutable-x", name: "Immutable", symbol: "IMX", tvSymbol: "BINANCE:IMXUSDT" },
+  { id: "mantle", name: "Mantle", symbol: "MNT", tvSymbol: "BINANCE:MNTUSDT" },
+  { id: "lido-dao", name: "Lido DAO", symbol: "LDO", tvSymbol: "BINANCE:LDOUSDT" },
+  { id: "thorchain", name: "THORChain", symbol: "RUNE", tvSymbol: "BINANCE:RUNEUSDT" },
+  { id: "eos", name: "EOS", symbol: "EOS", tvSymbol: "BINANCE:EOSUSDT" },
+  { id: "pyth-network", name: "Pyth", symbol: "PYTH", tvSymbol: "BINANCE:PYTHUSDT" },
+  { id: "pepe", name: "Pepe", symbol: "PEPE", tvSymbol: "BINANCE:PEPEUSDT" },
+  { id: "celestia", name: "Celestia", symbol: "TIA", tvSymbol: "BINANCE:TIAUSDT" },
+  { id: "flow", name: "Flow", symbol: "FLOW", tvSymbol: "BINANCE:FLOWUSDT" },
+  { id: "axie-infinity", name: "Axie Infinity", symbol: "AXS", tvSymbol: "BINANCE:AXSUSDT" },
+  { id: "gala", name: "Gala", symbol: "GALA", tvSymbol: "BINANCE:GALAUSDT" },
+  { id: "sandbox", name: "The Sandbox", symbol: "SAND", tvSymbol: "BINANCE:SANDUSDT" },
+  { id: "decentraland", name: "Decentraland", symbol: "MANA", tvSymbol: "BINANCE:MANAUSDT" }
+];
+
 export async function getTopCoinsForTradingView(): Promise<TopCoinForTv[]> {
   const base = process.env.COINGECKO_API_BASE ?? "https://api.coingecko.com/api/v3";
   try {
@@ -35,7 +88,7 @@ export async function getTopCoinsForTradingView(): Promise<TopCoinForTv[]> {
       { next: { revalidate: 300 } }
     );
 
-    if (!coinsResponse.ok) return [];
+    if (!coinsResponse.ok) return fallbackTopCoins;
 
     const rows = (await coinsResponse.json()) as Array<{ id: string; name: string; symbol: string }>;
 
@@ -59,9 +112,9 @@ export async function getTopCoinsForTradingView(): Promise<TopCoinForTv[]> {
       })
       .slice(0, 50);
 
-    return filtered;
+    return filtered.length >= 50 ? filtered : fallbackTopCoins;
   } catch {
-    return [];
+    return fallbackTopCoins;
   }
 }
 
