@@ -1,10 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processKirvanoWebhookRaw, verifyKirvanoSignature } from "@/lib/kirvano";
 
+function firstHeader(req: NextRequest, names: string[]) {
+  for (const name of names) {
+    const value = req.headers.get(name);
+    if (value && value.trim()) return value;
+  }
+  return null;
+}
+
 export async function POST(req: NextRequest) {
   const rawBody = await req.text();
-  const signature = req.headers.get("x-kirvano-signature");
-  const token = req.headers.get("x-kirvano-token") ?? req.headers.get("authorization");
+  const signature = firstHeader(req, [
+    "x-kirvano-signature",
+    "kirvano-signature",
+    "x-signature",
+    "x-webhook-signature"
+  ]);
+  const token = firstHeader(req, [
+    "x-kirvano-token",
+    "kirvano-token",
+    "x-webhook-token",
+    "x-token",
+    "authorization"
+  ]);
 
   if (!verifyKirvanoSignature(rawBody, signature, token)) {
     return NextResponse.json({ error: "invalid_signature" }, { status: 401 });
