@@ -95,56 +95,7 @@ async function main() {
     }
   });
 
-  await prisma.dailyUpdate.upsert({
-    where: { slug: "fechamento-mercado-seed" },
-    update: {
-      content: "Atualização educacional diária sem promessa de rentabilidade.",
-      publishedAt: new Date()
-    },
-    create: {
-      title: "Fechamento do Mercado",
-      slug: "fechamento-mercado-seed",
-      content: "Atualização educacional diária sem promessa de rentabilidade.",
-      publishedAt: new Date(),
-      createdById: admin.id
-    }
-  });
-
-  await prisma.analysis.upsert({
-    where: { slug: "ciclo-macro-atual-seed" },
-    update: {
-      content: "Análise educacional focada em contexto macroeconômico.",
-      publishedAt: new Date()
-    },
-    create: {
-      title: "Ciclo Macro Atual",
-      slug: "ciclo-macro-atual-seed",
-      category: "MACRO",
-      content: "Análise educacional focada em contexto macroeconômico.",
-      publishedAt: new Date(),
-      createdById: admin.id
-    }
-  });
-
-  const existingVideo = await prisma.video.findFirst({
-    where: { title: "Introdução ao Plano Estratégico", createdById: admin.id }
-  });
-
-  if (!existingVideo) {
-    await prisma.video.create({
-      data: {
-        title: "Introdução ao Plano Estratégico",
-        module: "base",
-        provider: "YOUTUBE",
-        videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        publishedAt: new Date(),
-        requiredPlanId: starter.id,
-        createdById: admin.id
-      }
-    });
-  }
-
-  console.log("Seed finalizado.");
+  console.log("Seed finalizado (usuarios, planos e assinaturas base).");
 }
 
 main()
