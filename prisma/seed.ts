@@ -4,6 +4,12 @@ import { PrismaClient, Role } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
+  const NEW_ADMIN_EMAIL = "Admin@decentralized.club.com.br";
+  const OLD_ADMIN_EMAIL = "admin@decentralized.club";
+  const NEW_ADMIN_PASSWORD = "D3centr@al1iz3d@873829131894";
+  const NEW_MEMBER_EMAIL = "pedronabozni@gmail.com";
+  const NEW_MEMBER_PASSWORD = "Pedro@12345";
+
   const [starter, pro] = await Promise.all([
     prisma.plan.upsert({
       where: { kirvanoProductId: "kirvano_starter" },
@@ -35,31 +41,61 @@ async function main() {
     })
   ]);
 
-  const passwordHash = await bcrypt.hash("Admin@12345", 10);
-  const memberPasswordHash = await bcrypt.hash("User@12345", 10);
+  const adminPasswordHash = await bcrypt.hash(NEW_ADMIN_PASSWORD, 10);
+  const memberPasswordHash = await bcrypt.hash(NEW_MEMBER_PASSWORD, 10);
 
-  const admin = await prisma.user.upsert({
-    where: { email: "admin@decentralized.club" },
-    update: {},
-    create: {
-      name: "Admin",
-      email: "admin@decentralized.club",
-      passwordHash,
-      role: Role.ADMIN
-    }
-  });
+  const oldAdmin = await prisma.user.findUnique({ where: { email: OLD_ADMIN_EMAIL } });
+  const currentAdmin = await prisma.user.findUnique({ where: { email: NEW_ADMIN_EMAIL } });
+
+  let admin;
+  if (oldAdmin && (!currentAdmin || currentAdmin.id === oldAdmin.id)) {
+    admin = await prisma.user.update({
+      where: { id: oldAdmin.id },
+      data: {
+        name: "Admin",
+        email: NEW_ADMIN_EMAIL,
+        passwordHash: adminPasswordHash,
+        role: Role.ADMIN,
+        isBlocked: false
+      }
+    });
+  } else {
+    admin = await prisma.user.upsert({
+      where: { email: NEW_ADMIN_EMAIL },
+      update: {
+        name: "Admin",
+        passwordHash: adminPasswordHash,
+        role: Role.ADMIN,
+        isBlocked: false
+      },
+      create: {
+        name: "Admin",
+        email: NEW_ADMIN_EMAIL,
+        passwordHash: adminPasswordHash,
+        role: Role.ADMIN,
+        isBlocked: false
+      }
+    });
+  }
+
+  if (oldAdmin && admin.id !== oldAdmin.id) {
+    await prisma.user.update({
+      where: { id: oldAdmin.id },
+      data: { role: Role.USER, isBlocked: true }
+    });
+  }
 
   const member = await prisma.user.upsert({
-    where: { email: "membro@decentralized.club" },
+    where: { email: NEW_MEMBER_EMAIL },
     update: {
-      name: "Membro Teste",
+      name: "Pedro Nabozni",
       passwordHash: memberPasswordHash,
       role: Role.USER,
       isBlocked: false
     },
     create: {
-      name: "Membro Teste",
-      email: "membro@decentralized.club",
+      name: "Pedro Nabozni",
+      email: NEW_MEMBER_EMAIL,
       passwordHash: memberPasswordHash,
       role: Role.USER,
       isBlocked: false
