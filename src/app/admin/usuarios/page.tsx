@@ -25,10 +25,30 @@ async function changePlan(formData: FormData) {
 
   if (!userId || !planId) return;
 
-  await db.subscription.upsert({
-    where: { userId },
-    update: { planId, status: "ACTIVE" },
-    create: { userId, planId, status: "ACTIVE" }
+  const plan = await db.plan.findUnique({ where: { id: planId }, select: { id: true } });
+  if (!plan) return;
+
+  await db.$transaction(async (tx) => {
+    await tx.subscription.upsert({
+      where: { userId },
+      update: {
+        planId,
+        status: "ACTIVE",
+        renewalDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+        canceledAt: null
+      },
+      create: {
+        userId,
+        planId,
+        status: "ACTIVE",
+        renewalDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30)
+      }
+    });
+
+    await tx.user.update({
+      where: { id: userId },
+      data: { isBlocked: false }
+    });
   });
 
   revalidatePath("/admin/usuarios");
@@ -39,7 +59,7 @@ export default async function AdminUsersPage() {
 
   const [users, plans] = await Promise.all([
     db.user.findMany({ include: { subscription: { include: { plan: true } } }, orderBy: { createdAt: "desc" } }),
-    db.plan.findMany({ where: { isActive: true }, orderBy: { name: "asc" } })
+    db.plan.findMany({ orderBy: [{ isActive: "desc" }, { name: "asc" }] })
   ]);
 
   return (
@@ -83,7 +103,7 @@ export default async function AdminUsersPage() {
                   </option>
                   {plans.map((plan) => (
                     <option key={plan.id} value={plan.id}>
-                      {plan.name}
+                      {plan.name} {plan.isActive ? "" : "(inativo)"}
                     </option>
                   ))}
                 </select>

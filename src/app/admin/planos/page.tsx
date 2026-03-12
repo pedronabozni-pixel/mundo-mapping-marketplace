@@ -24,6 +24,15 @@ function parsePriceToCents(value: string): number | null {
   return null;
 }
 
+function generateManualProductId(name: string) {
+  const slug = name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `manual_${slug || "plan"}_${Date.now().toString(36)}`;
+}
+
 async function createPlan(formData: FormData) {
   "use server";
   await requireAdminSession();
@@ -31,10 +40,10 @@ async function createPlan(formData: FormData) {
   const name = String(formData.get("name") ?? "");
   const priceInput = String(formData.get("price") ?? "");
   const priceCents = parsePriceToCents(priceInput);
-  const kirvanoProductId = String(formData.get("kirvanoProductId") ?? "");
+  const kirvanoProductIdInput = String(formData.get("kirvanoProductId") ?? "").trim();
   const permissionsRaw = String(formData.get("permissionsJson") ?? "{}");
 
-  if (!name || !kirvanoProductId || priceCents === null) return;
+  if (!name || priceCents === null) return;
 
   let permissionsJson: object = {};
   try {
@@ -42,6 +51,10 @@ async function createPlan(formData: FormData) {
   } catch {
     permissionsJson = { raw: permissionsRaw };
   }
+
+  const kirvanoProductId = kirvanoProductIdInput || generateManualProductId(name);
+  const duplicate = await db.plan.findUnique({ where: { kirvanoProductId } });
+  if (duplicate) return;
 
   await db.plan.create({
     data: {
@@ -75,14 +88,24 @@ async function updatePlan(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const name = String(formData.get("name") ?? "").trim();
   const priceInput = String(formData.get("price") ?? "").trim();
-  const kirvanoProductId = String(formData.get("kirvanoProductId") ?? "").trim();
+  const kirvanoProductIdInput = String(formData.get("kirvanoProductId") ?? "").trim();
   const permissionsRaw = String(formData.get("permissionsJson") ?? "{}");
   const isActive = String(formData.get("isActive") ?? "false") === "true";
 
-  if (!id || !name || !kirvanoProductId) return;
+  if (!id || !name) return;
 
   const priceCents = parsePriceToCents(priceInput);
   if (priceCents === null) return;
+
+  const current = await db.plan.findUnique({
+    where: { id },
+    select: { id: true, kirvanoProductId: true }
+  });
+  if (!current) return;
+
+  const kirvanoProductId = kirvanoProductIdInput || current.kirvanoProductId;
+  const duplicate = await db.plan.findUnique({ where: { kirvanoProductId } });
+  if (duplicate && duplicate.id !== id) return;
 
   let permissionsJson: object = {};
   try {
@@ -143,7 +166,7 @@ export default async function AdminPlansPage() {
             required
             type="text"
           />
-          <input className="input" name="kirvanoProductId" placeholder="ID do produto na Kirvano" required />
+          <input className="input" name="kirvanoProductId" placeholder="ID do produto na Kirvano (opcional)" />
           <textarea
             className="input min-h-24"
             defaultValue='{"dailyUpdates":true,"analyses":["MACRO"],"videosModules":["base"]}'
@@ -198,7 +221,7 @@ export default async function AdminPlansPage() {
                   required
                   type="text"
                 />
-                <input className="input" defaultValue={plan.kirvanoProductId} name="kirvanoProductId" required />
+                <input className="input" defaultValue={plan.kirvanoProductId} name="kirvanoProductId" />
                 <textarea
                   className="input min-h-24"
                   defaultValue={JSON.stringify(plan.permissionsJson, null, 2)}
