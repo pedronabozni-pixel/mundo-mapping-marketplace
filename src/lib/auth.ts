@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 
 const BOOTSTRAP_USERS = [
   {
-    email: "Admin@decentralized.club.com.br",
+    email: "admin@decentralized.club.com.br",
     password: "D3centr@al1iz3d@873829131894",
     role: Role.ADMIN,
     name: "Admin"
@@ -33,9 +33,11 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials.password) return null;
+        const email = credentials.email.trim().toLowerCase();
+        const password = credentials.password;
 
         const bootstrapUser = BOOTSTRAP_USERS.find(
-          (item) => item.email === credentials.email && item.password === credentials.password
+          (item) => item.email === email && item.password === password
         );
 
         if (bootstrapUser) {
@@ -59,13 +61,13 @@ export const authOptions: NextAuthOptions = {
         }
 
         const user = await db.user.findUnique({
-          where: { email: credentials.email },
+          where: { email },
           include: { subscription: true }
         });
 
         if (!user) return null;
 
-        const ok = await bcrypt.compare(credentials.password, user.passwordHash);
+        const ok = await bcrypt.compare(password, user.passwordHash);
         if (!ok) return null;
 
         return {

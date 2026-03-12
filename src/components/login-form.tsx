@@ -36,6 +36,7 @@ export function LoginForm() {
   }
 
   const queryError = searchParams.get("error");
+  const queryErrorMessage = queryError === "admin" ? "Acesso restrito ao administrador." : "";
 
   return (
     <form className="card w-full max-w-md space-y-4 border-brand/30" onSubmit={onSubmit}>
@@ -60,9 +61,9 @@ export function LoginForm() {
         />
       </div>
 
-      {(error || queryError) && (
+      {(error || queryErrorMessage) && (
         <p className="rounded bg-red-500/10 p-2 text-sm text-red-300">
-          {error || "Seu acesso está bloqueado por status de assinatura."}
+          {error || queryErrorMessage}
         </p>
       )}
 
