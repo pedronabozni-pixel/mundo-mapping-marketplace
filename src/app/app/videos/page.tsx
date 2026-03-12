@@ -2,12 +2,7 @@ import { db } from "@/lib/db";
 import { requireMemberSession } from "@/lib/access";
 
 export default async function VideosPage() {
-  const session = await requireMemberSession();
-
-  const subscription = await db.subscription.findUnique({
-    where: { userId: session.user.id },
-    include: { plan: true }
-  });
+  await requireMemberSession();
 
   const videos = await db.video.findMany({
     where: { publishedAt: { not: null } },
@@ -15,12 +10,7 @@ export default async function VideosPage() {
     include: { requiredPlan: true }
   });
 
-  const filtered = videos.filter((video) => {
-    if (!video.requiredPlanId) return true;
-    return video.requiredPlanId === subscription?.planId || session.user.role === "ADMIN";
-  });
-
-  const grouped = filtered.reduce<Record<string, typeof filtered>>((acc, item) => {
+  const grouped = videos.reduce<Record<string, typeof videos>>((acc, item) => {
     acc[item.module] = acc[item.module] ? [...acc[item.module], item] : [item];
     return acc;
   }, {});
