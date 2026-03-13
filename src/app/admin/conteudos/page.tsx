@@ -110,13 +110,16 @@ async function updateUpdate(formData: FormData) {
   const content = String(formData.get("content") ?? "");
   const coverImageFile = formData.get("coverImageFile");
   const currentCoverImage = String(formData.get("currentCoverImage") ?? "") || null;
+  const removeCoverImage = String(formData.get("removeCoverImage") ?? "") === "true";
 
   if (!id || !title || !content) return;
 
   const coverImage =
     coverImageFile instanceof File && coverImageFile.size > 0
       ? await saveImageUpload(coverImageFile, "updates")
-      : currentCoverImage;
+      : removeCoverImage
+        ? null
+        : currentCoverImage;
 
   await db.dailyUpdate.update({
     where: { id },
@@ -140,6 +143,7 @@ async function updateAnalysis(formData: FormData) {
   const content = String(formData.get("content") ?? "");
   const coverImageFile = formData.get("coverImageFile");
   const currentCoverImage = String(formData.get("currentCoverImage") ?? "") || null;
+  const removeCoverImage = String(formData.get("removeCoverImage") ?? "") === "true";
   const category = String(formData.get("category") ?? "MACRO") as AnalysisCategory;
 
   if (!id || !title || !content) return;
@@ -147,7 +151,9 @@ async function updateAnalysis(formData: FormData) {
   const coverImage =
     coverImageFile instanceof File && coverImageFile.size > 0
       ? await saveImageUpload(coverImageFile, "analyses")
-      : currentCoverImage;
+      : removeCoverImage
+        ? null
+        : currentCoverImage;
 
   await db.analysis.update({
     where: { id },
@@ -330,6 +336,10 @@ export default async function AdminContentsPage({ searchParams }: AdminContentsP
                       <div className="space-y-2">
                         <span className="text-xs uppercase tracking-[0.2em] text-muted">Imagem atual</span>
                         <img alt={item.title} className="max-h-52 w-full rounded-lg object-cover" src={item.coverImage} />
+                        <label className="flex items-center gap-2 text-sm text-muted">
+                          <input className="h-4 w-4" name="removeCoverImage" type="checkbox" value="true" />
+                          Excluir imagem atual
+                        </label>
                       </div>
                     ) : null}
                     <label className="drop-input">
@@ -384,6 +394,10 @@ export default async function AdminContentsPage({ searchParams }: AdminContentsP
                       <div className="space-y-2">
                         <span className="text-xs uppercase tracking-[0.2em] text-muted">Imagem atual</span>
                         <img alt={item.title} className="max-h-52 w-full rounded-lg object-cover" src={item.coverImage} />
+                        <label className="flex items-center gap-2 text-sm text-muted">
+                          <input className="h-4 w-4" name="removeCoverImage" type="checkbox" value="true" />
+                          Excluir imagem atual
+                        </label>
                       </div>
                     ) : null}
                     <label className="drop-input">
