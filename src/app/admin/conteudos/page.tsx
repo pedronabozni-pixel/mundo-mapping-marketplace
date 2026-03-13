@@ -1,5 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { AnalysisCategory, VideoProvider } from "@prisma/client";
+import Link from "next/link";
 import { requireAdminSession } from "@/lib/access";
 import { db } from "@/lib/db";
 import { saveImageUpload } from "@/lib/uploads";
@@ -207,8 +208,16 @@ async function deleteContent(formData: FormData) {
   revalidateContentPaths();
 }
 
-export default async function AdminContentsPage() {
+type AdminContentsPageProps = {
+  searchParams: Promise<{
+    edit?: string;
+  }>;
+};
+
+export default async function AdminContentsPage({ searchParams }: AdminContentsPageProps) {
   await requireAdminSession();
+  const params = await searchParams;
+  const activeEdit = params.edit ?? "";
 
   const [updates, analyses, videos, plans] = await Promise.all([
     db.dailyUpdate.findMany({ orderBy: { createdAt: "desc" }, take: 8 }),
@@ -289,140 +298,155 @@ export default async function AdminContentsPage() {
       </section>
 
       <section className="card">
-        <h2 className="mb-4 text-lg font-semibold">Editar conteúdos publicados</h2>
-        <p className="mb-4 text-sm text-muted">
-          Clique em <span className="font-semibold text-text">Editar</span> no conteúdo que quiser alterar.
-        </p>
-
-        <div className="space-y-4">
-          {updates.map((item) => (
-            <details className="rounded border border-border p-4" key={item.id}>
-              <summary className="flex cursor-pointer items-center justify-between gap-3 text-sm font-semibold">
-                <span>ATUALIZAÇÃO • {item.title}</span>
-                <span className="rounded-full border border-brand/40 px-3 py-1 text-xs uppercase tracking-[0.2em] text-brand">
-                  Editar
-                </span>
-              </summary>
-              <form action={updateUpdate} className="mt-4 grid gap-2">
-                <input name="id" type="hidden" value={item.id} />
-                <input name="currentCoverImage" type="hidden" value={item.coverImage ?? ""} />
-                <input className="input" defaultValue={item.title} name="title" placeholder="Título" required />
-                <textarea className="input min-h-28" defaultValue={item.content} name="content" placeholder="Conteúdo educacional" required />
-                {item.coverImage ? (
-                  <div className="space-y-2">
-                    <span className="text-xs uppercase tracking-[0.2em] text-muted">Imagem atual</span>
-                    <img alt={item.title} className="max-h-52 w-full rounded-lg object-cover" src={item.coverImage} />
-                  </div>
-                ) : null}
-                <label className="drop-input">
-                  <span className="text-sm font-medium">Trocar imagem de capa</span>
-                  <span className="text-xs text-muted">
-                    {item.coverImage ? "Se não enviar nova imagem, a atual será mantida." : "Envie uma imagem se quiser adicionar capa."}
-                  </span>
-                  <input accept="image/*" className="mt-2 block text-sm text-muted" name="coverImageFile" type="file" />
-                </label>
-                <input className="input" defaultValue={formatDateTimeLocal(item.publishedAt)} name="publishedAt" type="datetime-local" />
-                <div className="flex gap-2">
-                  <button className="btn" type="submit">
-                    Salvar edição
-                  </button>
-                </div>
-              </form>
-            </details>
-          ))}
-
-          {analyses.map((item) => (
-            <details className="rounded border border-border p-4" key={item.id}>
-              <summary className="flex cursor-pointer items-center justify-between gap-3 text-sm font-semibold">
-                <span>ANÁLISE • {item.title}</span>
-                <span className="rounded-full border border-brand/40 px-3 py-1 text-xs uppercase tracking-[0.2em] text-brand">
-                  Editar
-                </span>
-              </summary>
-              <form action={updateAnalysis} className="mt-4 grid gap-2">
-                <input name="id" type="hidden" value={item.id} />
-                <input name="currentCoverImage" type="hidden" value={item.coverImage ?? ""} />
-                <input className="input" defaultValue={item.title} name="title" placeholder="Título" required />
-                <select className="input" defaultValue={item.category} name="category">
-                  <option value="MACRO">Macro</option>
-                  <option value="TECNICA">Técnica</option>
-                  <option value="NARRATIVAS">Narrativas</option>
-                  <option value="INSTITUCIONAL">Institucional</option>
-                  <option value="EUA">EUA</option>
-                </select>
-                <textarea className="input min-h-28" defaultValue={item.content} name="content" placeholder="Corpo da análise" required />
-                {item.coverImage ? (
-                  <div className="space-y-2">
-                    <span className="text-xs uppercase tracking-[0.2em] text-muted">Imagem atual</span>
-                    <img alt={item.title} className="max-h-52 w-full rounded-lg object-cover" src={item.coverImage} />
-                  </div>
-                ) : null}
-                <label className="drop-input">
-                  <span className="text-sm font-medium">Trocar imagem de capa</span>
-                  <span className="text-xs text-muted">
-                    {item.coverImage ? "Se não enviar nova imagem, a atual será mantida." : "Envie uma imagem se quiser adicionar capa."}
-                  </span>
-                  <input accept="image/*" className="mt-2 block text-sm text-muted" name="coverImageFile" type="file" />
-                </label>
-                <input className="input" defaultValue={item.pdfUrl ?? ""} name="pdfUrl" placeholder="URL PDF (opcional)" />
-                <input className="input" defaultValue={formatDateTimeLocal(item.publishedAt)} name="publishedAt" type="datetime-local" />
-                <div className="flex gap-2">
-                  <button className="btn" type="submit">
-                    Salvar edição
-                  </button>
-                </div>
-              </form>
-            </details>
-          ))}
-
-          {videos.map((item) => (
-            <details className="rounded border border-border p-4" key={item.id}>
-              <summary className="flex cursor-pointer items-center justify-between gap-3 text-sm font-semibold">
-                <span>VÍDEO • {item.title}</span>
-                <span className="rounded-full border border-brand/40 px-3 py-1 text-xs uppercase tracking-[0.2em] text-brand">
-                  Editar
-                </span>
-              </summary>
-              <form action={updateVideo} className="mt-4 grid gap-2">
-                <input name="id" type="hidden" value={item.id} />
-                <input className="input" defaultValue={item.title} name="title" placeholder="Título" required />
-                <input className="input" defaultValue={item.module} name="module" placeholder="Módulo" required />
-                <select className="input" defaultValue={item.provider} name="provider">
-                  <option value="YOUTUBE">YouTube</option>
-                  <option value="VIMEO">Vimeo</option>
-                </select>
-                <input className="input" defaultValue={item.videoUrl} name="videoUrl" placeholder="URL embed" required />
-                <select className="input" defaultValue={item.requiredPlanId ?? ""} name="requiredPlanId">
-                  <option value="">Sem restrição</option>
-                  {plans.map((plan) => (
-                    <option key={plan.id} value={plan.id}>
-                      {plan.name}
-                    </option>
-                  ))}
-                </select>
-                <input className="input" defaultValue={formatDateTimeLocal(item.publishedAt)} name="publishedAt" type="datetime-local" />
-                <div className="flex gap-2">
-                  <button className="btn" type="submit">
-                    Salvar edição
-                  </button>
-                </div>
-              </form>
-            </details>
-          ))}
-        </div>
-      </section>
-
-      <section className="card">
-        <h2 className="mb-2 text-lg font-semibold">Excluir conteúdos</h2>
+        <h2 className="mb-2 text-lg font-semibold">Conteúdos publicados</h2>
         <div className="space-y-2 text-sm">
-          {[...updates.map((item) => ({ type: "update", id: item.id, title: item.title })), ...analyses.map((item) => ({ type: "analysis", id: item.id, title: item.title })), ...videos.map((item) => ({ type: "video", id: item.id, title: item.title }))].map((item) => (
-            <form action={deleteContent} className="flex items-center justify-between gap-2 rounded border border-border p-2" key={item.id}>
-              <span>{item.type.toUpperCase()} • {item.title}</span>
-              <input name="type" type="hidden" value={item.type} />
-              <input name="id" type="hidden" value={item.id} />
-              <button className="btn-secondary" type="submit">Excluir</button>
-            </form>
-          ))}
+          {updates.map((item) => {
+            const editKey = `update:${item.id}`;
+            const isEditing = activeEdit === editKey;
+
+            return (
+              <div className="rounded border border-border p-2" key={item.id}>
+                <div className="flex items-center justify-between gap-2">
+                  <span>UPDATE • {item.title}</span>
+                  <div className="flex gap-2">
+                    <Link className="btn-secondary" href={isEditing ? "/admin/conteudos" : `/admin/conteudos?edit=${encodeURIComponent(editKey)}`}>
+                      {isEditing ? "Fechar" : "Editar"}
+                    </Link>
+                    <form action={deleteContent}>
+                      <input name="type" type="hidden" value="update" />
+                      <input name="id" type="hidden" value={item.id} />
+                      <button className="btn-secondary" type="submit">Excluir</button>
+                    </form>
+                  </div>
+                </div>
+
+                {isEditing ? (
+                  <form action={updateUpdate} className="mt-4 grid gap-2 border-t border-border pt-4">
+                    <input name="id" type="hidden" value={item.id} />
+                    <input name="currentCoverImage" type="hidden" value={item.coverImage ?? ""} />
+                    <input className="input" defaultValue={item.title} name="title" placeholder="Título" required />
+                    <textarea className="input min-h-28" defaultValue={item.content} name="content" placeholder="Conteúdo educacional" required />
+                    {item.coverImage ? (
+                      <div className="space-y-2">
+                        <span className="text-xs uppercase tracking-[0.2em] text-muted">Imagem atual</span>
+                        <img alt={item.title} className="max-h-52 w-full rounded-lg object-cover" src={item.coverImage} />
+                      </div>
+                    ) : null}
+                    <label className="drop-input">
+                      <span className="text-sm font-medium">Trocar imagem de capa</span>
+                      <span className="text-xs text-muted">
+                        {item.coverImage ? "Se não enviar nova imagem, a atual será mantida." : "Envie uma imagem se quiser adicionar capa."}
+                      </span>
+                      <input accept="image/*" className="mt-2 block text-sm text-muted" name="coverImageFile" type="file" />
+                    </label>
+                    <input className="input" defaultValue={formatDateTimeLocal(item.publishedAt)} name="publishedAt" type="datetime-local" />
+                    <button className="btn w-fit" type="submit">Salvar edição</button>
+                  </form>
+                ) : null}
+              </div>
+            );
+          })}
+
+          {analyses.map((item) => {
+            const editKey = `analysis:${item.id}`;
+            const isEditing = activeEdit === editKey;
+
+            return (
+              <div className="rounded border border-border p-2" key={item.id}>
+                <div className="flex items-center justify-between gap-2">
+                  <span>ANALYSIS • {item.title}</span>
+                  <div className="flex gap-2">
+                    <Link className="btn-secondary" href={isEditing ? "/admin/conteudos" : `/admin/conteudos?edit=${encodeURIComponent(editKey)}`}>
+                      {isEditing ? "Fechar" : "Editar"}
+                    </Link>
+                    <form action={deleteContent}>
+                      <input name="type" type="hidden" value="analysis" />
+                      <input name="id" type="hidden" value={item.id} />
+                      <button className="btn-secondary" type="submit">Excluir</button>
+                    </form>
+                  </div>
+                </div>
+
+                {isEditing ? (
+                  <form action={updateAnalysis} className="mt-4 grid gap-2 border-t border-border pt-4">
+                    <input name="id" type="hidden" value={item.id} />
+                    <input name="currentCoverImage" type="hidden" value={item.coverImage ?? ""} />
+                    <input className="input" defaultValue={item.title} name="title" placeholder="Título" required />
+                    <select className="input" defaultValue={item.category} name="category">
+                      <option value="MACRO">Macro</option>
+                      <option value="TECNICA">Técnica</option>
+                      <option value="NARRATIVAS">Narrativas</option>
+                      <option value="INSTITUCIONAL">Institucional</option>
+                      <option value="EUA">EUA</option>
+                    </select>
+                    <textarea className="input min-h-28" defaultValue={item.content} name="content" placeholder="Corpo da análise" required />
+                    {item.coverImage ? (
+                      <div className="space-y-2">
+                        <span className="text-xs uppercase tracking-[0.2em] text-muted">Imagem atual</span>
+                        <img alt={item.title} className="max-h-52 w-full rounded-lg object-cover" src={item.coverImage} />
+                      </div>
+                    ) : null}
+                    <label className="drop-input">
+                      <span className="text-sm font-medium">Trocar imagem de capa</span>
+                      <span className="text-xs text-muted">
+                        {item.coverImage ? "Se não enviar nova imagem, a atual será mantida." : "Envie uma imagem se quiser adicionar capa."}
+                      </span>
+                      <input accept="image/*" className="mt-2 block text-sm text-muted" name="coverImageFile" type="file" />
+                    </label>
+                    <input className="input" defaultValue={item.pdfUrl ?? ""} name="pdfUrl" placeholder="URL PDF (opcional)" />
+                    <input className="input" defaultValue={formatDateTimeLocal(item.publishedAt)} name="publishedAt" type="datetime-local" />
+                    <button className="btn w-fit" type="submit">Salvar edição</button>
+                  </form>
+                ) : null}
+              </div>
+            );
+          })}
+
+          {videos.map((item) => {
+            const editKey = `video:${item.id}`;
+            const isEditing = activeEdit === editKey;
+
+            return (
+              <div className="rounded border border-border p-2" key={item.id}>
+                <div className="flex items-center justify-between gap-2">
+                  <span>VIDEO • {item.title}</span>
+                  <div className="flex gap-2">
+                    <Link className="btn-secondary" href={isEditing ? "/admin/conteudos" : `/admin/conteudos?edit=${encodeURIComponent(editKey)}`}>
+                      {isEditing ? "Fechar" : "Editar"}
+                    </Link>
+                    <form action={deleteContent}>
+                      <input name="type" type="hidden" value="video" />
+                      <input name="id" type="hidden" value={item.id} />
+                      <button className="btn-secondary" type="submit">Excluir</button>
+                    </form>
+                  </div>
+                </div>
+
+                {isEditing ? (
+                  <form action={updateVideo} className="mt-4 grid gap-2 border-t border-border pt-4">
+                    <input name="id" type="hidden" value={item.id} />
+                    <input className="input" defaultValue={item.title} name="title" placeholder="Título" required />
+                    <input className="input" defaultValue={item.module} name="module" placeholder="Módulo" required />
+                    <select className="input" defaultValue={item.provider} name="provider">
+                      <option value="YOUTUBE">YouTube</option>
+                      <option value="VIMEO">Vimeo</option>
+                    </select>
+                    <input className="input" defaultValue={item.videoUrl} name="videoUrl" placeholder="URL embed" required />
+                    <select className="input" defaultValue={item.requiredPlanId ?? ""} name="requiredPlanId">
+                      <option value="">Sem restrição</option>
+                      {plans.map((plan) => (
+                        <option key={plan.id} value={plan.id}>
+                          {plan.name}
+                        </option>
+                      ))}
+                    </select>
+                    <input className="input" defaultValue={formatDateTimeLocal(item.publishedAt)} name="publishedAt" type="datetime-local" />
+                    <button className="btn w-fit" type="submit">Salvar edição</button>
+                  </form>
+                ) : null}
+              </div>
+            );
+          })}
         </div>
       </section>
     </div>
