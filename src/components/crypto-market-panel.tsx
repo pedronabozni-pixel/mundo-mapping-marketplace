@@ -121,11 +121,11 @@ export function CryptoMarketPanel({ market, topCoins }: Props) {
       </div>
 
       <div className="card">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Gráfico {selectedTopCoin?.symbol ?? selectedAsset.label}</h2>
+        <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-base font-semibold sm:text-lg">Gráfico {selectedTopCoin?.symbol ?? selectedAsset.label}</h2>
           <p className="text-xs text-muted">Fonte: TradingView</p>
         </div>
-        <div className="h-[420px] w-full overflow-hidden rounded-lg border border-border">
+        <div className="h-[320px] w-full overflow-hidden rounded-lg border border-border sm:h-[380px] lg:h-[420px]">
           <iframe
             className="h-full w-full"
             key={selectedTvSymbol}

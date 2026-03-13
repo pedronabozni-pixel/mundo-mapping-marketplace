@@ -39,9 +39,9 @@ export function LoginForm() {
   const queryErrorMessage = queryError === "admin" ? "Acesso restrito ao administrador." : "";
 
   return (
-    <form className="card w-full max-w-md space-y-4 border-brand/30" onSubmit={onSubmit}>
+    <form className="card w-full max-w-md space-y-4 border-brand/30 sm:space-y-5" onSubmit={onSubmit}>
       <div className="glass-line -mx-4 -mt-4 rounded-t-2xl px-4 pb-4 pt-3">
-        <Image alt="Decentralized Club" className="h-20 w-auto" height={80} src="/brand/logo.svg?v=2" width={240} />
+        <Image alt="Decentralized Club" className="h-16 w-auto sm:h-20" height={80} src="/brand/logo.svg?v=2" width={240} />
         <p className="text-xs tracking-[0.22em] text-muted">MEMBER ACCESS</p>
       </div>
 
@@ -71,7 +71,7 @@ export function LoginForm() {
         {loading ? "Entrando..." : "Entrar"}
       </button>
 
-      <a className="text-sm text-muted underline underline-offset-4" href="/reset-password">
+      <a className="block text-center text-sm text-muted underline underline-offset-4 sm:text-left" href="/reset-password">
         Esqueci minha senha
       </a>
     </form>

@@ -16,6 +16,10 @@ body {
   font-family: Montserrat, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -81,4 +85,23 @@ a {
 
 .animate-fade-up {
   animation: fade-up 0.55s ease-out both;
+}
+
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .card {
+    @apply rounded-2xl p-3.5;
+  }
+
+  .btn,
+  .btn-secondary {
+    @apply min-h-[44px] px-3 py-2 text-sm;
+  }
+
+  .input {
+    @apply min-h-[44px] text-base;
+  }
 }
