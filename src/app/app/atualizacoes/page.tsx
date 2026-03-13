@@ -56,6 +56,9 @@ export default async function UpdatesPage({ searchParams }: Props) {
       <div className="space-y-3">
         {filtered.map((item) => (
           <Link className="card block" href={`/app/atualizacoes/${item.slug}`} key={item.id}>
+            {item.coverImage ? (
+              <img alt={item.title} className="mb-3 max-h-56 w-full rounded-lg object-cover" src={item.coverImage} />
+            ) : null}
             <h2 className="text-lg font-semibold">{item.title}</h2>
             <p className="text-sm text-muted">{formatDate(item.publishedAt)}</p>
           </Link>
