@@ -6,7 +6,8 @@ const links = [
   { href: "/app/dashboard", label: "Dashboard" },
   { href: "/app/atualizacoes", label: "Atualizações" },
   { href: "/app/analises", label: "Análises" },
-  { href: "/app/videos", label: "Vídeos" }
+  { href: "/app/videos", label: "Vídeos" },
+  { href: "/app/calculadora", label: "Calculadora" }
 ];
 
 export function MemberNav() {
