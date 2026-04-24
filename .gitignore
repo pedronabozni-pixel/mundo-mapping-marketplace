@@ -1,8 +1,11 @@
 node_modules
 .next
+.next_stale_*
 .env
 .env.local
 prisma/dev.db
 *.log
 tsconfig.tsbuildinfo
 public/uploads/store/
+.data/
+genesis-loja-clean/
