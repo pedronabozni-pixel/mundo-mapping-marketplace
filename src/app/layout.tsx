@@ -1,20 +1,17 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SessionProvider } from "@/components/session-provider";
-import { KitchenProvider } from "@/components/kitchen/kitchen-provider";
 
 export const metadata: Metadata = {
-  title: "Geladeira Viva",
-  description: "Assistente culinário inteligente para descobrir o que cozinhar com os ingredientes que você já tem em casa."
+  title: "Mundo Mapping Marketplace",
+  description: "Marketplace de afiliados da Mundo Mapping para empresas e influenciadores."
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
       <body>
-        <SessionProvider>
-          <KitchenProvider>{children}</KitchenProvider>
-        </SessionProvider>
+        <SessionProvider>{children}</SessionProvider>
       </body>
     </html>
   );

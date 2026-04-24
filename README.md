@@ -1,203 +1,156 @@
-# Decentralized Club (SaaS MVP)
+# Mundo Mapping Marketplace
 
-Plataforma SaaS com:
-- Area do Usuario (membro pagante)
-- Area Administrativa (admin)
-- Integracao por webhook com Kirvano para ativacao/bloqueio automatico de assinatura
+Projeto Next.js da Mundo Mapping com dois contextos principais:
+
+- painel da empresa em `/mundo-mapping/afiliados`
+- portal do influenciador em `/mundo-mapping/influenciadores`
+
+As áreas legadas do projeto-base anterior foram removidas da aplicação. O foco deste repositório agora é o marketplace da Mundo Mapping.
 
 ## Stack
-- Next.js 15 (App Router)
+
+- Next.js 15
+- React 19
 - TypeScript
-- Tailwind CSS (tema escuro estilo fintech)
-- Prisma (SQLite local + PostgreSQL prod)
-- NextAuth (credentials)
+- Tailwind CSS
+- Prisma
+- NextAuth
 
-## Funcionalidades implementadas
+## O que é da Mundo Mapping
 
-### 1) Integracao Kirvano
-- Endpoint: `POST /api/webhooks/kirvano`
-- Valida assinatura do webhook via HMAC SHA-256 (`x-kirvano-signature`)
-- Processa eventos:
-  - `pagamento_aprovado`
-  - `assinatura_ativa`
-  - `cancelamento`
-  - `reembolso`
-  - `falha_pagamento`
-- Regras automaticas:
-  - Cria usuario no pagamento aprovado
-  - Ativa/atualiza plano e status
-  - Bloqueia acesso em cancelamento/falha
-  - Dispara email de ativacao de conta para definir senha
-- Idempotencia por `event_id`
-- Salva no banco:
-  - id de transacao
-  - status da assinatura
-  - data de renovacao
-  - plano contratado
+Rotas principais:
 
-### 2) Area do Usuario
-- Login com email/senha
-- Ativacao de conta por email (definicao de senha)
-- Reset de senha
-- Bloqueio de acesso por status da assinatura
-- Dashboard com:
-  - Precos BTC/ETH/SOL/BNB (CoinGecko)
-  - Ultima atualizacao diaria
-  - Ultima analise exclusiva
-  - Conteudos recentes
-  - Status e proxima cobranca da assinatura
-- Atualizacoes diarias:
-  - Lista por data
-  - Busca
-  - Filtro por mes
-  - Artigo detalhado
-- Analises exclusivas por categoria:
-  - Macro, Tecnica, Narrativas, Institucional, EUA
-- Videos:
-  - Player embutido (YouTube/Vimeo)
-  - Organizacao por modulo
-  - Restricao por plano
+- `/`
+- `/mundo-mapping/afiliados`
+- `/mundo-mapping/afiliados/produtos/novo`
+- `/mundo-mapping/afiliados/produtos/[slug]`
+- `/mundo-mapping/influenciadores`
+- `/mundo-mapping/influenciadores/marketplace`
 
-### 3) Area Admin
-- Gestao de conteudo:
-  - Criar e excluir atualizacoes, analises e videos
-  - Campos para agendamento de publicacao
-  - Link de PDF opcional nas analises
-- Gestao de usuarios:
-  - Listagem de membros
-  - Ver plano/status
-  - Alterar plano manualmente
-  - Bloquear/desbloquear acesso
-  - Exportar CSV (`/api/export/members.csv`)
-- Gestao de planos:
-  - Criar plano
-  - Ativar/desativar plano
-  - Associar `kirvanoProductId`
-  - Definir permissoes JSON
-- Metricas:
-  - Membros ativos
-  - Receita mensal estimada
-  - Taxa de cancelamento
-  - Conteudos mais acessados
+Principais componentes:
 
-## Estrutura de banco (Prisma)
-Principais modelos:
-- `User`
-- `Plan`
-- `Subscription`
-- `WebhookEvent`
-- `DailyUpdate`
-- `Analysis`
-- `Video`
-- `ContentView`
+- `src/components/mundo-mapping/*`
+- `src/app/mundo-mapping/*`
 
-Arquivo: `prisma/schema.prisma`
+Comportamento atual:
 
-## Como rodar
+- `/` redireciona para `/mundo-mapping/afiliados`
+- rotas legadas do projeto-base redirecionam para `/mundo-mapping/legado-desativado`
 
-1. Copie as variaveis de ambiente:
+## Banco de dados
+
+O projeto suporta dois cenários:
+
+### 1. Padrão do projeto: SQLite
+
+É o modo mais simples para desenvolvimento local e também o padrão atual do deploy deste repositório.
+
+- schema: `prisma/schema.prisma`
+- provider: `sqlite`
+- valor padrão recomendado:
+
+```env
+DATABASE_URL="file:./dev.db"
+```
+
+### 2. Opcional: PostgreSQL
+
+Use apenas se você realmente quiser rodar com Postgres em produção.
+
+- schema: `prisma/schema.postgres.prisma`
+- provider: `postgresql`
+
+Exemplo:
+
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?schema=public"
+```
+
+## Variáveis de ambiente
+
+### Obrigatórias para a Mundo Mapping
+
+```env
+DATABASE_URL="file:./dev.db"
+NEXTAUTH_SECRET="change-me"
+NEXTAUTH_URL="http://localhost:3000"
+APP_URL="http://localhost:3000"
+RUN_PRISMA_SEED="false"
+```
+
+## Como rodar localmente
+
+1. Copie o arquivo de ambiente:
+
 ```bash
 cp .env.example .env
 ```
 
-2. Local: use SQLite (ja vem no `.env.example`).
+2. Instale as dependências:
 
-3. Instale dependencias:
 ```bash
 npm install
 ```
 
-4. Gere cliente Prisma + sincronize banco local:
+3. Gere o Prisma Client:
+
 ```bash
 npm run prisma:generate
+```
+
+4. Sincronize o banco:
+
+```bash
 npm run prisma:db:push
 ```
 
-5. Rode seed:
+5. Se quiser dados iniciais:
+
 ```bash
 npm run prisma:seed
 ```
 
-6. Suba o projeto:
+6. Rode o projeto:
+
 ```bash
 npm run dev
 ```
 
-## Produção (Railway/PostgreSQL)
-1. Use schema PostgreSQL:
+## Deploy
+
+### Deploy padrão deste repositório
+
+O `Dockerfile` agora assume por padrão:
+
+- schema SQLite
+- `DATABASE_URL=file:./prod.db` se nenhuma variável for informada
+
+Ou seja: o deploy não força PostgreSQL.
+
+### Se quiser usar PostgreSQL em deploy
+
+Defina as variáveis:
+
+```env
+PRISMA_SCHEMA_PATH=prisma/schema.postgres.prisma
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DATABASE?schema=public
+```
+
+## Scripts úteis
+
 ```bash
+npm run dev
+npm run build
+npm run start
+npm run prisma:generate
+npm run prisma:db:push
 npm run prisma:generate:prod
 npm run prisma:db:push:prod
+npm run prisma:seed
 ```
-2. Defina `DATABASE_URL` de PostgreSQL no ambiente da Railway.
-3. Para envio de email de ativacao, configure:
-   - `RESEND_API_KEY`
-   - `EMAIL_FROM`
-   - `NEXTAUTH_URL` (URL publica da aplicacao)
 
-## Credenciais seed
-- Admin: `admin@decentralized.club`
-- Senha: `Admin@12345`
+## Observações importantes
 
-## Rotas principais
-- Login: `/login`
-- Ativacao de conta: `/activate-account?token=...`
-- Reset senha: `/reset-password`
-- Membro: `/app/dashboard`
-- Admin: `/admin`
-- Loja Genesis: `/loja`
-- Loja Admin (isolado): `/loja/admin` (login em `/loja/admin/login`)
-- Loja Admin alternativo: `/admin-loja` (login em `/admin-loja/login`)
-
-## Observacoes
-- Conteudo foi estruturado com foco educacional (sem promessa de rentabilidade).
-- O fluxo de ativacao usa token com expiracao de 24h enviado por email.
-- Upload de arquivo esta modelado via URL; para upload fisico, integrar storage (S3/Supabase Storage).
-
----
-
-## Loja Genesis Distribuidora (E-commerce isolado)
-
-Implementacao front-end da loja foi adicionada sem interromper a plataforma cripto existente.
-
-### Caracteristicas
-- Next.js + React + Tailwind CSS
-- Tema premium escuro com detalhes dourados
-- Home com destaque do produto ancora (`H12 Ultra SE`)
-- Prova social, escassez visual e CTAs de alta conversao
-- Favoritos com `localStorage`
-- SEO dinamico por produto
-- Newsletter (mock local em `src/data/newsletter-leads.json`)
-- Estrutura pronta para Pixel (`src/lib/pixel.ts`)
-- Painel admin da loja com senha e cookie proprio (sem conflito com `/admin` da cripto)
-
-### Dados da loja
-- Produtos: `src/data/products.json`
-- Leads newsletter: `src/data/newsletter-leads.json`
-- Configuracao admin: `src/lib/store-config.ts`
-  - `STORE_ADMIN_PASSWORD`
-  - `STORE_ADMIN_SESSION_TOKEN`
-
-### Rotas da loja
-- Home: `/loja`
-- Produto: `/loja/produtos/[slug]`
-- Favoritos: `/loja/favoritos`
-- Sobre: `/loja/sobre`
-- Contato: `/loja/contato`
-- Admin loja: `/loja/admin`
-
-### APIs da loja
-- `GET /api/loja/products`
-- `GET /api/loja/products/[slug]`
-- `POST /api/loja/newsletter`
-- `POST /api/loja-admin/login`
-- `POST /api/loja-admin/logout`
-- `PUT /api/loja-admin/products/[slug]`
-
-### Deploy na Vercel
-1. Suba o repositorio no GitHub.
-2. Importe no painel da Vercel.
-3. Configure variaveis de ambiente:
-   - `STORE_ADMIN_PASSWORD`
-   - `STORE_ADMIN_SESSION_TOKEN`
-4. Deploy com preset `Next.js`.
+- A aplicação agora entra diretamente na Mundo Mapping e as rotas antigas foram substituídas por uma página de legado desativado.
+- O código de interface e rotas legadas foi removido do app.
+- Ainda existem alguns campos históricos nos schemas Prisma, que podem ser refatorados depois com mais calma se você quiser simplificar o domínio de dados.

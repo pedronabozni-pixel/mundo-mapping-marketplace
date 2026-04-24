@@ -1,10 +1,5 @@
-import { HomePage } from "@/components/kitchen/home-page";
-import { SiteShell } from "@/components/kitchen/site-shell";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return (
-    <SiteShell>
-      <HomePage />
-    </SiteShell>
-  );
+  redirect("/mundo-mapping/afiliados");
 }

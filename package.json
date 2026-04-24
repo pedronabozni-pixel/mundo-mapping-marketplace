@@ -1,5 +1,5 @@
 {
-  "name": "decentralized-club",
+  "name": "mundo-mapping-marketplace",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,6 +11,8 @@
     "prisma:db:push": "PRISMA_CLI_QUERY_ENGINE_TYPE=library prisma db push",
     "prisma:generate:prod": "prisma generate --schema prisma/schema.postgres.prisma",
     "prisma:db:push:prod": "PRISMA_CLI_QUERY_ENGINE_TYPE=library prisma db push --schema prisma/schema.postgres.prisma",
+    "prisma:generate:postgres": "prisma generate --schema prisma/schema.postgres.prisma",
+    "prisma:db:push:postgres": "PRISMA_CLI_QUERY_ENGINE_TYPE=library prisma db push --schema prisma/schema.postgres.prisma",
     "prisma:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
