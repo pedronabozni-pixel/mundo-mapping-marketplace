@@ -93,60 +93,80 @@ export default function EmpresaLoginPage() {
     e.preventDefault();
     reset();
     setLoading(true);
-    const supabase = createClient();
-    const fd = new FormData(e.currentTarget);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: fd.get("email") as string,
-      password: fd.get("password") as string,
-    });
-    if (error) setError("E-mail ou senha incorretos.");
-    else { router.push("/mundo-mapping/afiliados"); router.refresh(); }
-    setLoading(false);
+    try {
+      const supabase = createClient();
+      const fd = new FormData(e.currentTarget);
+      const { error } = await supabase.auth.signInWithPassword({
+        email: fd.get("email") as string,
+        password: fd.get("password") as string,
+      });
+      if (error) setError("E-mail ou senha incorretos.");
+      else router.push("/mundo-mapping/afiliados");
+    } catch {
+      setError("Erro inesperado. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleSignUp(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     reset();
     setLoading(true);
-    const supabase = createClient();
-    const fd = new FormData(e.currentTarget);
-    const password = fd.get("password") as string;
-    const confirm = fd.get("confirm") as string;
-    if (password !== confirm) {
-      setError("As senhas não coincidem.");
-      setLoading(false);
-      return;
-    }
-    const { error } = await supabase.auth.signUp({
-      email: fd.get("email") as string,
-      password,
-      options: {
-        data: {
-          user_type: "empresa",
-          company_name: fd.get("company_name") as string,
-          cnpj: fd.get("cnpj") as string,
+    try {
+      const supabase = createClient();
+      const fd = new FormData(e.currentTarget);
+      const password = fd.get("password") as string;
+      const confirm = fd.get("confirm") as string;
+      if (password !== confirm) {
+        setError("As senhas não coincidem.");
+        return;
+      }
+      const { data, error } = await supabase.auth.signUp({
+        email: fd.get("email") as string,
+        password,
+        options: {
+          data: {
+            user_type: "empresa",
+            company_name: fd.get("company_name") as string,
+            cnpj: fd.get("cnpj") as string,
+          },
+          emailRedirectTo: `${window.location.origin}/mundo-mapping/empresa/dashboard`,
         },
-        emailRedirectTo: `${window.location.origin}/mundo-mapping/empresa/dashboard`,
-      },
-    });
-    if (error) setError(error.message);
-    else { router.push("/mundo-mapping/afiliados"); router.refresh(); }
-    setLoading(false);
+      });
+      if (error) {
+        setError(error.message);
+      } else if (data.session) {
+        router.push("/mundo-mapping/afiliados");
+      } else {
+        setInfo("Conta criada! Verifique seu e-mail para confirmar antes de entrar.");
+        setTab("entrar");
+      }
+    } catch {
+      setError("Erro inesperado. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleForgot(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     reset();
     setLoading(true);
-    const supabase = createClient();
-    const fd = new FormData(e.currentTarget);
-    const { error } = await supabase.auth.resetPasswordForEmail(
-      fd.get("email") as string,
-      { redirectTo: `${window.location.origin}/mundo-mapping/empresa/login` }
-    );
-    if (error) setError(error.message);
-    else setInfo("E-mail de recuperação enviado. Verifique sua caixa de entrada.");
-    setLoading(false);
+    try {
+      const supabase = createClient();
+      const fd = new FormData(e.currentTarget);
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        fd.get("email") as string,
+        { redirectTo: `${window.location.origin}/mundo-mapping/empresa/login` }
+      );
+      if (error) setError(error.message);
+      else setInfo("E-mail de recuperação enviado. Verifique sua caixa de entrada.");
+    } catch {
+      setError("Erro inesperado. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleGoogle() {
