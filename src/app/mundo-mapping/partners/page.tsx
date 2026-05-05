@@ -3,11 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 
-const PAINEL = "https://painel.mundomapping.com/empresa";
-
 function IconCheck() {
   return (
-    <svg fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" width="20">
+    <svg fill="none" height="14" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" width="14">
       <polyline points="20 6 9 17 4 12" />
     </svg>
   );
@@ -39,53 +37,53 @@ function IconStar() {
 
 function Navbar() {
   return (
-    <nav className="sticky top-0 z-50 border-b border-purple-100/80 bg-white/95 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-zinc-200/80 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#7C3AED]">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-[14px] bg-violet-700">
             <span className="text-xs font-bold text-white">MP</span>
           </div>
           <div className="leading-tight">
-            <p className="text-[15px] font-semibold text-zinc-950">Mapping Partners</p>
-            <p className="text-[10px] font-medium uppercase tracking-widest text-zinc-400">Mundo Mapping</p>
+            <p className="text-[15px] font-semibold tracking-tight text-zinc-950">Mapping Partners</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">Mundo Mapping</p>
           </div>
         </div>
-        <a
-          className="inline-flex h-10 items-center justify-center rounded-xl bg-[#7C3AED] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#6D28D9]"
-          href={`${PAINEL}/entrar`}
+        <Link
+          className="inline-flex h-10 items-center justify-center rounded-xl bg-violet-700 px-5 text-sm font-semibold text-white shadow-[0_8px_24px_-10px_rgba(109,40,217,0.7)] transition hover:bg-violet-800"
+          href="/mundo-mapping/afiliados"
         >
           Entrar
-        </a>
+        </Link>
       </div>
-    </nav>
+    </header>
   );
 }
 
 function Hero() {
   return (
-    <section className="relative overflow-hidden px-6 py-24 lg:py-36" style={{ background: "linear-gradient(135deg, #4C1D95 0%, #7C3AED 45%, #6D28D9 100%)" }}>
-      <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 80% 60% at 70% 20%, rgba(167,139,250,0.25) 0%, transparent 70%)" }} />
-      <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 60% 50% at 10% 80%, rgba(91,33,182,0.5) 0%, transparent 70%)" }} />
+    <section className="relative overflow-hidden rounded-none bg-[linear-gradient(135deg,#18181b_0%,#4C1D95_100%)] px-6 py-24 text-white lg:py-32">
+      <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 70% 60% at 80% 10%, rgba(167,139,250,0.2) 0%, transparent 70%)" }} />
+      <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 50% 50% at 10% 90%, rgba(109,40,217,0.35) 0%, transparent 70%)" }} />
       <div className="relative mx-auto max-w-4xl text-center">
-        <span className="inline-flex items-center rounded-full border border-purple-300/30 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-purple-200">
+        <span className="inline-flex items-center rounded-full border border-violet-400/30 bg-violet-500/15 px-3.5 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">
           Uma sub-marca da Mundo Mapping
         </span>
-        <h1 className="mx-auto mt-8 max-w-3xl text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-[3.6rem] lg:leading-[1.1]">
+        <h1 className="mx-auto mt-7 max-w-3xl text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-[3.4rem] lg:leading-[1.1]">
           Venda mais com creators que já têm{" "}
-          <span className="text-purple-300">audiência real</span>
+          <span className="text-violet-300">audiência real</span>
         </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-purple-100">
+        <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-white/70">
           O Mapping Partners conecta sua marca a mais de 16.000 influenciadores validados, prontos para divulgar e vender por comissão.
         </p>
         <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-          <a
-            className="inline-flex items-center justify-center rounded-2xl bg-white px-8 py-3.5 text-[15px] font-bold text-[#7C3AED] shadow-[0_20px_60px_-20px_rgba(255,255,255,0.35)] transition hover:bg-purple-50"
-            href={`${PAINEL}/cadastrar`}
+          <Link
+            className="inline-flex items-center justify-center rounded-xl bg-white px-8 py-3 text-[15px] font-bold text-violet-700 shadow-[0_16px_40px_-16px_rgba(255,255,255,0.35)] transition hover:bg-violet-50"
+            href="/mundo-mapping/afiliados"
           >
             Cadastrar meu produto
-          </a>
+          </Link>
           <Link
-            className="inline-flex items-center justify-center rounded-2xl border border-purple-300/40 bg-white/10 px-8 py-3.5 text-[15px] font-semibold text-white backdrop-blur-sm transition hover:bg-white/20"
+            className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/10 px-8 py-3 text-[15px] font-semibold text-white backdrop-blur-sm transition hover:bg-white/20"
             href="/mundo-mapping/influenciadores"
           >
             Sou influenciador
@@ -105,15 +103,15 @@ function Metrics() {
   ];
 
   return (
-    <section className="border-b border-zinc-100 bg-white px-6 py-16">
+    <section className="border-b border-zinc-200/80 bg-white px-6 py-14">
       <div className="mx-auto max-w-6xl">
-        <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {stats.map((stat) => (
             <div
-              className="flex flex-col items-center rounded-2xl border border-purple-100 bg-gradient-to-b from-purple-50 to-white p-6 text-center shadow-sm"
+              className="flex flex-col items-center rounded-2xl border border-zinc-200 bg-white p-6 text-center shadow-[0_18px_60px_-45px_rgba(24,24,27,0.28)]"
               key={stat.label}
             >
-              <span className="text-3xl font-bold text-[#7C3AED] sm:text-4xl">{stat.value}</span>
+              <span className="text-3xl font-bold text-violet-700 sm:text-4xl">{stat.value}</span>
               <span className="mt-2 text-sm font-medium text-zinc-500">{stat.label}</span>
             </div>
           ))}
@@ -143,10 +141,10 @@ function HowItWorks() {
   const steps = tab === "empresa" ? empresaSteps : influenciadorSteps;
 
   return (
-    <section className="bg-zinc-50 px-6 py-20">
+    <section className="bg-[#f3f4f6] px-6 py-20">
       <div className="mx-auto max-w-3xl">
         <div className="text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#7C3AED]">Como funciona</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-400">Como funciona</p>
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-zinc-950 sm:text-4xl">
             Simples para todos os lados
           </h2>
@@ -160,7 +158,7 @@ function HowItWorks() {
             <button
               className={`rounded-full px-7 py-2.5 text-sm font-semibold transition ${
                 tab === "empresa"
-                  ? "bg-[#7C3AED] text-white shadow-sm"
+                  ? "bg-zinc-900 text-white"
                   : "text-zinc-500 hover:text-zinc-900"
               }`}
               onClick={() => setTab("empresa")}
@@ -171,7 +169,7 @@ function HowItWorks() {
             <button
               className={`rounded-full px-7 py-2.5 text-sm font-semibold transition ${
                 tab === "influenciador"
-                  ? "bg-[#7C3AED] text-white shadow-sm"
+                  ? "bg-zinc-900 text-white"
                   : "text-zinc-500 hover:text-zinc-900"
               }`}
               onClick={() => setTab("influenciador")}
@@ -182,19 +180,30 @@ function HowItWorks() {
           </div>
         </div>
 
-        <div className="mt-8 space-y-3">
+        <div className="mt-6 space-y-3">
           {steps.map((step, index) => (
             <div
-              className="flex items-start gap-5 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm"
+              className="flex items-start gap-5 rounded-[20px] border border-zinc-200 bg-white p-5 shadow-[0_18px_60px_-45px_rgba(24,24,27,0.2)]"
               key={step}
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#7C3AED]/10 text-sm font-bold text-[#7C3AED]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-sm font-bold text-violet-700">
                 {String(index + 1).padStart(2, "0")}
               </div>
-              <p className="flex-1 pt-1.5 text-[15px] font-medium leading-7 text-zinc-800">{step}</p>
+              <p className="flex-1 pt-1.5 text-[15px] font-medium leading-7 text-zinc-700">{step}</p>
             </div>
           ))}
         </div>
+
+        {tab === "influenciador" && (
+          <div className="mt-6 text-center">
+            <Link
+              className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50"
+              href="/mundo-mapping/influenciadores"
+            >
+              Acessar área do influenciador
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -223,22 +232,22 @@ function Differentials() {
     <section className="bg-white px-6 py-20">
       <div className="mx-auto max-w-6xl">
         <div className="text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#7C3AED]">Diferenciais</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-400">Diferenciais</p>
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-zinc-950 sm:text-4xl">
             Por que o Mapping Partners?
           </h2>
         </div>
-        <div className="mt-14 grid gap-6 lg:grid-cols-3">
+        <div className="mt-12 grid gap-5 lg:grid-cols-3">
           {cards.map((card) => (
             <div
-              className="group rounded-3xl border border-purple-100 bg-gradient-to-b from-purple-50/60 to-white p-8 transition hover:border-purple-200 hover:shadow-md"
+              className="rounded-[24px] border border-zinc-200 bg-white p-7 shadow-[0_24px_80px_-54px_rgba(24,24,27,0.35)] transition hover:border-zinc-300"
               key={card.title}
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#7C3AED] text-white">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-50 text-violet-700">
                 {card.icon}
               </div>
-              <h3 className="mt-5 text-lg font-semibold text-zinc-950">{card.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-zinc-600">{card.desc}</p>
+              <h3 className="mt-5 text-lg font-semibold tracking-tight text-zinc-950">{card.title}</h3>
+              <p className="mt-3 text-sm leading-7 text-zinc-500">{card.desc}</p>
             </div>
           ))}
         </div>
@@ -252,25 +261,25 @@ function ForWhom() {
   const influenciadores = ["Nano e micro creators", "Qualquer nicho", "De qualquer cidade do Brasil", "Com ou sem CNPJ", "Comece sem custo"];
 
   return (
-    <section className="px-6 py-20" style={{ background: "linear-gradient(135deg, #1E1B4B 0%, #3B0764 100%)" }}>
-      <div className="mx-auto max-w-6xl text-white">
+    <section className="bg-[#181a20] px-6 py-20 text-white">
+      <div className="mx-auto max-w-6xl">
         <div className="text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-purple-400">Para quem é</p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/40">Para quem é</p>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Feito para quem quer resultado
           </h2>
         </div>
-        <div className="mt-14 grid gap-6 lg:grid-cols-2">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-purple-400">Empresas</p>
+        <div className="mt-12 grid gap-5 lg:grid-cols-2">
+          <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-400">Empresas</p>
             <h3 className="mt-3 text-xl font-semibold text-white">Qualquer negócio que vende online</h3>
-            <p className="mt-2 text-sm leading-6 text-white/55">
+            <p className="mt-2 text-sm leading-6 text-white/50">
               Ideal para quem quer escalar vendas com marketing de performance puro.
             </p>
             <ul className="mt-6 space-y-3">
               {empresas.map((item) => (
-                <li className="flex items-center gap-3 text-sm text-white/80" key={item}>
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#7C3AED]/60 text-purple-200">
+                <li className="flex items-center gap-3 text-sm text-white/75" key={item}>
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-700/50 text-violet-300">
                     <IconCheck />
                   </span>
                   {item}
@@ -278,16 +287,16 @@ function ForWhom() {
               ))}
             </ul>
           </div>
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-purple-400">Influenciadores</p>
+          <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-400">Influenciadores</p>
             <h3 className="mt-3 text-xl font-semibold text-white">Creators que querem monetizar</h3>
-            <p className="mt-2 text-sm leading-6 text-white/55">
+            <p className="mt-2 text-sm leading-6 text-white/50">
               Sem precisar de milhões de seguidores — audiência engajada já é suficiente.
             </p>
             <ul className="mt-6 space-y-3">
               {influenciadores.map((item) => (
-                <li className="flex items-center gap-3 text-sm text-white/80" key={item}>
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#7C3AED]/60 text-purple-200">
+                <li className="flex items-center gap-3 text-sm text-white/75" key={item}>
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-700/50 text-violet-300">
                     <IconCheck />
                   </span>
                   {item}
@@ -304,70 +313,80 @@ function ForWhom() {
 function Plans() {
   const plans = [
     {
-      name: "Starter",
+      name: "Associate",
       price: "Grátis",
       period: "",
-      features: ["Até 3 produtos", "Acesso ao shopping", "Link de afiliado básico"],
+      fee: "10% de taxa por venda gerada",
+      features: [
+        "Até 3 produtos no shopping",
+        "Acesso à base de +16k creators",
+        "Link de afiliado básico",
+      ],
       highlight: false,
       badge: null,
       cta: "Começar grátis",
     },
     {
-      name: "Growth",
-      price: "R$197",
+      name: "Partner",
+      price: "R$117",
       period: "/mês",
-      features: ["Até 10 produtos", "Dashboard completo", "Relatórios detalhados"],
-      highlight: false,
-      badge: null,
-      cta: "Assinar agora",
-    },
-    {
-      name: "Scale",
-      price: "R$497",
-      period: "/mês",
-      features: ["Produtos ilimitados", "Curadoria de creators", "Suporte prioritário"],
+      fee: "8% de taxa por venda gerada",
+      features: [
+        "Produtos ilimitados",
+        "Dashboard de performance completo",
+        "Curadoria automática por nicho",
+        "Suporte via chat",
+      ],
       highlight: true,
       badge: "Mais popular",
       cta: "Assinar agora",
     },
     {
-      name: "Enterprise",
-      price: "Sob consulta",
-      period: "",
-      features: ["Gestão completa", "Account dedicado", "SLA garantido"],
+      name: "Elite",
+      price: "R$197",
+      period: "/mês",
+      fee: "6% de taxa por venda gerada",
+      features: [
+        "Tudo do Partner",
+        "Curadoria humana de creators",
+        "Materiais de venda personalizados",
+        "Account manager dedicado",
+        "Relatórios avançados de GMV",
+      ],
       highlight: false,
       badge: null,
-      cta: "Falar com vendas",
+      cta: "Assinar agora",
     },
   ];
 
   return (
-    <section className="bg-zinc-50 px-6 py-20">
-      <div className="mx-auto max-w-6xl">
+    <section className="bg-[#f3f4f6] px-6 py-20">
+      <div className="mx-auto max-w-5xl">
         <div className="text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#7C3AED]">Planos</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-400">Planos</p>
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-zinc-950 sm:text-4xl">
-            Comece grátis, cresça sem limite
+            Entrada gratuita, escala com resultado
           </h2>
-          <p className="mt-4 text-base text-zinc-500">Escolha o plano ideal para o tamanho do seu negócio.</p>
+          <p className="mt-4 text-base text-zinc-500">
+            Comece sem custo e pague uma taxa sobre as vendas geradas. Planos pagos reduzem a taxa e liberam funcionalidades premium.
+          </p>
         </div>
-        <div className="mt-14 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-12 grid gap-5 sm:grid-cols-3">
           {plans.map((plan) => (
             <div
-              className={`relative flex flex-col rounded-3xl p-6 ${
+              className={`relative flex flex-col rounded-[24px] p-7 ${
                 plan.highlight
-                  ? "border-0 text-white shadow-[0_30px_80px_-30px_rgba(124,58,237,0.5)]"
-                  : "border border-zinc-200 bg-white shadow-sm"
+                  ? "bg-[linear-gradient(135deg,#18181b_0%,#4C1D95_100%)] text-white shadow-[0_30px_80px_-30px_rgba(109,40,217,0.5)]"
+                  : "border border-zinc-200 bg-white shadow-[0_18px_60px_-45px_rgba(24,24,27,0.22)]"
               }`}
               key={plan.name}
-              style={plan.highlight ? { background: "linear-gradient(150deg, #7C3AED 0%, #6D28D9 100%)" } : {}}
             >
               {plan.badge && (
-                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-white px-4 py-1 text-xs font-bold text-[#7C3AED] shadow-sm">
+                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-white px-4 py-1 text-xs font-bold text-violet-700 shadow-sm ring-1 ring-zinc-200">
                   {plan.badge}
                 </span>
               )}
-              <p className={`text-xs font-bold uppercase tracking-widest ${plan.highlight ? "text-purple-200" : "text-[#7C3AED]"}`}>
+              <p className={`text-xs font-bold uppercase tracking-widest ${plan.highlight ? "text-violet-300" : "text-violet-700"}`}>
                 {plan.name}
               </p>
               <div className="mt-4 flex items-baseline gap-1">
@@ -375,30 +394,36 @@ function Plans() {
                   {plan.price}
                 </span>
                 {plan.period && (
-                  <span className={`text-sm ${plan.highlight ? "text-purple-200" : "text-zinc-400"}`}>{plan.period}</span>
+                  <span className={`text-sm ${plan.highlight ? "text-white/50" : "text-zinc-400"}`}>{plan.period}</span>
                 )}
+              </div>
+              <div className={`mt-3 rounded-xl px-3 py-2 text-xs font-semibold ${plan.highlight ? "bg-white/10 text-violet-200" : "bg-violet-50 text-violet-700"}`}>
+                {plan.fee}
               </div>
               <ul className="mt-6 flex-1 space-y-3">
                 {plan.features.map((feat) => (
-                  <li className={`flex items-center gap-2.5 text-sm ${plan.highlight ? "text-purple-100" : "text-zinc-600"}`} key={feat}>
-                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${plan.highlight ? "bg-purple-300" : "bg-[#7C3AED]"}`} />
+                  <li className={`flex items-center gap-2.5 text-sm ${plan.highlight ? "text-white/75" : "text-zinc-600"}`} key={feat}>
+                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${plan.highlight ? "bg-violet-400" : "bg-violet-600"}`} />
                     {feat}
                   </li>
                 ))}
               </ul>
-              <a
+              <Link
                 className={`mt-8 block rounded-xl py-3 text-center text-sm font-bold transition ${
                   plan.highlight
-                    ? "bg-white text-[#7C3AED] hover:bg-purple-50"
-                    : "border border-[#7C3AED]/20 bg-[#7C3AED]/5 text-[#7C3AED] hover:bg-[#7C3AED]/10"
+                    ? "bg-white text-violet-700 hover:bg-violet-50"
+                    : "border border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100"
                 }`}
-                href={`${PAINEL}/cadastrar`}
+                href="/mundo-mapping/afiliados"
               >
                 {plan.cta}
-              </a>
+              </Link>
             </div>
           ))}
         </div>
+        <p className="mx-auto mt-8 max-w-2xl text-center text-sm leading-7 text-zinc-400">
+          Em todos os planos, a Mapping Partners retém uma taxa sobre cada venda gerada pelos seus afiliados. Quanto maior o plano, menor a taxa.
+        </p>
       </div>
     </section>
   );
@@ -406,27 +431,27 @@ function Plans() {
 
 function FinalCTA() {
   return (
-    <section className="relative overflow-hidden px-6 py-24 text-white" style={{ background: "linear-gradient(135deg, #5B21B6 0%, #7C3AED 60%, #6D28D9 100%)" }}>
+    <section className="relative overflow-hidden bg-[linear-gradient(135deg,#18181b_0%,#4C1D95_100%)] px-6 py-24 text-white">
       <div
         className="pointer-events-none absolute inset-0"
-        style={{ background: "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(167,139,250,0.2) 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(ellipse 60% 70% at 50% 50%, rgba(167,139,250,0.15) 0%, transparent 70%)" }}
       />
       <div className="relative mx-auto max-w-2xl text-center">
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
           Pronto para vender com creators reais?
         </h2>
-        <p className="mx-auto mt-5 max-w-lg text-lg leading-8 text-purple-200">
+        <p className="mx-auto mt-5 max-w-lg text-lg leading-8 text-white/60">
           Cadastre seu produto agora e comece a receber divulgações de influenciadores validados.
         </p>
         <div className="mt-10 flex flex-col items-center gap-5 sm:flex-row sm:justify-center">
-          <a
-            className="inline-flex items-center justify-center rounded-2xl bg-white px-10 py-3.5 text-base font-bold text-[#7C3AED] shadow-[0_20px_60px_-20px_rgba(255,255,255,0.4)] transition hover:bg-purple-50"
-            href={`${PAINEL}/cadastrar`}
+          <Link
+            className="inline-flex items-center justify-center rounded-xl bg-white px-10 py-3 text-base font-bold text-violet-700 shadow-[0_16px_40px_-16px_rgba(255,255,255,0.35)] transition hover:bg-violet-50"
+            href="/mundo-mapping/afiliados"
           >
             Começar agora
-          </a>
+          </Link>
           <Link
-            className="text-sm font-medium text-purple-200 underline-offset-4 transition hover:text-white hover:underline"
+            className="text-sm font-medium text-white/50 underline-offset-4 transition hover:text-white hover:underline"
             href="/mundo-mapping/influenciadores"
           >
             Já sou influenciador da Mundo Mapping
@@ -439,10 +464,10 @@ function FinalCTA() {
 
 function Footer() {
   return (
-    <footer className="border-t border-zinc-100 bg-white px-6 py-10">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between sm:text-left">
+    <footer className="border-t border-zinc-200/80 bg-white px-6 py-8">
+      <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-left">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#7C3AED]">
+          <div className="flex h-8 w-8 items-center justify-center rounded-[12px] bg-violet-700">
             <span className="text-xs font-bold text-white">MP</span>
           </div>
           <div className="leading-tight">
@@ -450,12 +475,6 @@ function Footer() {
             <p className="text-xs text-zinc-400">Uma sub-marca da Mundo Mapping</p>
           </div>
         </div>
-        <a
-          className="text-sm text-zinc-400 underline-offset-4 transition hover:text-zinc-700 hover:underline"
-          href="https://mundomapping.com"
-        >
-          mundomapping.com
-        </a>
       </div>
     </footer>
   );
