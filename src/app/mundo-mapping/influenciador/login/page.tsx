@@ -101,7 +101,7 @@ export default function InfluenciadorLoginPage() {
         password: fd.get("password") as string,
       });
       if (error) setError("E-mail ou senha incorretos.");
-      else router.push("/mundo-mapping/influenciadores");
+      else window.location.href = "/mundo-mapping/influenciadores";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado. Tente novamente.");
     } finally {
@@ -137,7 +137,7 @@ export default function InfluenciadorLoginPage() {
       if (error) {
         setError(error.message);
       } else if (data.session) {
-        router.push("/mundo-mapping/influenciadores");
+        window.location.href = "/mundo-mapping/influenciadores";
       } else {
         setInfo("Conta criada! Verifique seu e-mail para confirmar antes de entrar.");
         setTab("entrar");
