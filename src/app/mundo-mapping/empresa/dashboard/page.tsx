@@ -9,10 +9,14 @@ export default async function EmpresaDashboardPage() {
     redirect("/mundo-mapping/empresa/login");
   }
 
-  // Set user_type for Google OAuth users who don't have it yet
   if (!user.user_metadata?.user_type) {
     await supabase.auth.updateUser({ data: { user_type: "empresa" } });
   }
+
+  await supabase.from("profiles").upsert(
+    { id: user.id, user_type: "empresa", plano: "associate" },
+    { onConflict: "id", ignoreDuplicates: true }
+  );
 
   redirect("/mundo-mapping/afiliados");
 }

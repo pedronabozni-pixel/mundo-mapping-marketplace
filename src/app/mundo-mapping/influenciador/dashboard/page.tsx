@@ -9,10 +9,14 @@ export default async function InfluenciadorDashboardPage() {
     redirect("/mundo-mapping/influenciador/login");
   }
 
-  // Set user_type for Google OAuth users who don't have it yet
   if (!user.user_metadata?.user_type) {
     await supabase.auth.updateUser({ data: { user_type: "influenciador" } });
   }
+
+  await supabase.from("profiles").upsert(
+    { id: user.id, user_type: "influenciador", plano: "associate" },
+    { onConflict: "id", ignoreDuplicates: true }
+  );
 
   redirect("/mundo-mapping/influenciadores");
 }
