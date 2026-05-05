@@ -312,7 +312,7 @@ function TaxModel() {
           Como funciona a nossa taxa
         </h2>
         <p className="mt-4 text-base leading-7 text-zinc-500">
-          Você só paga quando vende. O Mapping Partners retém uma porcentagem sobre a comissão que o creator recebe — não sobre o valor total da venda. Isso significa risco zero para entrar e crescimento compartilhado.
+          Você só paga quando vende. O Mapping Partners cobra uma taxa adicional sobre as taxas do Asaas — não sobre o valor total da venda. Risco zero para entrar, crescimento compartilhado.
         </p>
       </div>
     </section>
@@ -327,7 +327,7 @@ function Plans() {
       period: "",
       badge: null,
       badgeSub: "Freemium permanente",
-      fee: "15% sobre a comissão do creator por venda",
+      fee: "Taxa por venda: Asaas + 2%",
       highlight: false,
       cta: "Começar grátis",
       features: [
@@ -344,7 +344,7 @@ function Plans() {
       period: "/mês",
       badge: "Mais popular",
       badgeSub: null,
-      fee: "10% sobre a comissão do creator por venda",
+      fee: "Taxa por venda: Asaas + R$0,99",
       highlight: true,
       cta: "Assinar agora",
       features: [
@@ -361,7 +361,7 @@ function Plans() {
       period: "/mês",
       badge: null,
       badgeSub: "Máxima performance",
-      fee: "6% sobre a comissão do creator por venda",
+      fee: "Taxa por venda: Asaas + R$0,49",
       highlight: false,
       cta: "Assinar agora",
       features: [
@@ -454,7 +454,7 @@ function Plans() {
           ))}
         </div>
         <p className="mx-auto mt-8 max-w-2xl text-center text-sm leading-7 text-zinc-400">
-          Em todos os planos, o Mapping Partners retém uma taxa sobre a comissão do creator por cada venda gerada. Quanto maior o plano, menor a taxa — e maior o seu lucro.
+          As taxas do Mapping Partners são cobradas em cima das taxas padrão do Asaas. Quanto maior o plano, menor a taxa adicional — e maior o seu lucro por venda.
         </p>
       </div>
     </section>
