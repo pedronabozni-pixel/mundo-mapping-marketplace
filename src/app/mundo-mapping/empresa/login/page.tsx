@@ -102,8 +102,8 @@ export default function EmpresaLoginPage() {
       });
       if (error) setError("E-mail ou senha incorretos.");
       else router.push("/mundo-mapping/afiliados");
-    } catch {
-      setError("Erro inesperado. Tente novamente.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro inesperado. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -142,8 +142,8 @@ export default function EmpresaLoginPage() {
         setInfo("Conta criada! Verifique seu e-mail para confirmar antes de entrar.");
         setTab("entrar");
       }
-    } catch {
-      setError("Erro inesperado. Tente novamente.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro inesperado. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -162,8 +162,8 @@ export default function EmpresaLoginPage() {
       );
       if (error) setError(error.message);
       else setInfo("E-mail de recuperação enviado. Verifique sua caixa de entrada.");
-    } catch {
-      setError("Erro inesperado. Tente novamente.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro inesperado. Tente novamente.");
     } finally {
       setLoading(false);
     }
