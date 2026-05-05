@@ -129,7 +129,7 @@ function HowItWorks() {
   ];
 
   const influenciadorSteps = [
-    "Acesse o Shopping de produtos disponíveis",
+    "Acesse o Marketplace de produtos disponíveis",
     "Escolha produtos alinhados ao seu nicho",
     "Receba seu link exclusivo de afiliado",
     "Divulgue e receba comissão por cada venda",
@@ -331,7 +331,7 @@ function Plans() {
       highlight: false,
       cta: "Começar grátis",
       features: [
-        { text: "1 produto no shopping", included: true },
+        { text: "1 produto no marketplace", included: true },
         { text: "Acesso à base de +16k creators", included: true },
         { text: "Link de afiliado básico", included: true },
         { text: "Dashboard de performance", included: false },
@@ -348,7 +348,7 @@ function Plans() {
       highlight: true,
       cta: "Assinar agora",
       features: [
-        { text: "Até 10 produtos no shopping", included: true },
+        { text: "Até 10 produtos no marketplace", included: true },
         { text: "Dashboard de performance completo", included: true },
         { text: "Curadoria automática por nicho", included: true },
         { text: "Vê identidade dos creators afiliados", included: true },
