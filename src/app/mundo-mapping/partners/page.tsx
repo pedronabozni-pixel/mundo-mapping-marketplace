@@ -303,52 +303,75 @@ function ForWhom() {
   );
 }
 
+function TaxModel() {
+  return (
+    <section className="border-b border-zinc-200/80 bg-white px-6 py-14">
+      <div className="mx-auto max-w-3xl rounded-[24px] border border-zinc-200 bg-white p-8 shadow-[0_24px_80px_-54px_rgba(24,24,27,0.35)]">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-400">Modelo de receita</p>
+        <h2 className="mt-3 text-2xl font-bold tracking-tight text-zinc-950">
+          Como funciona a nossa taxa
+        </h2>
+        <p className="mt-4 text-base leading-7 text-zinc-500">
+          Você só paga quando vende. O Mapping Partners retém uma porcentagem sobre a comissão que o creator recebe — não sobre o valor total da venda. Isso significa risco zero para entrar e crescimento compartilhado.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function Plans() {
   const plans = [
     {
       name: "Associate",
       price: "Grátis",
       period: "",
-      fee: "10% de taxa por venda gerada",
-      features: [
-        "Até 3 produtos no shopping",
-        "Acesso à base de +16k creators",
-        "Link de afiliado básico",
-      ],
-      highlight: false,
       badge: null,
+      badgeSub: "Freemium permanente",
+      fee: "15% sobre a comissão do creator por venda",
+      highlight: false,
       cta: "Começar grátis",
+      features: [
+        { text: "1 produto no shopping", included: true },
+        { text: "Acesso à base de +16k creators", included: true },
+        { text: "Link de afiliado básico", included: true },
+        { text: "Dashboard de performance", included: false },
+        { text: "Ver identidade dos creators", included: false },
+      ],
     },
     {
       name: "Partner",
       price: "R$117",
       period: "/mês",
-      fee: "8% de taxa por venda gerada",
-      features: [
-        "Produtos ilimitados",
-        "Dashboard de performance completo",
-        "Curadoria automática por nicho",
-        "Suporte via chat",
-      ],
-      highlight: true,
       badge: "Mais popular",
+      badgeSub: null,
+      fee: "10% sobre a comissão do creator por venda",
+      highlight: true,
       cta: "Assinar agora",
+      features: [
+        { text: "Até 10 produtos no shopping", included: true },
+        { text: "Dashboard de performance completo", included: true },
+        { text: "Curadoria automática por nicho", included: true },
+        { text: "Vê identidade dos creators afiliados", included: true },
+        { text: "Suporte via chat", included: true },
+      ],
     },
     {
       name: "Elite",
       price: "R$197",
       period: "/mês",
-      fee: "6% de taxa por venda gerada",
-      features: [
-        "Tudo do Partner",
-        "Curadoria humana de creators",
-        "Materiais de venda personalizados",
-        "Account manager dedicado",
-        "Relatórios avançados de GMV",
-      ],
-      highlight: false,
       badge: null,
+      badgeSub: "Máxima performance",
+      fee: "6% sobre a comissão do creator por venda",
+      highlight: false,
       cta: "Assinar agora",
+      features: [
+        { text: "Tudo do Partner", included: true },
+        { text: "Produtos ilimitados", included: true },
+        { text: "Curadoria humana de creators", included: true },
+        { text: "Materiais de venda personalizados", included: true },
+        { text: "Account manager dedicado", included: true },
+        { text: "Relatórios avançados de GMV", included: true },
+      ],
     },
   ];
 
@@ -379,9 +402,14 @@ function Plans() {
                   {plan.badge}
                 </span>
               )}
-              <p className={`text-xs font-bold uppercase tracking-widest ${plan.highlight ? "text-white/72" : "text-red-700"}`}>
-                {plan.name}
-              </p>
+              <div>
+                <p className={`text-xs font-bold uppercase tracking-widest ${plan.highlight ? "text-white/72" : "text-red-700"}`}>
+                  {plan.name}
+                </p>
+                {plan.badgeSub && (
+                  <p className={`mt-0.5 text-xs ${plan.highlight ? "text-white/40" : "text-zinc-400"}`}>{plan.badgeSub}</p>
+                )}
+              </div>
               <div className="mt-4 flex items-baseline gap-1">
                 <span className={`text-3xl font-bold ${plan.highlight ? "text-white" : "text-zinc-950"}`}>
                   {plan.price}
@@ -395,9 +423,20 @@ function Plans() {
               </div>
               <ul className="mt-6 flex-1 space-y-3">
                 {plan.features.map((feat) => (
-                  <li className={`flex items-center gap-2.5 text-sm ${plan.highlight ? "text-white/72" : "text-zinc-600"}`} key={feat}>
-                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${plan.highlight ? "bg-red-300" : "bg-red-600"}`} />
-                    {feat}
+                  <li
+                    className={`flex items-center gap-2.5 text-sm ${
+                      feat.included
+                        ? plan.highlight ? "text-white/72" : "text-zinc-600"
+                        : plan.highlight ? "text-white/40" : "text-zinc-400"
+                    }`}
+                    key={feat.text}
+                  >
+                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+                      feat.included
+                        ? plan.highlight ? "bg-red-300" : "bg-red-600"
+                        : "bg-zinc-300"
+                    }`} />
+                    {feat.text}
                   </li>
                 ))}
               </ul>
@@ -415,7 +454,7 @@ function Plans() {
           ))}
         </div>
         <p className="mx-auto mt-8 max-w-2xl text-center text-sm leading-7 text-zinc-400">
-          Em todos os planos, a Mapping Partners retém uma taxa sobre cada venda gerada pelos seus afiliados. Quanto maior o plano, menor a taxa.
+          Em todos os planos, o Mapping Partners retém uma taxa sobre a comissão do creator por cada venda gerada. Quanto maior o plano, menor a taxa — e maior o seu lucro.
         </p>
       </div>
     </section>
@@ -479,6 +518,7 @@ export default function MappingPartnersPage() {
         <HowItWorks />
         <Differentials />
         <ForWhom />
+        <TaxModel />
         <Plans />
         <FinalCTA />
       </main>
