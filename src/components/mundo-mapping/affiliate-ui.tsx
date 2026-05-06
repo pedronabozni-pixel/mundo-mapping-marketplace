@@ -11,8 +11,10 @@ export const affiliateNavLinks: NavLink[] = [
   { href: "/mundo-mapping/afiliados/produtos/novo", label: "Novo produto" },
   { href: "/mundo-mapping/afiliados/produtos/mapa-360-pro", label: "Hub do produto" },
   { href: "/mundo-mapping/afiliados/shopping", label: "Shopping" },
+  { href: "/mundo-mapping/afiliados/creators", label: "Creators" },
   { href: "/mundo-mapping/afiliados/financeiro", label: "Financeiro" },
   { href: "/mundo-mapping/afiliados/admin", label: "Admin" },
+  { href: "/mundo-mapping/afiliados/relatorio", label: "Relatório" },
   { href: "/mundo-mapping/afiliados/perfil", label: "Perfil" },
 ];
 
@@ -459,7 +461,8 @@ export function AffiliateShell({
 const influencerNavLinks = [
   { href: "/mundo-mapping/influenciadores", label: "Painel" },
   { href: "/mundo-mapping/influenciadores/marketplace", label: "Marketplace" },
-  { href: "/mundo-mapping/influenciadores/links", label: "Meus links" },
+  { href: "/mundo-mapping/influenciadores/shopping", label: "Shopping" },
+  { href: "/mundo-mapping/influenciadores/meus-links", label: "Meus links" },
   { href: "/mundo-mapping/influenciadores/produtos", label: "Produtos" },
   { href: "/mundo-mapping/influenciadores/materiais", label: "Materiais" },
   { href: "/mundo-mapping/influenciadores/financeiro", label: "Financeiro" },

@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import {
   MetricCard,
   MiniStat,
@@ -188,6 +189,17 @@ export function ProductEditor({
   const [activeStep, setActiveStep] = useState(0);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [form, setForm] = useState<ProductInput>(initialProduct ?? getEmptyProduct());
+
+  useEffect(() => {
+    async function captureEmpresaId() {
+      if (form.empresaId) return;
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) patch("empresaId", user.id);
+    }
+    captureEmpresaId();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const commissionEstimate = useMemo(() => {
     if (form.commissionType === "fixed") return form.commissionValue;
@@ -511,6 +523,11 @@ export function ProductEditor({
           {activeStep === 4 ? (
             <div className="space-y-5">
               <div className="grid gap-5 md:grid-cols-2">
+                <div className="md:col-span-2">
+                  <Field helper="URL externa onde o produto é comprado (ex: Hotmart, Kiwify). O link de afiliado redireciona para ela." label="URL do produto (destino do link de afiliado)">
+                    <Input onChange={(value) => patch("checkoutUrl", value)} placeholder="https://pay.hotmart.com/..." value={form.checkoutUrl} />
+                  </Field>
+                </div>
                 <Field label="Cor principal do checkout">
                   <Input onChange={(value) => patch("checkoutColor", value)} value={form.checkoutColor} />
                 </Field>

@@ -26,6 +26,8 @@ export type ProductRecord = {
   brand: string;
   category: string;
   price: number;
+  checkoutUrl: string;
+  empresaId: string;
   commissionType: CommissionType;
   commissionValue: number;
   commissionBase: CommissionBase;
@@ -93,6 +95,8 @@ function createBaseProduct(partial: Partial<ProductRecord>): ProductRecord {
     brand: partial.brand ?? "Mundo Mapping",
     category: partial.category ?? "Infoproduto | Ebook",
     price: partial.price ?? 0,
+    checkoutUrl: partial.checkoutUrl ?? "",
+    empresaId: partial.empresaId ?? "",
     commissionType: partial.commissionType ?? "percent",
     commissionValue: partial.commissionValue ?? 20,
     commissionBase: partial.commissionBase ?? "gross",
@@ -353,6 +357,8 @@ export function getEmptyProduct(): ProductInput {
     brand: "Mundo Mapping",
     category: "Infoproduto | Ebook",
     price: 0,
+    checkoutUrl: "",
+    empresaId: "",
     commissionType: "percent",
     commissionValue: 20,
     commissionBase: "gross",
