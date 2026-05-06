@@ -62,7 +62,7 @@ const plans = [
   },
 ];
 
-function UpgradeModal({
+export function UpgradeModal({
   currentPlan,
   onClose,
 }: {

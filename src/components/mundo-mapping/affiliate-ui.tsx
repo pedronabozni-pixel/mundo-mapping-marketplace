@@ -12,7 +12,8 @@ export const affiliateNavLinks: NavLink[] = [
   { href: "/mundo-mapping/afiliados/produtos/mapa-360-pro", label: "Hub do produto" },
   { href: "/mundo-mapping/afiliados/shopping", label: "Shopping" },
   { href: "/mundo-mapping/afiliados/financeiro", label: "Financeiro" },
-  { href: "/mundo-mapping/afiliados/admin", label: "Admin" }
+  { href: "/mundo-mapping/afiliados/admin", label: "Admin" },
+  { href: "/mundo-mapping/afiliados/perfil", label: "Perfil" },
 ];
 
 export const topProducts = [
@@ -461,7 +462,8 @@ const influencerNavLinks = [
   { href: "/mundo-mapping/influenciadores/links", label: "Meus links" },
   { href: "/mundo-mapping/influenciadores/produtos", label: "Produtos" },
   { href: "/mundo-mapping/influenciadores/materiais", label: "Materiais" },
-  { href: "/mundo-mapping/influenciadores/financeiro", label: "Financeiro" }
+  { href: "/mundo-mapping/influenciadores/financeiro", label: "Financeiro" },
+  { href: "/mundo-mapping/influenciadores/perfil", label: "Perfil" },
 ];
 
 export function InfluencerShell({
