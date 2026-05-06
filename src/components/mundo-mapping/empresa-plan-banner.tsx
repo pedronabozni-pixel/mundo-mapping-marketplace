@@ -181,18 +181,19 @@ export function EmpresaPlanBanner() {
 
   const limit = PLAN_LIMITS[plan];
   const productCount = products.length;
+  const atLimit = limit !== null && productCount >= limit;
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200/80 bg-white px-6 py-3">
+      <div className={`flex flex-wrap items-center justify-between gap-3 border-b px-6 py-3 ${atLimit ? "border-amber-200 bg-amber-50" : "border-zinc-200/80 bg-white"}`}>
         <div className="flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-700 ring-1 ring-zinc-200">
+          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ${atLimit ? "bg-amber-100 text-amber-800 ring-amber-200" : "bg-zinc-100 text-zinc-700 ring-zinc-200"}`}>
             Plano {PLAN_LABEL[plan]}
           </span>
-          <span className="text-sm text-zinc-500">
+          <span className={`text-sm ${atLimit ? "font-semibold text-amber-700" : "text-zinc-500"}`}>
             {limit === null
               ? "Produtos ilimitados"
-              : `${productCount} produto${productCount !== 1 ? "s" : ""} cadastrado${productCount !== 1 ? "s" : ""} · ${productCount} de ${limit} disponível`}
+              : `${productCount} de ${limit} produto${limit !== 1 ? "s" : ""} utilizado${limit !== 1 ? "s" : ""}${atLimit ? " · Limite atingido" : ""}`}
           </span>
         </div>
         {plan !== "elite" && (

@@ -11,6 +11,8 @@ import {
   StatusBadge
 } from "@/components/mundo-mapping/affiliate-ui";
 import { getEmptyProduct, ProductInput, ProductRecord, PRODUCT_TYPE_OPTIONS, useProductStore } from "@/components/mundo-mapping/product-store";
+import { usePlanLimits } from "@/components/mundo-mapping/use-plan-limits";
+import { UpgradeModal } from "@/components/mundo-mapping/empresa-plan-banner";
 
 const steps = [
   "Informações principais",
@@ -181,6 +183,8 @@ export function ProductEditor({
 }) {
   const router = useRouter();
   const { createProduct, updateProduct } = useProductStore();
+  const { plan, planLabel, limit, productCount, atLimit, loaded } = usePlanLimits();
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [form, setForm] = useState<ProductInput>(initialProduct ?? getEmptyProduct());
@@ -218,6 +222,11 @@ export function ProductEditor({
   }
 
   function save(publish = false) {
+    if (mode === "create" && atLimit) {
+      setFeedback(`Limite do plano ${planLabel} atingido. Faça upgrade para cadastrar mais produtos.`);
+      return;
+    }
+
     const normalized: ProductInput = {
       ...form,
       name: form.name.trim(),
@@ -250,6 +259,46 @@ export function ProductEditor({
 
     setFeedback(publish ? "Produto publicado com sucesso." : "Rascunho salvo com sucesso.");
     router.push(`/mundo-mapping/afiliados/produtos/${result.slug}`);
+  }
+
+  if (mode === "create" && loaded && atLimit) {
+    return (
+      <>
+        <PageHeader
+          description="Gerencie e publique produtos para os influenciadores afiliados promoverem."
+          eyebrow="Mundo Mapping / Afiliados / Novo produto"
+          title="Novo produto"
+        />
+        <div className="p-6">
+          <div className="rounded-[24px] border border-amber-200 bg-amber-50 p-8 shadow-[0_24px_80px_-54px_rgba(24,24,27,0.2)]">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100">
+                <svg className="h-6 w-6 text-amber-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-zinc-950">Limite de produtos atingido</h3>
+                <p className="mt-2 text-sm leading-6 text-zinc-600">
+                  Você está no plano <span className="font-semibold">{planLabel}</span> e já possui{" "}
+                  <span className="font-semibold">{productCount} produto{productCount !== 1 ? "s" : ""}</span> cadastrado{productCount !== 1 ? "s" : ""}.
+                  {limit !== null && ` O limite do seu plano é de ${limit} produto${limit !== 1 ? "s" : ""}.`}
+                  {" "}Faça upgrade para cadastrar mais produtos.
+                </p>
+                <button
+                  className="mt-5 inline-flex h-10 items-center justify-center rounded-xl bg-red-600 px-5 text-sm font-bold text-white shadow-[0_8px_24px_-10px_rgba(220,38,38,0.7)] transition hover:bg-red-700"
+                  onClick={() => setUpgradeOpen(true)}
+                  type="button"
+                >
+                  Fazer upgrade
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {upgradeOpen && <UpgradeModal currentPlan={plan} onClose={() => setUpgradeOpen(false)} />}
+      </>
+    );
   }
 
   return (
@@ -728,6 +777,7 @@ export function ProductEditor({
           />
         </SectionCard>
       </div>
+      {upgradeOpen && <UpgradeModal currentPlan={plan} onClose={() => setUpgradeOpen(false)} />}
     </>
   );
 }

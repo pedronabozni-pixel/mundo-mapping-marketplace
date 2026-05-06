@@ -12,9 +12,11 @@ import {
   StatusBadge
 } from "@/components/mundo-mapping/affiliate-ui";
 import { useProductStore } from "@/components/mundo-mapping/product-store";
+import { usePlanLimits } from "@/components/mundo-mapping/use-plan-limits";
 
 export function ProductDashboard() {
   const { products } = useProductStore();
+  const { atLimit, planLabel } = usePlanLimits();
   const [period, setPeriod] = useState("30 dias");
   const publishedCount = products.filter((product) => product.status === "published").length;
   const shoppingCount = products.filter((product) => product.visibleInShopping).length;
@@ -49,9 +51,18 @@ export function ProductDashboard() {
         actions={
           <>
             <PeriodSwitch onChange={setPeriod} options={["Hoje", "7 dias", "30 dias"]} value={period} />
-            <Link className="inline-flex h-11 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-semibold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)]" href="/mundo-mapping/afiliados/produtos/novo">
-              Criar produto
-            </Link>
+            {atLimit ? (
+              <span
+                className="inline-flex h-11 cursor-not-allowed items-center justify-center rounded-xl bg-zinc-200 px-4 text-sm font-semibold text-zinc-400"
+                title={`Limite do plano ${planLabel} atingido — faça upgrade para continuar`}
+              >
+                Criar produto
+              </span>
+            ) : (
+              <Link className="inline-flex h-11 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-semibold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)]" href="/mundo-mapping/afiliados/produtos/novo">
+                Criar produto
+              </Link>
+            )}
           </>
         }
         description="Leitura executiva do catálogo cadastrado pela empresa, com foco em produto, afiliação e vendas geradas pelos links dos influenciadores."
