@@ -115,6 +115,13 @@ export default function EmpresaLoginPage() {
       if (error) {
         setError(error.message);
       } else if (data.session) {
+        await supabase.from("profiles").upsert({
+          id: data.session.user.id,
+          email: fd.get("email") as string,
+          user_type: "empresa",
+          full_name: fd.get("company_name") as string,
+          company_name: fd.get("company_name") as string,
+        }, { onConflict: "id" });
         window.location.href = "/mundo-mapping/afiliados";
       } else {
         setInfo("Conta criada! Verifique seu e-mail para confirmar antes de entrar.");

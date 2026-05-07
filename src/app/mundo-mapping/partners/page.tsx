@@ -50,7 +50,7 @@ function Navbar() {
         </div>
         <Link
           className="inline-flex h-10 items-center justify-center rounded-xl bg-red-600 px-5 text-sm font-semibold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)] transition hover:bg-red-700"
-          href="/mundo-mapping/afiliados"
+          href="/mundo-mapping/empresa/login"
         >
           Entrar
         </Link>
@@ -446,7 +446,7 @@ function Plans() {
                     ? "bg-white text-red-700 hover:bg-zinc-50"
                     : "border border-red-200 bg-red-50 text-red-700 hover:bg-zinc-50"
                 }`}
-                href="/mundo-mapping/afiliados"
+                href="/mundo-mapping/empresa/login"
               >
                 {plan.cta}
               </Link>
@@ -474,13 +474,13 @@ function FinalCTA() {
         <div className="mt-10 flex flex-col items-center gap-5 sm:flex-row sm:justify-center">
           <Link
             className="inline-flex items-center justify-center rounded-xl bg-white px-10 py-3 text-base font-bold text-zinc-950 shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)] transition hover:bg-zinc-50"
-            href="/mundo-mapping/afiliados"
+            href="/mundo-mapping/empresa/login"
           >
             Começar agora
           </Link>
           <Link
             className="text-sm font-medium text-white/58 underline-offset-4 transition hover:text-white hover:underline"
-            href="/mundo-mapping/influenciadores"
+            href="/mundo-mapping/influenciador/login"
           >
             Já sou influenciador da Mundo Mapping
           </Link>

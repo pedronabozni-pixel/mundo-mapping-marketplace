@@ -1,92 +1,186 @@
-import Link from "next/link";
-import { DataTable, financeRows, MetricCard, PageHeader, SectionCard } from "@/components/mundo-mapping/affiliate-ui";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { MetricCard, SectionCard, StatusBadge } from "@/components/mundo-mapping/affiliate-ui";
+
+type Venda = {
+  id: string;
+  criado_em: string;
+  produto_nome: string;
+  creator_nome: string;
+  comissao: number;
+  status: string;
+};
+
+type DashData = {
+  totalVendas: number;
+  comissaoTotal: number;
+  comissaoPendente: number;
+  comissaoPaga: number;
+  vendas: Venda[];
+};
+
+const STATUS_TONE: Record<string, "success" | "warning" | "danger" | "neutral"> = {
+  aprovado: "success",
+  pago: "success",
+  pendente: "warning",
+  revertido: "danger",
+};
+
+function formatBRL(value: number) {
+  return `R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+}
 
 export default function FinanceiroPage() {
-  return (
-    <>
-      <PageHeader
-        actions={
-          <>
-            <Link className="inline-flex h-11 items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700" href="/mundo-mapping/afiliados/admin">
-              Exportar CSV
-            </Link>
-            <button className="inline-flex h-11 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-semibold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)]" type="button">
-              Solicitar saque
-            </button>
-          </>
-        }
-        description="Modulo financeiro com cara de sistema serio: extrato detalhado, conciliacao, previsao de recebimento, chargebacks e trilha auditavel."
-        eyebrow="Mundo Mapping / Afiliados / Financeiro"
-        title="Ledger, repasses e conciliacao"
-      />
+  const router = useRouter();
+  const [dash, setDash] = useState<DashData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-      <div className="space-y-6 p-6">
-        <div className="grid gap-4 xl:grid-cols-5">
-          <MetricCard emphasis label="Saldo liquidado" meta="Apto para repasse" value="R$ 84.112" />
-          <MetricCard label="Previsto a receber" meta="Proximos 15 dias" value="R$ 16.480" />
-          <MetricCard label="Saques pagos" meta="Mar 2026" value="R$ 42.900" />
-          <MetricCard label="Chargebacks" meta="Ultimos 30 dias" value="R$ 1.780" />
-          <MetricCard label="Taxa de conciliacao" meta="Transacoes reconciliadas" value="99,2%" />
-        </div>
+  useEffect(() => {
+    let cancelled = false;
 
-        <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
-          <SectionCard
-            action={
-              <div className="flex gap-2">
-                <Link className="rounded-xl border border-zinc-200 px-3 py-2 text-sm font-semibold text-zinc-600" href="/mundo-mapping/afiliados">
-                  Filtros
-                </Link>
-                <Link className="rounded-xl border border-zinc-200 px-3 py-2 text-sm font-semibold text-zinc-600" href="/mundo-mapping/afiliados/admin">
-                  Colunas
-                </Link>
-              </div>
-            }
-            subtitle="Extrato detalhado com status por evento financeiro."
-            title="Ledger e conciliacao"
-          >
-            <DataTable columns={["Data", "Evento", "Referencia", "Valor", "Status"]} rows={financeRows} />
-          </SectionCard>
+    async function load() {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-          <SectionCard subtitle="Blocos executivos para previsao e operacao." title="Resumo financeiro">
-            <div className="space-y-4">
-              <div className="rounded-2xl border border-zinc-200 p-4">
-                <p className="text-sm font-medium text-zinc-500">Proximo repasse</p>
-                <p className="mt-2 text-2xl font-semibold text-zinc-950">21 mar 2026</p>
-                <p className="mt-2 text-sm text-zinc-500">Volume previsto de R$ 18.900 para 64 afiliados elegiveis.</p>
-              </div>
-              <div className="rounded-2xl border border-zinc-200 p-4">
-                <p className="text-sm font-medium text-zinc-500">Estados financeiros</p>
-                <ul className="mt-3 space-y-2 text-sm text-zinc-700">
-                  <li>Pendente: venda aprovada, mas ainda em janela de garantia.</li>
-                  <li>Aprovado: comissão elegível para liquidação.</li>
-                  <li>Pago: repasse finalizado.</li>
-                  <li>Revertido: estorno, cancelamento ou chargeback.</li>
-                </ul>
-              </div>
-              <div className="rounded-2xl border border-zinc-200 p-4">
-                <p className="text-sm font-medium text-zinc-500">Riscos e excecoes</p>
-                <ul className="mt-3 space-y-2 text-sm text-zinc-700">
-                  <li>1 chargeback aguardando decisao</li>
-                  <li>2 saques com divergencia bancaria</li>
-                  <li>0 falhas de webhook financeiro nas ultimas 24h</li>
-                </ul>
-              </div>
-              <div className="rounded-2xl border border-zinc-200 p-4">
-                <p className="text-sm font-medium text-zinc-500">Acoes manuais</p>
-                <ul className="mt-3 space-y-2 text-sm text-zinc-700">
-                  <li>Override de atribuicao com justificativa obrigatoria</li>
-                  <li>Congelamento de saldo em casos de fraude</li>
-                  <li>Reprocessamento de webhook e reconciliacao manual</li>
-                </ul>
-              </div>
-              <div className="rounded-2xl border border-zinc-200 p-4">
-                <p className="text-sm font-medium text-zinc-500">Logs</p>
-                <p className="mt-2 text-sm text-zinc-700">Cada ajuste de comissao, repasse e estorno gera trilha auditavel com autor, motivo e impacto no saldo.</p>
-              </div>
-            </div>
-          </SectionCard>
-        </div>
+      if (!user) {
+        router.replace("/mundo-mapping/empresa/login");
+        return;
+      }
+
+      const { data: vendasData } = await supabase
+        .from("vendas")
+        .select("id, criado_em, produto_nome, creator_nome, comissao, status")
+        .eq("empresa_id", user.id)
+        .order("criado_em", { ascending: false });
+
+      if (cancelled) return;
+
+      const vendas = (vendasData ?? []) as Venda[];
+      const comissaoTotal = vendas.reduce((s, v) => s + (v.comissao ?? 0), 0);
+      const comissaoPendente = vendas
+        .filter((v) => v.status === "pendente")
+        .reduce((s, v) => s + (v.comissao ?? 0), 0);
+      const comissaoPaga = vendas
+        .filter((v) => v.status === "pago" || v.status === "aprovado")
+        .reduce((s, v) => s + (v.comissao ?? 0), 0);
+
+      setDash({ totalVendas: vendas.length, comissaoTotal, comissaoPendente, comissaoPaga, vendas });
+      setLoading(false);
+    }
+
+    load();
+    return () => { cancelled = true; };
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-red-600 border-t-transparent" />
       </div>
-    </>
+    );
+  }
+
+  const isEmpty = !dash || dash.totalVendas === 0;
+
+  return (
+    <div className="space-y-6 p-6">
+      {/* KPIs */}
+      <div className="grid gap-4 xl:grid-cols-4">
+        <MetricCard
+          emphasis
+          label="Comissão total"
+          meta="Todas as vendas"
+          value={isEmpty ? "R$ 0,00" : formatBRL(dash!.comissaoTotal)}
+        />
+        <MetricCard
+          label="Pendente"
+          meta="Em janela de garantia"
+          value={isEmpty ? "R$ 0,00" : formatBRL(dash!.comissaoPendente)}
+        />
+        <MetricCard
+          label="Liquidado"
+          meta="Aprovado ou pago"
+          value={isEmpty ? "R$ 0,00" : formatBRL(dash!.comissaoPaga)}
+        />
+        <MetricCard
+          label="Total de vendas"
+          meta="Rastreadas pela plataforma"
+          value={isEmpty ? "0" : String(dash!.totalVendas)}
+        />
+      </div>
+
+      {/* Extrato */}
+      <SectionCard
+        subtitle="Histórico de comissões por venda rastreada via links de afiliado."
+        title="Extrato financeiro"
+      >
+        {isEmpty ? (
+          <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center">
+            <p className="text-sm font-medium text-zinc-700">Nenhuma movimentação financeira ainda.</p>
+            <p className="mt-2 text-sm text-zinc-500">
+              As vendas geradas pelos creators aparecem aqui automaticamente.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-zinc-100 bg-zinc-50 text-left text-xs font-semibold uppercase tracking-[0.1em] text-zinc-400">
+                  <th className="px-4 py-3">Data</th>
+                  <th className="px-4 py-3">Produto</th>
+                  <th className="px-4 py-3">Creator</th>
+                  <th className="px-4 py-3 text-right">Comissão</th>
+                  <th className="px-4 py-3">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100">
+                {dash!.vendas.map((v) => (
+                  <tr className="transition hover:bg-zinc-50" key={v.id}>
+                    <td className="px-4 py-3 text-zinc-500">{formatDate(v.criado_em)}</td>
+                    <td className="px-4 py-3 font-medium text-zinc-800">{v.produto_nome || "—"}</td>
+                    <td className="px-4 py-3 text-zinc-500">{v.creator_nome || "—"}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-zinc-800">
+                      {formatBRL(v.comissao ?? 0)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusBadge
+                        label={v.status ?? "pendente"}
+                        tone={STATUS_TONE[v.status] ?? "neutral"}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </SectionCard>
+
+      {/* How commissions work */}
+      <SectionCard subtitle="Regras do ciclo financeiro." title="Estados financeiros">
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[
+            { label: "Pendente", desc: "Venda aprovada, mas ainda em janela de garantia do produto." },
+            { label: "Aprovado", desc: "Comissão elegível para liquidação após encerramento da janela." },
+            { label: "Pago", desc: "Repasse finalizado para o creator." },
+            { label: "Revertido", desc: "Estorno, cancelamento ou chargeback registrado." },
+          ].map((item) => (
+            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4" key={item.label}>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-400">{item.label}</p>
+              <p className="mt-2 text-sm leading-6 text-zinc-700">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+    </div>
   );
 }

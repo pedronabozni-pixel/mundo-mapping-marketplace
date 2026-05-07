@@ -12,8 +12,7 @@ export const metadata = {
 export default async function MundoMappingInfluenciadoresPage() {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
-  console.log("[influenciadores] session:", session ? "found" : "null");
-  if (!session) redirect("/mundo-mapping/influenciador/login");
+if (!session) redirect("/mundo-mapping/influenciador/login");
 
   return (
     <>

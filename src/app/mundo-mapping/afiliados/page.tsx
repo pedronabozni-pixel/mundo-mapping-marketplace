@@ -12,8 +12,7 @@ export const metadata = {
 export default async function MundoMappingAffiliadosPage() {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
-  console.log("[afiliados] session:", session ? "found" : "null");
-  if (!session) redirect("/mundo-mapping/empresa/login");
+if (!session) redirect("/mundo-mapping/empresa/login");
 
   return (
     <>

@@ -14,7 +14,7 @@ export default async function InfluenciadorDashboardPage() {
   }
 
   await supabase.from("profiles").upsert(
-    { id: user.id, user_type: "influenciador", plano: "associate" },
+    { id: user.id, user_type: "influenciador" },
     { onConflict: "id", ignoreDuplicates: true }
   );
 

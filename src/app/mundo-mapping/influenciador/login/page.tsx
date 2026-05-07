@@ -115,6 +115,13 @@ export default function InfluenciadorLoginPage() {
       if (error) {
         setError(error.message);
       } else if (data.session) {
+        await supabase.from("profiles").upsert({
+          id: data.session.user.id,
+          email: fd.get("email") as string,
+          user_type: "influenciador",
+          full_name: fd.get("full_name") as string,
+          instagram: fd.get("instagram") as string,
+        }, { onConflict: "id" });
         window.location.href = "/mundo-mapping/influenciadores";
       } else {
         setInfo("Conta criada! Verifique seu e-mail para confirmar antes de entrar.");

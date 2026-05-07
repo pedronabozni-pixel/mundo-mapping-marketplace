@@ -98,7 +98,6 @@ export default function InfluenciadorPerfilPage() {
   const [userId, setUserId] = useState("");
   const [email, setEmail] = useState("");
   const [isVerified, setIsVerified] = useState(false);
-  const [plano, setPlano] = useState("associate");
   const [activeProducts, setActiveProducts] = useState(0);
   const [avatarUrl, setAvatarUrl] = useState("");
   const [bioLen, setBioLen] = useState(0);
@@ -143,7 +142,6 @@ export default function InfluenciadorPerfilPage() {
 
       if (profile) {
         setIsVerified(profile.is_verified ?? false);
-        setPlano(profile.plano ?? "associate");
         setAvatarUrl(profile.avatar_url ?? "");
         const next = {
           full_name: profile.full_name ?? "",
@@ -167,9 +165,9 @@ export default function InfluenciadorPerfilPage() {
       }
 
       const { count } = await supabase
-        .from("affiliate_links")
+        .from("links_afiliados")
         .select("id", { count: "exact", head: true })
-        .eq("influencer_id", user.id);
+        .eq("creator_id", user.id);
       setActiveProducts(count ?? 0);
 
       setLoading(false);
@@ -273,9 +271,10 @@ export default function InfluenciadorPerfilPage() {
             {isVerified ? "Creator verificado ✓" : "Aguardando aprovação"}
           </p>
         </div>
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Plano</p>
-          <p className="mt-2 text-sm font-bold text-zinc-950 capitalize">{plano}</p>
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Acesso</p>
+          <p className="mt-2 text-sm font-bold text-emerald-700">✓ Plataforma gratuita</p>
+          <p className="mt-1 text-xs text-zinc-500">Sua receita vem 100% das comissões.</p>
         </div>
         <div className="rounded-2xl border border-zinc-200 bg-white p-5">
           <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Produtos afiliados</p>
