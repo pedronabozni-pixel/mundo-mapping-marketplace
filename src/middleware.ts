@@ -22,8 +22,9 @@ export async function middleware(request: NextRequest) {
 
   const isAfiliados = pathname === "/mundo-mapping/afiliados" || pathname.startsWith("/mundo-mapping/afiliados/");
   const isInfluenciadores = pathname === "/mundo-mapping/influenciadores" || pathname.startsWith("/mundo-mapping/influenciadores/");
+  const isAdmin = pathname === "/mundo-mapping/admin" || pathname.startsWith("/mundo-mapping/admin/");
 
-  if (isAfiliados || isInfluenciadores) {
+  if (isAfiliados || isInfluenciadores || isAdmin) {
     let response = NextResponse.next({ request });
 
     const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -43,9 +44,9 @@ export async function middleware(request: NextRequest) {
 
     if (!session) {
       const loginUrl = request.nextUrl.clone();
-      loginUrl.pathname = isAfiliados
-        ? "/mundo-mapping/empresa/login"
-        : "/mundo-mapping/influenciador/login";
+      loginUrl.pathname = isInfluenciadores
+        ? "/mundo-mapping/influenciador/login"
+        : "/mundo-mapping/empresa/login";
       return NextResponse.redirect(loginUrl);
     }
 
@@ -87,5 +88,7 @@ export const config = {
     "/mundo-mapping/afiliados/:path*",
     "/mundo-mapping/influenciadores",
     "/mundo-mapping/influenciadores/:path*",
+    "/mundo-mapping/admin",
+    "/mundo-mapping/admin/:path*",
   ],
 };

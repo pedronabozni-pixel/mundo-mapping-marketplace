@@ -1,0 +1,27 @@
+import { redirect } from "next/navigation";
+import type { ReactNode } from "react";
+import { createClient } from "@/lib/supabase/server";
+import { AdminShell } from "@/components/mundo-mapping/admin-shell";
+
+export const dynamic = "force-dynamic";
+
+export default async function AdminLayout({ children }: { children: ReactNode }) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session) redirect("/mundo-mapping/empresa/login");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("user_type, full_name, email")
+    .eq("id", session.user.id)
+    .single();
+
+  if (profile?.user_type !== "admin") redirect("/mundo-mapping/empresa/login");
+
+  return (
+    <AdminShell adminName={profile.full_name ?? profile.email ?? "Admin"}>
+      {children}
+    </AdminShell>
+  );
+}
