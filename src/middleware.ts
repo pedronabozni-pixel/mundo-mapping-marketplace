@@ -13,6 +13,10 @@ function isLegacyPath(pathname: string) {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Attach pathname header so server layouts can detect the current route
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", pathname);
+
   if (isLegacyPath(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/mundo-mapping/legado-desativado";
@@ -22,10 +26,11 @@ export async function middleware(request: NextRequest) {
 
   const isAfiliados = pathname === "/mundo-mapping/afiliados" || pathname.startsWith("/mundo-mapping/afiliados/");
   const isInfluenciadores = pathname === "/mundo-mapping/influenciadores" || pathname.startsWith("/mundo-mapping/influenciadores/");
-  const isAdmin = pathname === "/mundo-mapping/admin" || pathname.startsWith("/mundo-mapping/admin/");
+  const isAdminLogin = pathname === "/mundo-mapping/admin/login";
+  const isAdmin = !isAdminLogin && (pathname === "/mundo-mapping/admin" || pathname.startsWith("/mundo-mapping/admin/"));
 
   if (isAfiliados || isInfluenciadores || isAdmin) {
-    let response = NextResponse.next({ request });
+    let response = NextResponse.next({ request: { headers: requestHeaders } });
 
     const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       cookies: {
@@ -34,7 +39,7 @@ export async function middleware(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
+          response = NextResponse.next({ request: { headers: requestHeaders } });
           cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
         },
       },
@@ -46,14 +51,17 @@ export async function middleware(request: NextRequest) {
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = isInfluenciadores
         ? "/mundo-mapping/influenciador/login"
-        : "/mundo-mapping/empresa/login";
+        : isAdmin
+          ? "/mundo-mapping/admin/login"
+          : "/mundo-mapping/empresa/login";
       return NextResponse.redirect(loginUrl);
     }
 
     return response;
   }
 
-  return NextResponse.next();
+  // Pass x-pathname header for all other routes (needed by admin login layout)
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {

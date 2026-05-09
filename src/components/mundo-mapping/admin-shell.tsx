@@ -25,7 +25,7 @@ export function AdminShell({
   async function logout() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    window.location.href = "/mundo-mapping/empresa/login";
+    window.location.href = "/mundo-mapping/admin/login";
   }
 
   return (
