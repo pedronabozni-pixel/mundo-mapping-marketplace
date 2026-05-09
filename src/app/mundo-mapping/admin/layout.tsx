@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { AdminShell } from "@/components/mundo-mapping/admin-shell";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   if (!session) redirect("/mundo-mapping/admin/login");
 
-  const { data: profile } = await supabase
+  // Use admin client (service role if available, else user token) to bypass RLS on profiles
+  const adminSupabase = createAdminClient(session.access_token);
+  const { data: profile } = await adminSupabase
     .from("profiles")
     .select("user_type, full_name, email")
     .eq("id", session.user.id)

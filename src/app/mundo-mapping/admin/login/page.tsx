@@ -3,23 +3,29 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+async function checkAdminRole(access_token: string, user_id: string): Promise<boolean> {
+  const res = await fetch("/api/mundo-mapping/admin/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ access_token, user_id }),
+  });
+  if (!res.ok) return false;
+  const json = await res.json();
+  return json.isAdmin === true;
+}
+
 export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unauthorized, setUnauthorized] = useState(false);
 
+  // If already logged in as admin, redirect straight to panel
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) return;
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("user_type")
-        .eq("id", session.user.id)
-        .single();
-      if (profile?.user_type === "admin") {
-        window.location.href = "/mundo-mapping/admin";
-      }
+      const isAdmin = await checkAdminRole(session.access_token, session.user.id);
+      if (isAdmin) window.location.href = "/mundo-mapping/admin";
     });
   }, []);
 
@@ -34,7 +40,6 @@ export default function AdminLoginPage() {
     const password = fd.get("password") as string;
 
     const supabase = createClient();
-
     const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (signInError || !data.session) {
@@ -43,13 +48,9 @@ export default function AdminLoginPage() {
       return;
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("user_type")
-      .eq("id", data.session.user.id)
-      .single();
+    const isAdmin = await checkAdminRole(data.session.access_token, data.session.user.id);
 
-    if (profile?.user_type !== "admin") {
+    if (!isAdmin) {
       setUnauthorized(true);
       await supabase.auth.signOut();
       setLoading(false);
@@ -62,7 +63,6 @@ export default function AdminLoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 px-4">
       <div className="w-full max-w-sm">
-        {/* Logo / title */}
         <div className="mb-8 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-600">Mundo Mapping</p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">Painel Admin</h1>
