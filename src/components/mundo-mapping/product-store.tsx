@@ -82,6 +82,7 @@ type ProductStoreValue = {
   createProduct: (input: ProductInput, publish?: boolean) => ProductRecord;
   updateProduct: (slug: string, input: ProductInput, publish?: boolean) => ProductRecord | null;
   setProductStatus: (slug: string, status: ProductStatus) => void;
+  deleteProduct: (slug: string) => void;
   getProductBySlug: (slug: string) => ProductRecord | undefined;
 };
 
@@ -332,6 +333,9 @@ export function ProductStoreProvider({ children }: { children: ReactNode }) {
             product.slug === slug ? { ...product, status, updatedAt: new Date().toISOString() } : product
           )
         );
+      },
+      deleteProduct: (slug) => {
+        setProducts((current) => current.filter((product) => product.slug !== slug));
       },
       getProductBySlug: (slug) => products.find((product) => product.slug === slug)
     }),

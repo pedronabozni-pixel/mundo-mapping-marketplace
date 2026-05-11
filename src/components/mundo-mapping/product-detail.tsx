@@ -10,8 +10,9 @@ const tabs = ["Visão geral", "Criativos", "Checkout", "Configurações"];
 
 export function ProductDetail({ product }: { product: ProductRecord }) {
   const router = useRouter();
-  const { products, setProductStatus, updateProduct } = useProductStore();
+  const { products, setProductStatus, updateProduct, deleteProduct } = useProductStore();
   const [activeTab, setActiveTab] = useState("Visão geral");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [checkoutDraft, setCheckoutDraft] = useState({
     checkoutColor: product.checkoutColor,
     checkoutHeadline: product.checkoutHeadline,
@@ -76,6 +77,13 @@ export function ProductDetail({ product }: { product: ProductRecord }) {
             <Link className="inline-flex h-11 items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700" href={`/mundo-mapping/afiliados/produtos/${product.slug}/editar`}>
               Editar produto
             </Link>
+            <button
+              className="inline-flex h-11 items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+              onClick={() => setConfirmDelete(true)}
+              type="button"
+            >
+              Excluir produto
+            </button>
           </>
         }
         description="Hub mais limpo para revisar o produto cadastrado pela empresa, controlar status e acompanhar os influenciadores que recebem links próprios para vender."
@@ -331,6 +339,37 @@ export function ProductDetail({ product }: { product: ProductRecord }) {
           </SectionCard>
         </div>
       </div>
+
+      {/* Delete confirmation dialog */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-sm rounded-[24px] bg-white p-6 shadow-2xl">
+            <h3 className="text-lg font-semibold text-zinc-950">Excluir produto?</h3>
+            <p className="mt-2 text-sm text-zinc-500">
+              O produto <span className="font-semibold text-zinc-800">{product.name}</span> será removido permanentemente. Esta ação não pode ser desfeita.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                className="rounded-xl border border-zinc-200 px-4 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
+                onClick={() => setConfirmDelete(false)}
+                type="button"
+              >
+                Cancelar
+              </button>
+              <button
+                className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
+                onClick={() => {
+                  deleteProduct(product.slug);
+                  router.push("/mundo-mapping/afiliados");
+                }}
+                type="button"
+              >
+                Sim, excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
