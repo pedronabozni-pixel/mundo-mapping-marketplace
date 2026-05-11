@@ -13,6 +13,7 @@ export function ProductDetail({ product }: { product: ProductRecord }) {
   const { products, setProductStatus, updateProduct, deleteProduct } = useProductStore();
   const [activeTab, setActiveTab] = useState("Visão geral");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteInput, setDeleteInput] = useState("");
   const [checkoutDraft, setCheckoutDraft] = useState({
     checkoutColor: product.checkoutColor,
     checkoutHeadline: product.checkoutHeadline,
@@ -346,25 +347,37 @@ export function ProductDetail({ product }: { product: ProductRecord }) {
           <div className="w-full max-w-sm rounded-[24px] bg-white p-6 shadow-2xl">
             <h3 className="text-lg font-semibold text-zinc-950">Excluir produto?</h3>
             <p className="mt-2 text-sm text-zinc-500">
-              O produto <span className="font-semibold text-zinc-800">{product.name}</span> será removido permanentemente. Esta ação não pode ser desfeita.
+              Esta ação é permanente e não pode ser desfeita. Para confirmar, digite o nome do produto abaixo:
             </p>
-            <div className="mt-6 flex justify-end gap-3">
+            <p className="mt-3 rounded-lg bg-zinc-100 px-3 py-2 text-sm font-semibold text-zinc-800">
+              {product.name}
+            </p>
+            <input
+              autoFocus
+              className="mt-3 w-full rounded-xl border border-zinc-200 px-4 py-2.5 text-sm text-zinc-950 outline-none placeholder:text-zinc-400 focus:border-red-400 focus:ring-2 focus:ring-red-100"
+              onChange={(e) => setDeleteInput(e.target.value)}
+              placeholder="Digite o nome do produto"
+              type="text"
+              value={deleteInput}
+            />
+            <div className="mt-5 flex justify-end gap-3">
               <button
                 className="rounded-xl border border-zinc-200 px-4 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
-                onClick={() => setConfirmDelete(false)}
+                onClick={() => { setConfirmDelete(false); setDeleteInput(""); }}
                 type="button"
               >
                 Cancelar
               </button>
               <button
-                className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
+                className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={deleteInput !== product.name}
                 onClick={() => {
                   deleteProduct(product.slug);
                   router.push("/mundo-mapping/afiliados");
                 }}
                 type="button"
               >
-                Sim, excluir
+                Excluir permanentemente
               </button>
             </div>
           </div>
