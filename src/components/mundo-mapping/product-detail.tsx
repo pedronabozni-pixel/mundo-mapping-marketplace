@@ -34,8 +34,9 @@ export function ProductDetail({ product }: { product: ProductRecord }) {
 
   const statusTone = product.status === "published" ? "success" : product.status === "paused" ? "red" : "warning";
 
-  function saveCheckout() {
-    const updated = updateProduct(product.slug, {
+  async function saveCheckout() {
+    setCheckoutFeedback("Salvando…");
+    const updated = await updateProduct(product.slug, {
       ...product,
       ...checkoutDraft
     });
@@ -46,7 +47,6 @@ export function ProductDetail({ product }: { product: ProductRecord }) {
     }
 
     setCheckoutFeedback("Checkout atualizado com sucesso.");
-    router.refresh();
   }
 
   return (

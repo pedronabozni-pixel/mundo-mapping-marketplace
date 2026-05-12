@@ -187,6 +187,7 @@ export function ProductEditor({
   const { plan, planLabel, limit, productCount, atLimit, loaded } = usePlanLimits();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
+  const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [form, setForm] = useState<ProductInput>(initialProduct ?? getEmptyProduct());
 
@@ -233,7 +234,7 @@ export function ProductEditor({
     });
   }
 
-  function save(publish = false) {
+  async function save(publish = false) {
     if (mode === "create" && atLimit) {
       setFeedback(`Limite do plano ${planLabel} atingido. Faça upgrade para cadastrar mais produtos.`);
       return;
@@ -259,13 +260,18 @@ export function ProductEditor({
       return;
     }
 
+    setSaving(true);
+    setFeedback(null);
+
     const result =
       mode === "create"
-        ? createProduct(normalized, publish)
-        : updateProduct(initialProduct!.slug, normalized, publish);
+        ? await createProduct(normalized, publish)
+        : await updateProduct(initialProduct!.slug, normalized, publish);
+
+    setSaving(false);
 
     if (!result) {
-      setFeedback("Não foi possível salvar o produto.");
+      setFeedback("Não foi possível salvar o produto. Verifique sua conexão e tente novamente.");
       return;
     }
 
@@ -319,18 +325,20 @@ export function ProductEditor({
         actions={
           <>
             <button
-              className="inline-flex h-11 items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700"
+              className="inline-flex h-11 items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700 disabled:opacity-50"
+              disabled={saving}
               onClick={() => save(false)}
               type="button"
             >
-              Salvar rascunho
+              {saving ? "Salvando…" : "Salvar rascunho"}
             </button>
             <button
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-semibold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)]"
+              className="inline-flex h-11 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-semibold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)] disabled:opacity-50"
+              disabled={saving}
               onClick={() => save(true)}
               type="button"
             >
-              {mode === "create" ? "Publicar produto" : "Atualizar produto"}
+              {saving ? "Salvando…" : mode === "create" ? "Publicar produto" : "Atualizar produto"}
             </button>
           </>
         }
@@ -777,8 +785,8 @@ export function ProductEditor({
                   Continuar
                 </button>
               ) : (
-                <button className="rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white" onClick={() => save(true)} type="button">
-                  Finalizar e publicar
+                <button className="rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50" disabled={saving} onClick={() => save(true)} type="button">
+                  {saving ? "Salvando…" : "Finalizar e publicar"}
                 </button>
               )}
             </div>

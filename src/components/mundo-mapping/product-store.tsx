@@ -1,6 +1,9 @@
 "use client";
 
-import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 export type ProductStatus = "draft" | "published" | "paused";
 export type ApprovalMode = "automatic" | "manual";
@@ -79,279 +82,268 @@ export type ProductInput = Omit<ProductRecord, "id" | "slug" | "createdAt" | "up
 type ProductStoreValue = {
   products: ProductRecord[];
   ready: boolean;
-  createProduct: (input: ProductInput, publish?: boolean) => ProductRecord;
-  updateProduct: (slug: string, input: ProductInput, publish?: boolean) => ProductRecord | null;
+  createProduct: (input: ProductInput, publish?: boolean) => Promise<ProductRecord | null>;
+  updateProduct: (slug: string, input: ProductInput, publish?: boolean) => Promise<ProductRecord | null>;
   setProductStatus: (slug: string, status: ProductStatus) => void;
   deleteProduct: (slug: string) => void;
   getProductBySlug: (slug: string) => ProductRecord | undefined;
 };
 
-const STORAGE_KEY = "mundo-mapping-affiliates-products";
+// ─── Row ↔ Record mapping ─────────────────────────────────────────────────────
 
-function createBaseProduct(partial: Partial<ProductRecord>): ProductRecord {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function fromRow(r: Record<string, any>): ProductRecord {
   return {
-    id: partial.id ?? `prod_${crypto.randomUUID()}`,
-    slug: partial.slug ?? "produto",
-    name: partial.name ?? "",
-    brand: partial.brand ?? "Mundo Mapping",
-    category: partial.category ?? "Infoproduto | Ebook",
-    price: partial.price ?? 0,
-    checkoutUrl: partial.checkoutUrl ?? "",
-    empresaId: partial.empresaId ?? "",
-    commissionType: partial.commissionType ?? "percent",
-    commissionValue: partial.commissionValue ?? 20,
-    commissionBase: partial.commissionBase ?? "gross",
-    guaranteeDays: normalizeGuaranteeDays(partial.guaranteeDays ?? 14),
-    releaseDays: Math.max(7, partial.releaseDays ?? 14),
-    payoutMode: partial.payoutMode ?? "platform_ledger",
-    attributionModel: partial.attributionModel ?? "last_click",
-    attributionWindowDays: Math.max(1, partial.attributionWindowDays ?? 7),
-    couponEnabled: partial.couponEnabled ?? true,
-    approvalMode: partial.approvalMode ?? "manual",
-    visibleInShopping: partial.visibleInShopping ?? true,
-    status: partial.status ?? "draft",
-    description: partial.description ?? "",
-    audience: partial.audience ?? "",
-    minimumCreatorScore: partial.minimumCreatorScore ?? 70,
-    minimumFollowers: partial.minimumFollowers ?? 5000,
-    allowedRegions: partial.allowedRegions ?? "Brasil",
-    whitelistOnly: partial.whitelistOnly ?? false,
-    requireSocialProof: partial.requireSocialProof ?? false,
-    materialsSummary: partial.materialsSummary ?? "",
-    coverAssetMode: partial.coverAssetMode ?? "link",
-    coverAssetUrl: partial.coverAssetUrl ?? "",
-    coverAssetName: partial.coverAssetName ?? "",
-    promoAssetMode: partial.promoAssetMode ?? "link",
-    promoAssetUrl: partial.promoAssetUrl ?? "",
-    promoAssetName: partial.promoAssetName ?? "",
-    checkoutColor: partial.checkoutColor ?? "#dc2626",
-    checkoutBannerMode: partial.checkoutBannerMode ?? "link",
-    checkoutBannerUrl: partial.checkoutBannerUrl ?? "",
-    checkoutBannerName: partial.checkoutBannerName ?? "",
-    checkoutHeadline: partial.checkoutHeadline ?? "",
-    checkoutSubheadline: partial.checkoutSubheadline ?? "",
-    checkoutCtaLabel: partial.checkoutCtaLabel ?? "Comprar agora",
-    checkoutGuaranteeText: partial.checkoutGuaranteeText ?? "",
-    checkoutSupportText: partial.checkoutSupportText ?? "",
-    checkoutHighlights: partial.checkoutHighlights ?? "",
-    supportEmail: partial.supportEmail ?? "suporte@mundomapping.com",
-    logisticsMode: partial.logisticsMode ?? "digital",
-    stockRequired: partial.stockRequired ?? false,
-    shippingManagedBy: partial.shippingManagedBy ?? "na",
-    bookingRequired: partial.bookingRequired ?? false,
-    noShowPolicy: partial.noShowPolicy ?? "",
-    createdAt: partial.createdAt ?? new Date().toISOString(),
-    updatedAt: partial.updatedAt ?? new Date().toISOString()
+    id: r.id,
+    slug: r.slug,
+    name: r.nome ?? "",
+    brand: r.marca ?? "Mundo Mapping",
+    category: r.categoria ?? "Infoproduto | Ebook",
+    price: Number(r.preco) || 0,
+    checkoutUrl: r.url_produto ?? "",
+    empresaId: r.empresa_id ?? "",
+    commissionType: (r.comissao_tipo as CommissionType) ?? "percent",
+    commissionValue: Number(r.comissao_valor) || 20,
+    commissionBase: (r.comissao_base as CommissionBase) ?? "gross",
+    guaranteeDays: Number(r.garantia_dias) || 14,
+    releaseDays: Number(r.liberacao_dias) || 14,
+    payoutMode: (r.payout_mode as PayoutMode) ?? "platform_ledger",
+    attributionModel: (r.attribution_model as AttributionModel) ?? "last_click",
+    attributionWindowDays: Number(r.attribution_window_dias) || 7,
+    couponEnabled: Boolean(r.cupom_habilitado),
+    approvalMode: (r.aprovacao_modo as ApprovalMode) ?? "manual",
+    visibleInShopping: Boolean(r.visivel_shopping),
+    status: (r.status as ProductStatus) ?? "draft",
+    description: r.descricao ?? "",
+    audience: r.publico ?? "",
+    minimumCreatorScore: Number(r.score_minimo) || 70,
+    minimumFollowers: Number(r.seguidores_minimo) || 5000,
+    allowedRegions: r.regioes_permitidas ?? "Brasil",
+    whitelistOnly: Boolean(r.whitelist_only),
+    requireSocialProof: Boolean(r.exige_social_proof),
+    materialsSummary: r.materiais_resumo ?? "",
+    coverAssetMode: (r.capa_modo as "link" | "file") ?? "link",
+    coverAssetUrl: r.capa_url ?? "",
+    coverAssetName: r.capa_nome ?? "",
+    promoAssetMode: (r.promo_modo as "link" | "file") ?? "link",
+    promoAssetUrl: r.promo_url ?? "",
+    promoAssetName: r.promo_nome ?? "",
+    checkoutColor: r.checkout_cor ?? "#dc2626",
+    checkoutBannerMode: (r.checkout_banner_modo as "link" | "file") ?? "link",
+    checkoutBannerUrl: r.checkout_banner_url ?? "",
+    checkoutBannerName: r.checkout_banner_nome ?? "",
+    checkoutHeadline: r.checkout_headline ?? "",
+    checkoutSubheadline: r.checkout_subheadline ?? "",
+    checkoutCtaLabel: r.checkout_cta ?? "Comprar agora",
+    checkoutGuaranteeText: r.checkout_garantia ?? "",
+    checkoutSupportText: r.checkout_suporte ?? "",
+    checkoutHighlights: r.checkout_highlights ?? "",
+    supportEmail: r.suporte_email ?? "suporte@mundomapping.com",
+    logisticsMode: (r.logistica_modo as ProductRecord["logisticsMode"]) ?? "digital",
+    stockRequired: Boolean(r.estoque_requerido),
+    shippingManagedBy: (r.frete_gerido_por as ProductRecord["shippingManagedBy"]) ?? "na",
+    bookingRequired: Boolean(r.reserva_requerida),
+    noShowPolicy: r.politica_no_show ?? "",
+    createdAt: r.criado_em ?? new Date().toISOString(),
+    updatedAt: r.atualizado_em ?? new Date().toISOString(),
   };
 }
 
-const defaultProducts: ProductRecord[] = [
-  createBaseProduct({
-    id: "prod_1",
-    slug: "mapa-360-pro",
-    name: "Mapa 360 Pro",
-    brand: "Mundo Mapping",
-    category: "Cursos",
-    price: 890,
-    commissionType: "percent",
-    commissionValue: 20,
-    commissionBase: "gross",
-    guaranteeDays: 14,
-    releaseDays: 14,
-    payoutMode: "platform_ledger",
-    attributionModel: "hybrid",
-    attributionWindowDays: 14,
-    couponEnabled: true,
-    approvalMode: "manual",
-    visibleInShopping: true,
-    status: "published",
-    description: "Produto premium com foco em posicionamento, performance comercial e distribuicao via afiliados.",
-    audience: "Empreendedores, especialistas e times comerciais",
-    minimumCreatorScore: 78,
-    minimumFollowers: 15000,
-    allowedRegions: "Brasil, Sudeste e capitais",
-    requireSocialProof: true,
-    materialsSummary: "Pack de story, feed, video curto e banner de checkout.",
-    coverAssetMode: "link",
-    coverAssetUrl: "https://assets.mundomapping.com/produtos/mapa-360/capa.jpg",
-    promoAssetMode: "file",
-    promoAssetName: "pack-story-mapa-360.zip",
-    checkoutColor: "#dc2626",
-    checkoutBannerMode: "link",
-    checkoutBannerUrl: "https://assets.mundomapping.com/produtos/mapa-360/banner-checkout.jpg",
-    checkoutHeadline: "Mapa 360 Pro para empresas que querem crescer com afiliados",
-    checkoutSubheadline: "Checkout limpo, confiavel e orientado para conversao com identidade da Mundo Mapping.",
-    checkoutCtaLabel: "Quero ativar agora",
-    checkoutGuaranteeText: "Garantia de 14 dias para reduzir friccao na decisao.",
-    checkoutSupportText: "Suporte por email em horario comercial.",
-    checkoutHighlights: "Acesso imediato\nMateriais prontos para afiliados\nCheckout com identidade da marca",
-    supportEmail: "suporte@mundomapping.com",
-    logisticsMode: "service",
-    bookingRequired: false,
-    noShowPolicy: "Nao se aplica"
-  }),
-  createBaseProduct({
-    id: "prod_2",
-    slug: "o-que-as-marcas-querem",
-    name: "O Que as Marcas Querem",
-    brand: "Mundo Mapping",
-    category: "Infoproduto | Ebook",
-    price: 19.9,
-    commissionType: "percent",
-    commissionValue: 50,
-    commissionBase: "gross",
-    guaranteeDays: 7,
-    releaseDays: 7,
-    payoutMode: "platform_split",
-    attributionModel: "coupon_priority",
-    attributionWindowDays: 7,
-    couponEnabled: true,
-    approvalMode: "automatic",
-    visibleInShopping: true,
-    status: "published",
-    description: "Produto de entrada com alta taxa de conversao e materiais simples para afiliados.",
-    audience: "Influenciadores iniciantes e publico de marketing",
-    minimumCreatorScore: 62,
-    minimumFollowers: 2000,
-    allowedRegions: "Brasil",
-    materialsSummary: "Criativos para stories, carrossel e pagina de venda enxuta.",
-    coverAssetMode: "file",
-    coverAssetName: "capa-o-que-as-marcas-querem.png",
-    promoAssetMode: "link",
-    promoAssetUrl: "https://assets.mundomapping.com/produtos/marcas-querem/materiais",
-    checkoutColor: "#111827",
-    checkoutBannerMode: "file",
-    checkoutBannerName: "banner-checkout-marcas.png",
-    checkoutHeadline: "Descubra o que as marcas realmente querem dos influenciadores",
-    checkoutSubheadline: "Uma oferta de entrada simples, direta e com alta chance de conversao.",
-    checkoutCtaLabel: "Comprar agora",
-    checkoutGuaranteeText: "Garantia de 7 dias.",
-    checkoutSupportText: "Atendimento por email e pagina de ajuda.",
-    checkoutHighlights: "Leitura rapida\nProduto digital\nEntrega imediata",
-    supportEmail: "suporte@mundomapping.com",
-    logisticsMode: "digital"
-  })
-];
+function toRow(input: ProductInput, userId: string, empresaNome?: string) {
+  return {
+    empresa_id: userId,
+    empresa_nome: empresaNome ?? null,
+    nome: input.name,
+    marca: input.brand,
+    categoria: input.category,
+    descricao: input.description,
+    url_produto: input.checkoutUrl,
+    preco: input.price,
+    comissao_tipo: input.commissionType,
+    comissao_valor: input.commissionValue,
+    comissao_base: input.commissionBase,
+    garantia_dias: input.guaranteeDays,
+    liberacao_dias: input.releaseDays,
+    payout_mode: input.payoutMode,
+    attribution_model: input.attributionModel,
+    attribution_window_dias: input.attributionWindowDays,
+    cupom_habilitado: input.couponEnabled,
+    aprovacao_modo: input.approvalMode,
+    visivel_shopping: input.visibleInShopping,
+    status: input.status,
+    publico: input.audience,
+    score_minimo: input.minimumCreatorScore,
+    seguidores_minimo: input.minimumFollowers,
+    regioes_permitidas: input.allowedRegions,
+    whitelist_only: input.whitelistOnly,
+    exige_social_proof: input.requireSocialProof,
+    materiais_resumo: input.materialsSummary,
+    capa_modo: input.coverAssetMode,
+    capa_url: input.coverAssetUrl,
+    capa_nome: input.coverAssetName,
+    promo_modo: input.promoAssetMode,
+    promo_url: input.promoAssetUrl,
+    promo_nome: input.promoAssetName,
+    checkout_cor: input.checkoutColor,
+    checkout_banner_modo: input.checkoutBannerMode,
+    checkout_banner_url: input.checkoutBannerUrl,
+    checkout_banner_nome: input.checkoutBannerName,
+    checkout_headline: input.checkoutHeadline,
+    checkout_subheadline: input.checkoutSubheadline,
+    checkout_cta: input.checkoutCtaLabel,
+    checkout_garantia: input.checkoutGuaranteeText,
+    checkout_suporte: input.checkoutSupportText,
+    checkout_highlights: input.checkoutHighlights,
+    suporte_email: input.supportEmail,
+    logistica_modo: input.logisticsMode,
+    estoque_requerido: input.stockRequired,
+    frete_gerido_por: input.shippingManagedBy,
+    reserva_requerida: input.bookingRequired,
+    politica_no_show: input.noShowPolicy,
+  };
+}
 
-const ProductStoreContext = createContext<ProductStoreValue | null>(null);
+// ─── Slug helpers ─────────────────────────────────────────────────────────────
 
 function slugify(value: string) {
   return value
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[̀-ͯ]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)+/g, "")
     .slice(0, 60);
 }
 
-function ensureUniqueSlug(baseSlug: string, products: ProductRecord[], currentSlug?: string) {
-  let slug = baseSlug || "produto";
+function ensureUniqueSlug(base: string, existing: ProductRecord[], currentSlug?: string) {
+  let slug = base || "produto";
   let suffix = 2;
-
-  while (products.some((product) => product.slug === slug && product.slug !== currentSlug)) {
-    slug = `${baseSlug}-${suffix}`;
-    suffix += 1;
+  while (existing.some((p) => p.slug === slug && p.slug !== currentSlug)) {
+    slug = `${base}-${suffix}`;
+    suffix++;
   }
-
   return slug;
 }
 
-function normalizeGuaranteeDays(value: number) {
-  return Math.max(7, Number.isFinite(value) ? value : 7);
-}
+// ─── Context ──────────────────────────────────────────────────────────────────
 
-function normalizeProduct(product: Partial<ProductRecord>) {
-  return createBaseProduct(product);
-}
+const ProductStoreContext = createContext<ProductStoreValue | null>(null);
 
 export function ProductStoreProvider({ children }: { children: ReactNode }) {
-  const [products, setProducts] = useState<ProductRecord[]>(defaultProducts);
+  const [products, setProducts] = useState<ProductRecord[]>([]);
   const [ready, setReady] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [empresaNome, setEmpresaNome] = useState<string | undefined>();
 
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as ProductRecord[];
-        if (Array.isArray(parsed) && parsed.length) {
-          setProducts(parsed.map((item) => normalizeProduct(item)));
-        }
-      }
-    } catch {
-      setProducts(defaultProducts);
-    } finally {
-      setReady(true);
-    }
+  const fetchProducts = useCallback(async (uid: string) => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("produtos")
+      .select("*")
+      .eq("empresa_id", uid)
+      .order("criado_em", { ascending: false });
+    setProducts((data ?? []).map(fromRow));
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
-  }, [products, ready]);
+    async function init() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setReady(true); return; }
+      setUserId(user.id);
 
-  const value = useMemo<ProductStoreValue>(
-    () => ({
-      products,
-      ready,
-      createProduct: (input, publish = false) => {
-        const now = new Date().toISOString();
-        const baseSlug = slugify(input.name);
-        const slug = ensureUniqueSlug(baseSlug, products);
-        const record: ProductRecord = {
-          ...normalizeProduct(input),
-          id: `prod_${crypto.randomUUID()}`,
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("company_name, full_name")
+        .eq("id", user.id)
+        .single();
+      setEmpresaNome(profile?.company_name ?? profile?.full_name ?? undefined);
+
+      await fetchProducts(user.id);
+      setReady(true);
+    }
+    init();
+  }, [fetchProducts]);
+
+  const value = useMemo<ProductStoreValue>(() => ({
+    products,
+    ready,
+
+    async createProduct(input, publish = false) {
+      if (!userId) return null;
+      const supabase = createClient();
+      const slug = ensureUniqueSlug(slugify(input.name), products);
+      const { data, error } = await supabase
+        .from("produtos")
+        .insert({
+          ...toRow(input, userId, empresaNome),
           slug,
           status: publish ? "published" : input.status,
-          createdAt: now,
-          updatedAt: now
-        } as ProductRecord;
-        setProducts((current) => [record, ...current]);
-        return record;
-      },
-      updateProduct: (slug, input, publish = false) => {
-        let updated: ProductRecord | null = null;
-        setProducts((current) =>
-          current.map((product) => {
-            if (product.slug !== slug) return product;
-            const nextSlug = ensureUniqueSlug(slugify(input.name), current, slug);
-            updated = normalizeProduct({
-              ...product,
-              ...input,
-              slug: nextSlug,
-              status: publish ? "published" : input.status,
-              updatedAt: new Date().toISOString()
-            });
-            return updated;
-          })
-        );
-        return updated;
-      },
-      setProductStatus: (slug, status) => {
-        setProducts((current) =>
-          current.map((product) =>
-            product.slug === slug ? { ...product, status, updatedAt: new Date().toISOString() } : product
-          )
-        );
-      },
-      deleteProduct: (slug) => {
-        setProducts((current) => current.filter((product) => product.slug !== slug));
-      },
-      getProductBySlug: (slug) => products.find((product) => product.slug === slug)
-    }),
-    [products, ready]
-  );
+        })
+        .select()
+        .single();
+      if (error || !data) return null;
+      const record = fromRow(data);
+      setProducts((prev) => [record, ...prev]);
+      return record;
+    },
+
+    async updateProduct(slug, input, publish = false) {
+      if (!userId) return null;
+      const existing = products.find((p) => p.slug === slug);
+      if (!existing) return null;
+      const supabase = createClient();
+      const nextSlug = ensureUniqueSlug(slugify(input.name), products, slug);
+      const { data, error } = await supabase
+        .from("produtos")
+        .update({
+          ...toRow(input, userId, empresaNome),
+          slug: nextSlug,
+          status: publish ? "published" : input.status,
+          atualizado_em: new Date().toISOString(),
+        })
+        .eq("id", existing.id)
+        .select()
+        .single();
+      if (error || !data) return null;
+      const record = fromRow(data);
+      setProducts((prev) => prev.map((p) => (p.id === existing.id ? record : p)));
+      return record;
+    },
+
+    setProductStatus(slug, status) {
+      const existing = products.find((p) => p.slug === slug);
+      if (!existing) return;
+      // optimistic update
+      setProducts((prev) =>
+        prev.map((p) => (p.id === existing.id ? { ...p, status, updatedAt: new Date().toISOString() } : p))
+      );
+      const supabase = createClient();
+      supabase
+        .from("produtos")
+        .update({ status, atualizado_em: new Date().toISOString() })
+        .eq("id", existing.id)
+        .then(() => {});
+    },
+
+    deleteProduct(slug) {
+      const existing = products.find((p) => p.slug === slug);
+      if (!existing) return;
+      // optimistic update
+      setProducts((prev) => prev.filter((p) => p.id !== existing.id));
+      const supabase = createClient();
+      supabase.from("produtos").delete().eq("id", existing.id).then(() => {});
+    },
+
+    getProductBySlug: (slug) => products.find((p) => p.slug === slug),
+  }), [products, ready, userId, empresaNome]);
 
   return <ProductStoreContext.Provider value={value}>{children}</ProductStoreContext.Provider>;
 }
 
 export function useProductStore() {
   const context = useContext(ProductStoreContext);
-
-  if (!context) {
-    throw new Error("useProductStore must be used within ProductStoreProvider");
-  }
-
+  if (!context) throw new Error("useProductStore must be used within ProductStoreProvider");
   return context;
 }
 
@@ -404,6 +396,6 @@ export function getEmptyProduct(): ProductInput {
     stockRequired: false,
     shippingManagedBy: "na",
     bookingRequired: false,
-    noShowPolicy: ""
+    noShowPolicy: "",
   };
 }
