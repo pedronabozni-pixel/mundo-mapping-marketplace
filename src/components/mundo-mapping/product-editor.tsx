@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -25,18 +25,54 @@ const steps = [
   "Revisão e publicação"
 ];
 
+function InfoPopover({ content }: { content: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handle(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [open]);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        className="flex h-4 w-4 items-center justify-center rounded-full bg-zinc-200 text-[10px] font-bold text-zinc-500 transition hover:bg-zinc-300 hover:text-zinc-700"
+        onClick={(e) => { e.preventDefault(); setOpen((v) => !v); }}
+        type="button"
+      >
+        ?
+      </button>
+      {open && (
+        <div className="absolute left-5 top-0 z-50 w-72 rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_20px_60px_-20px_rgba(15,23,42,0.25)]">
+          {content}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Field({
   label,
   helper,
-  children
+  children,
+  labelExtra
 }: {
   label: string;
   helper?: string;
   children: React.ReactNode;
+  labelExtra?: React.ReactNode;
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-medium text-zinc-700">{label}</span>
+      <span className={`mb-2 text-sm font-medium text-zinc-700 ${labelExtra ? "flex items-center gap-1.5" : "block"}`}>
+        {label}
+        {labelExtra}
+      </span>
       {children}
       {helper ? <p className="mt-2 text-xs leading-5 text-zinc-500">{helper}</p> : null}
     </label>
@@ -450,7 +486,28 @@ export function ProductEditor({
                   value={form.commissionBase}
                 />
               </Field>
-              <Field label="Modo financeiro">
+              <Field
+                label="Modo financeiro"
+                labelExtra={
+                  <InfoPopover
+                    content={
+                      <div>
+                        <p className="text-sm font-semibold text-zinc-900">Como funciona o modo financeiro?</p>
+                        <div className="mt-3 space-y-3">
+                          <div>
+                            <p className="text-xs font-semibold text-zinc-700">Ledger da plataforma</p>
+                            <p className="mt-1 text-xs leading-5 text-zinc-500">O pagamento da venda entra primeiro na plataforma. Após o período de garantia, a comissão é liberada para o creator. Mais seguro e rastreável.</p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold text-zinc-700">Split na plataforma</p>
+                            <p className="mt-1 text-xs leading-5 text-zinc-500">O pagamento é dividido automaticamente no momento da venda entre a empresa e o creator via gateway. Mais rápido, mas exige configuração avançada no Asaas.</p>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  />
+                }
+              >
                 <Select
                   onChange={(value) => patch("payoutMode", value as ProductInput["payoutMode"])}
                   options={[
@@ -460,7 +517,7 @@ export function ProductEditor({
                   value={form.payoutMode}
                 />
               </Field>
-              <div className="md:col-span-2 grid gap-4 md:grid-cols-3">
+              <div className="md:col-span-2 grid gap-4">
                 <MetricCard label="Comissão estimada" meta="Por venda confirmada" value={`R$ ${commissionEstimate.toFixed(2)}`} />
                 <MetricCard label="Preço" meta="Valor final da venda" value={`R$ ${form.price.toFixed(2)}`} />
                 <MetricCard emphasis label="Líquido estimado" meta="Sem taxa da plataforma" value={`R$ ${netEstimate.toFixed(2)}`} />
