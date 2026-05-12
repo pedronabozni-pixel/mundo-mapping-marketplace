@@ -449,7 +449,7 @@ export function AffiliateShell({
           </div>
         </aside>
 
-        <div className="overflow-hidden rounded-[28px] border border-white/70 bg-[#fcfcfd] shadow-[0_40px_120px_-80px_rgba(15,23,42,0.38)]">
+        <div className="rounded-[28px] border border-white/70 bg-[#fcfcfd] shadow-[0_40px_120px_-80px_rgba(15,23,42,0.38)]">
           {children}
         </div>
       </div>
@@ -477,7 +477,7 @@ export function InfluencerShell({
 }) {
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#fff7f7_0%,#f6f7fb_24%,#f4f5f7_100%)] p-4 text-zinc-900 md:p-5">
-      <div className="mx-auto max-w-[1480px] overflow-hidden rounded-[28px] border border-white/70 bg-[#fcfcfd] shadow-[0_40px_120px_-80px_rgba(15,23,42,0.38)]">
+      <div className="mx-auto max-w-[1480px] rounded-[28px] border border-white/70 bg-[#fcfcfd] shadow-[0_40px_120px_-80px_rgba(15,23,42,0.38)]">
         <header className="border-b border-zinc-200/80 bg-white/90 px-6 py-5 backdrop-blur">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>

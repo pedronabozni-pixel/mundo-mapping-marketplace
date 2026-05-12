@@ -189,6 +189,7 @@ export function ProductEditor({
   const [activeStep, setActiveStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [urlError, setUrlError] = useState<string | null>(null);
   const [form, setForm] = useState<ProductInput>(initialProduct ?? getEmptyProduct());
 
   useEffect(() => {
@@ -223,8 +224,15 @@ export function ProductEditor({
     [form]
   );
 
+  function validateUrl(url: string): string | null {
+    if (!url.trim()) return "O link do produto é obrigatório.";
+    if (!/^https?:\/\/.+/.test(url.trim())) return "A URL deve começar com http:// ou https://";
+    return null;
+  }
+
   function patch<K extends keyof ProductInput>(key: K, value: ProductInput[K]) {
     setForm((current) => ({ ...current, [key]: value }));
+    if (key === "checkoutUrl") setUrlError(validateUrl(value as string));
   }
 
   function goToStep(direction: "next" | "prev") {
@@ -252,11 +260,21 @@ export function ProductEditor({
 
     if (!normalized.name) {
       setFeedback("Preencha o nome do produto para continuar.");
+      setActiveStep(0);
+      return;
+    }
+
+    const urlValidation = validateUrl(normalized.checkoutUrl);
+    if (urlValidation) {
+      setFeedback(urlValidation);
+      setUrlError(urlValidation);
+      setActiveStep(4);
       return;
     }
 
     if (normalized.guaranteeDays < 7) {
       setFeedback("A janela de garantia deve ser de no mínimo 7 dias.");
+      setActiveStep(1);
       return;
     }
 
@@ -532,8 +550,13 @@ export function ProductEditor({
             <div className="space-y-5">
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="md:col-span-2">
-                  <Field helper="URL externa onde o produto é comprado (ex: Hotmart, Kiwify). O link de afiliado redireciona para ela." label="URL do produto (destino do link de afiliado)">
+                  <Field label="URL do produto (destino do link de afiliado)">
                     <Input onChange={(value) => patch("checkoutUrl", value)} placeholder="https://pay.hotmart.com/..." value={form.checkoutUrl} />
+                    {urlError ? (
+                      <p className="mt-1.5 text-sm font-medium text-red-600">{urlError}</p>
+                    ) : (
+                      <p className="mt-1.5 text-xs text-zinc-500">URL externa onde o produto é comprado (ex: Hotmart, Kiwify). O link de afiliado redireciona para ela.</p>
+                    )}
                   </Field>
                 </div>
                 <Field label="Cor principal do checkout">

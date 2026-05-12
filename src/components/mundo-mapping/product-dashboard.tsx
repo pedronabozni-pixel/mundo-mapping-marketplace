@@ -60,12 +60,17 @@ export function ProductDashboard() {
           <>
             <PeriodSwitch onChange={setPeriod} options={["Hoje", "7 dias", "30 dias"]} value={period} />
             {atLimit ? (
-              <span
-                className="inline-flex h-11 cursor-not-allowed items-center justify-center rounded-xl bg-zinc-200 px-4 text-sm font-semibold text-zinc-400"
-                title={`Limite do plano ${planLabel} atingido — faça upgrade para continuar`}
-              >
-                Criar produto
-              </span>
+              <div className="flex flex-col items-end gap-1">
+                <span className="inline-flex h-11 cursor-not-allowed items-center justify-center rounded-xl bg-zinc-200 px-4 text-sm font-semibold text-zinc-400">
+                  Criar produto
+                </span>
+                <p className="text-xs text-zinc-500">
+                  Limite do plano <span className="font-semibold">{planLabel}</span> atingido —{" "}
+                  <a className="font-semibold text-red-600 hover:underline" href="/mundo-mapping/afiliados/perfil">
+                    faça upgrade
+                  </a>
+                </p>
+              </div>
             ) : (
               <Link
                 className="inline-flex h-11 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-semibold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)]"
