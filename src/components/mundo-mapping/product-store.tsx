@@ -82,8 +82,8 @@ export type ProductInput = Omit<ProductRecord, "id" | "slug" | "createdAt" | "up
 type ProductStoreValue = {
   products: ProductRecord[];
   ready: boolean;
-  createProduct: (input: ProductInput, publish?: boolean) => Promise<ProductRecord | null>;
-  updateProduct: (slug: string, input: ProductInput, publish?: boolean) => Promise<ProductRecord | null>;
+  createProduct: (input: ProductInput, publish?: boolean) => Promise<ProductRecord>;
+  updateProduct: (slug: string, input: ProductInput, publish?: boolean) => Promise<ProductRecord>;
   setProductStatus: (slug: string, status: ProductStatus) => void;
   deleteProduct: (slug: string) => void;
   getProductBySlug: (slug: string) => ProductRecord | undefined;
@@ -270,7 +270,7 @@ export function ProductStoreProvider({ children }: { children: ReactNode }) {
     ready,
 
     async createProduct(input, publish = false) {
-      if (!userId) return null;
+      if (!userId) throw new Error("Usuário não autenticado. Faça login novamente.");
       const supabase = createClient();
       const slug = ensureUniqueSlug(slugify(input.name), products);
       const { data, error } = await supabase
@@ -282,16 +282,18 @@ export function ProductStoreProvider({ children }: { children: ReactNode }) {
         })
         .select()
         .single();
-      if (error || !data) return null;
+      if (error || !data) {
+        throw new Error(`[${error?.code ?? "?"}] ${error?.message ?? "Erro desconhecido"}${error?.hint ? ` — ${error.hint}` : ""}`);
+      }
       const record = fromRow(data);
       setProducts((prev) => [record, ...prev]);
       return record;
     },
 
     async updateProduct(slug, input, publish = false) {
-      if (!userId) return null;
+      if (!userId) throw new Error("Usuário não autenticado. Faça login novamente.");
       const existing = products.find((p) => p.slug === slug);
-      if (!existing) return null;
+      if (!existing) throw new Error("Produto não encontrado na sessão atual.");
       const supabase = createClient();
       const nextSlug = ensureUniqueSlug(slugify(input.name), products, slug);
       const { data, error } = await supabase
@@ -305,7 +307,9 @@ export function ProductStoreProvider({ children }: { children: ReactNode }) {
         .eq("id", existing.id)
         .select()
         .single();
-      if (error || !data) return null;
+      if (error || !data) {
+        throw new Error(`[${error?.code ?? "?"}] ${error?.message ?? "Erro desconhecido"}${error?.hint ? ` — ${error.hint}` : ""}`);
+      }
       const record = fromRow(data);
       setProducts((prev) => prev.map((p) => (p.id === existing.id ? record : p)));
       return record;

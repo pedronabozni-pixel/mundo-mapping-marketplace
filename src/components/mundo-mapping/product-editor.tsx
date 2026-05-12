@@ -219,7 +219,7 @@ export function ProductEditor({
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [saving, setSaving] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
   const [form, setForm] = useState<ProductInput>(initialProduct ?? getEmptyProduct());
 
@@ -275,7 +275,7 @@ export function ProductEditor({
 
   async function save(publish = false) {
     if (mode === "create" && atLimit) {
-      setFeedback(`Limite do plano ${planLabel} atingido. Faça upgrade para cadastrar mais produtos.`);
+      setFeedback({ msg: `Limite do plano ${planLabel} atingido. Faça upgrade para cadastrar mais produtos.`, type: "error" });
       return;
     }
 
@@ -290,21 +290,21 @@ export function ProductEditor({
     };
 
     if (!normalized.name) {
-      setFeedback("Preencha o nome do produto para continuar.");
+      setFeedback({ msg: "Preencha o nome do produto para continuar.", type: "error" });
       setActiveStep(0);
       return;
     }
 
     const urlValidation = validateUrl(normalized.checkoutUrl);
     if (urlValidation) {
-      setFeedback(urlValidation);
+      setFeedback({ msg: urlValidation, type: "error" });
       setUrlError(urlValidation);
       setActiveStep(4);
       return;
     }
 
     if (normalized.guaranteeDays < 7) {
-      setFeedback("A janela de garantia deve ser de no mínimo 7 dias.");
+      setFeedback({ msg: "A janela de garantia deve ser de no mínimo 7 dias.", type: "error" });
       setActiveStep(1);
       return;
     }
@@ -312,20 +312,20 @@ export function ProductEditor({
     setSaving(true);
     setFeedback(null);
 
-    const result =
-      mode === "create"
-        ? await createProduct(normalized, publish)
-        : await updateProduct(initialProduct!.slug, normalized, publish);
+    try {
+      const result =
+        mode === "create"
+          ? await createProduct(normalized, publish)
+          : await updateProduct(initialProduct!.slug, normalized, publish);
 
-    setSaving(false);
-
-    if (!result) {
-      setFeedback("Não foi possível salvar o produto. Verifique sua conexão e tente novamente.");
-      return;
+      setSaving(false);
+      setFeedback({ msg: publish ? "Produto publicado com sucesso." : "Rascunho salvo com sucesso.", type: "success" });
+      router.push(`/mundo-mapping/afiliados/produtos/${result.slug}`);
+    } catch (err) {
+      setSaving(false);
+      const msg = err instanceof Error ? err.message : "Erro desconhecido ao salvar produto.";
+      setFeedback({ msg, type: "error" });
     }
-
-    setFeedback(publish ? "Produto publicado com sucesso." : "Rascunho salvo com sucesso.");
-    router.push(`/mundo-mapping/afiliados/produtos/${result.slug}`);
   }
 
   if (mode === "create" && loaded && atLimit) {
@@ -418,7 +418,11 @@ export function ProductEditor({
           subtitle="Todos os campos desta tela estão funcionando e salvam no navegador para você testar o processo inteiro."
           title={`Etapa ${activeStep + 1}. ${steps[activeStep]}`}
         >
-          {feedback ? <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{feedback}</div> : null}
+          {feedback ? (
+            <div className={`mb-5 rounded-2xl border px-4 py-3 text-sm ${feedback.type === "error" ? "border-red-200 bg-red-50 text-red-700" : "border-emerald-200 bg-emerald-50 text-emerald-700"}`}>
+              {feedback.msg}
+            </div>
+          ) : null}
 
           {activeStep === 0 ? (
             <div className="grid gap-5 md:grid-cols-2">
