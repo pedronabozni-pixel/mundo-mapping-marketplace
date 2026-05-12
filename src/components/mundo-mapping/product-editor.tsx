@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -24,6 +24,37 @@ const steps = [
   "Regras operacionais",
   "Revisão e publicação"
 ];
+
+function InfoPopover({ content }: { content: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handle(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [open]);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        className="flex h-4 w-4 items-center justify-center rounded-full bg-zinc-400 text-[10px] font-bold text-white transition hover:bg-zinc-500"
+        onClick={(e) => { e.preventDefault(); setOpen((v) => !v); }}
+        type="button"
+      >
+        ?
+      </button>
+      {open && (
+        <div className="absolute left-5 top-0 z-50 w-72 rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_20px_60px_-20px_rgba(15,23,42,0.25)]">
+          {content}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function Field({
   label,
@@ -450,6 +481,36 @@ export function ProductEditor({
                   value={form.commissionBase}
                 />
               </Field>
+              <div>
+                <div className="mb-2 flex items-center gap-1.5">
+                  <span className="text-sm font-medium text-zinc-700">Modo financeiro</span>
+                  <InfoPopover
+                    content={
+                      <div>
+                        <p className="text-sm font-semibold text-zinc-900">Como funciona o modo financeiro?</p>
+                        <div className="mt-3 space-y-3">
+                          <div>
+                            <p className="text-xs font-semibold text-zinc-700">Ledger da plataforma</p>
+                            <p className="mt-1 text-xs leading-5 text-zinc-500">O pagamento da venda entra primeiro na plataforma. Após o período de garantia, a comissão é liberada para o creator. Mais seguro e rastreável.</p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold text-zinc-700">Split na plataforma</p>
+                            <p className="mt-1 text-xs leading-5 text-zinc-500">O pagamento é dividido automaticamente no momento da venda entre a empresa e o creator via gateway. Mais rápido, mas exige configuração avançada no Asaas.</p>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  />
+                </div>
+                <Select
+                  onChange={(value) => patch("payoutMode", value as ProductInput["payoutMode"])}
+                  options={[
+                    { label: "Ledger da plataforma", value: "platform_ledger" },
+                    { label: "Split na plataforma", value: "platform_split" }
+                  ]}
+                  value={form.payoutMode}
+                />
+              </div>
               <div className="md:col-span-2 grid gap-4">
                 <MetricCard label="Comissão estimada" meta="Por venda confirmada" value={`R$ ${commissionEstimate.toFixed(2)}`} />
                 <MetricCard label="Preço" meta="Valor final da venda" value={`R$ ${form.price.toFixed(2)}`} />
