@@ -295,12 +295,15 @@ export function ProductEditor({
       return;
     }
 
-    const urlValidation = validateUrl(normalized.checkoutUrl);
-    if (urlValidation) {
-      setFeedback({ msg: urlValidation, type: "error" });
-      setUrlError(urlValidation);
-      setActiveStep(4);
-      return;
+    // URL obrigatória apenas ao publicar — rascunhos podem ser salvos sem ela
+    if (publish) {
+      const urlValidation = validateUrl(normalized.checkoutUrl);
+      if (urlValidation) {
+        setFeedback({ msg: urlValidation, type: "error" });
+        setUrlError(urlValidation);
+        setActiveStep(4);
+        return;
+      }
     }
 
     if (normalized.guaranteeDays < 7) {
@@ -863,9 +866,14 @@ export function ProductEditor({
                   Continuar
                 </button>
               ) : (
-                <button className="rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50" disabled={saving} onClick={() => save(true)} type="button">
-                  {saving ? "Salvando…" : "Finalizar e publicar"}
-                </button>
+                <>
+                  <button className="rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm font-semibold text-zinc-700 disabled:opacity-50" disabled={saving} onClick={() => save(false)} type="button">
+                    {saving ? "Salvando…" : "Salvar rascunho"}
+                  </button>
+                  <button className="rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50" disabled={saving} onClick={() => save(true)} type="button">
+                    {saving ? "Salvando…" : "Finalizar e publicar"}
+                  </button>
+                </>
               )}
             </div>
           </div>
