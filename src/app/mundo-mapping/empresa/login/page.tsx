@@ -3,6 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -11,11 +12,14 @@ type Tab = "entrar" | "cadastrar";
 function Logo() {
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-red-600">
-        <span className="text-sm font-bold text-white">MP</span>
-      </div>
+      <Image
+        alt="Mapping Partners"
+        className="object-contain"
+        height={80}
+        src="/logo-mapping-partners.png"
+        width={80}
+      />
       <div className="text-center">
-        <p className="text-base font-semibold tracking-tight text-zinc-950">Mapping Partners</p>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Área da Empresa</p>
       </div>
     </div>

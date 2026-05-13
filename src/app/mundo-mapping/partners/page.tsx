@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 function IconCheck() {
@@ -40,13 +41,14 @@ function Navbar() {
     <header className="sticky top-0 z-50 border-b border-zinc-200/80 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-[14px] bg-red-600">
-            <span className="text-xs font-bold text-white">MP</span>
-          </div>
-          <div className="leading-tight">
-            <p className="text-[15px] font-semibold tracking-tight text-zinc-950">Mapping Partners</p>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">Mundo Mapping</p>
-          </div>
+          <Image
+            alt="Mapping Partners"
+            className="object-contain"
+            height={40}
+            src="/logo-mapping-partners.png"
+            width={40}
+          />
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">Mundo Mapping</p>
         </div>
         <Link
           className="inline-flex h-10 items-center justify-center rounded-xl bg-red-600 px-5 text-sm font-semibold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)] transition hover:bg-red-700"
@@ -495,11 +497,14 @@ function Footer() {
     <footer className="border-t border-zinc-200/80 bg-white px-6 py-8">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-left">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-[12px] bg-red-600">
-            <span className="text-xs font-bold text-white">MP</span>
-          </div>
+          <Image
+            alt="Mapping Partners"
+            className="object-contain"
+            height={32}
+            src="/logo-mapping-partners.png"
+            width={32}
+          />
           <div className="leading-tight">
-            <p className="text-sm font-semibold text-zinc-950">Mapping Partners</p>
             <p className="text-xs text-zinc-400">Uma sub-marca da Mundo Mapping</p>
           </div>
         </div>
