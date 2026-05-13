@@ -92,7 +92,7 @@ type ProductStoreValue = {
 // ─── Row ↔ Record mapping ─────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function fromRow(r: Record<string, any>): ProductRecord {
+export function fromRow(r: Record<string, any>): ProductRecord {
   return {
     id: r.id,
     slug: r.slug,

@@ -15,7 +15,7 @@ import { usePlanLimits } from "@/components/mundo-mapping/use-plan-limits";
 import { createClient } from "@/lib/supabase/client";
 
 export function ProductDashboard() {
-  const { products } = useProductStore();
+  const { products, ready } = useProductStore();
   const { atLimit, planLabel } = usePlanLimits();
   const [period, setPeriod] = useState("30 dias");
   const [realAffiliates, setRealAffiliates] = useState<number | null>(null);
@@ -97,7 +97,13 @@ export function ProductDashboard() {
         <div className="grid gap-6 xl:grid-cols-[1.45fr_0.8fr]">
           {/* Products list */}
           <SectionCard subtitle="Visão objetiva do catálogo criado pela empresa." title="Produtos cadastrados">
-            {products.length ? (
+            {!ready ? (
+              <div className="grid gap-5 lg:grid-cols-2">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="h-28 animate-pulse rounded-2xl bg-zinc-100" />
+                ))}
+              </div>
+            ) : products.length ? (
               <div className="grid gap-5 lg:grid-cols-2">
                 {products.slice(0, 4).map((product) => (
                   <Link href={`/mundo-mapping/afiliados/produtos/${product.slug}`} key={product.id}>

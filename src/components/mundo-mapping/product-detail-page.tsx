@@ -1,35 +1,78 @@
 "use client";
 
 import Link from "next/link";
-import { use } from "react";
+import { use, useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { ProductDetail } from "@/components/mundo-mapping/product-detail";
 import { PageHeader, SectionCard } from "@/components/mundo-mapping/affiliate-ui";
-import { useProductStore } from "@/components/mundo-mapping/product-store";
+import { fromRow, ProductRecord } from "@/components/mundo-mapping/product-store";
+
+type State = "loading" | "found" | "not-found";
 
 export function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
-  const { getProductBySlug, ready } = useProductStore();
-  const product = getProductBySlug(slug);
+  const [state, setState] = useState<State>("loading");
+  const [product, setProduct] = useState<ProductRecord | null>(null);
 
-  if (!ready) {
-    return <div className="p-6 text-sm text-zinc-500">Carregando produto...</div>;
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = "/mundo-mapping/empresa/login";
+        return;
+      }
+
+      const { data } = await supabase
+        .from("produtos")
+        .select("*")
+        .eq("slug", slug)
+        .eq("empresa_id", user.id)
+        .single();
+
+      if (cancelled) return;
+      if (data) {
+        setProduct(fromRow(data));
+        setState("found");
+      } else {
+        setState("not-found");
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [slug]);
+
+  if (state === "loading") {
+    return (
+      <div className="space-y-4 p-6">
+        <div className="h-16 animate-pulse rounded-2xl bg-zinc-100" />
+        <div className="h-64 animate-pulse rounded-2xl bg-zinc-100" />
+      </div>
+    );
   }
 
-  if (!product) {
+  if (state === "not-found" || !product) {
     return (
       <>
         <PageHeader
-          description="Não encontramos esse produto na base local do módulo."
+          description="Esse produto não foi encontrado ou não pertence à sua conta."
           eyebrow="Mundo Mapping / Afiliados / Produtos"
           title="Produto não encontrado"
         />
         <div className="p-6">
-          <SectionCard subtitle="Crie um novo produto ou volte ao dashboard." title="Nada por aqui">
-            <div className="flex gap-3">
-              <Link className="rounded-xl border border-zinc-200 px-4 py-3 text-sm font-semibold text-zinc-700" href="/mundo-mapping/afiliados">
+          <SectionCard subtitle="Volte ao dashboard ou crie um novo produto." title="Nada por aqui">
+            <div className="flex flex-wrap gap-3">
+              <Link
+                className="rounded-xl border border-zinc-200 px-4 py-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
+                href="/mundo-mapping/afiliados"
+              >
                 Voltar ao dashboard
               </Link>
-              <Link className="rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white" href="/mundo-mapping/afiliados/produtos/novo">
+              <Link
+                className="rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-700"
+                href="/mundo-mapping/afiliados/produtos/novo"
+              >
                 Criar produto
               </Link>
             </div>
