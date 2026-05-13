@@ -18,38 +18,6 @@ export const affiliateNavLinks: NavLink[] = [
   { href: "/mundo-mapping/afiliados/perfil", label: "Perfil" },
 ];
 
-export const topProducts = [
-  { name: "Mentoria Comercial MM", revenue: "R$ 182.400", affiliates: 82, conversion: "6,8%" },
-  { name: "Mapa 360 Pro", revenue: "R$ 96.320", affiliates: 54, conversion: "4,9%" },
-  { name: "O Que as Marcas Querem", revenue: "R$ 31.740", affiliates: 121, conversion: "8,4%" }
-];
-
-export const topAffiliates = [
-  { name: "Ana Martinelli", channel: "@anamartinellii", gmv: "R$ 28.900", conversion: "7,2%" },
-  { name: "Jaine Chagas", channel: "@byjainechagas", gmv: "R$ 21.440", conversion: "6,1%" },
-  { name: "Yuri Aguiar", channel: "@yurizaoaguiar", gmv: "R$ 18.160", conversion: "5,4%" }
-];
-
-export const salesRows = [
-  ["Mentoria Comercial MM", "12 mar 2026", "R$ 1.290", "Ana Martinelli", "Cartão", "Pendente"],
-  ["Mapa 360 Pro", "12 mar 2026", "R$ 890", "Jaine Chagas", "PIX", "Disponível"],
-  ["O Que as Marcas Querem", "11 mar 2026", "R$ 19,90", "Yuri Aguiar", "Cartão", "Pago"],
-  ["Mapa 360 Pro", "10 mar 2026", "R$ 890", "Mell Correia", "PIX", "Em análise"]
-];
-
-export const affiliateRequests = [
-  { name: "Natalia Alves", niche: "Negócios locais", audience: "67 mil", fit: "Alto" },
-  { name: "Lucas Souza", niche: "B2B e vendas", audience: "41 mil", fit: "Médio" },
-  { name: "Kamilla Andrade", niche: "Empreendedorismo", audience: "93 mil", fit: "Alto" }
-];
-
-export const financeRows = [
-  ["12 mar 2026", "Venda confirmada", "Mentoria Comercial MM", "+R$ 312,00", "Disponível"],
-  ["11 mar 2026", "Comissão em janela", "Mapa 360 Pro", "+R$ 178,00", "Pendente"],
-  ["09 mar 2026", "Saque processado", "Conta principal", "-R$ 4.800,00", "Pago"],
-  ["08 mar 2026", "Chargeback", "Mapa 360 Pro", "-R$ 890,00", "Revertido"]
-];
-
 function cn(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
 }
@@ -257,12 +225,20 @@ export function DataTable({
 }
 
 export function LineChart({
-  values = [42, 48, 64, 60, 78, 92, 88, 106, 114, 128, 123, 140],
-  labels = ["abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez", "jan", "fev", "mar"]
+  values = [],
+  labels = [],
 }: {
   values?: number[];
   labels?: string[];
 }) {
+  if (!values.length) {
+    return (
+      <div className="flex h-52 items-center justify-center rounded-[20px] border border-dashed border-zinc-200 bg-zinc-50">
+        <p className="text-sm text-zinc-400">Nenhum dado disponível ainda.</p>
+      </div>
+    );
+  }
+
   const width = 960;
   const height = 260;
   const min = Math.min(...values);
@@ -310,13 +286,16 @@ export function LineChart({
   );
 }
 
-export function Funnel() {
-  const steps = [
-    { label: "Cliques", value: "48.320", width: "100%" },
-    { label: "Checkout iniciado", value: "12.108", width: "82%" },
-    { label: "Pagamento aprovado", value: "4.192", width: "64%" },
-    { label: "Comissao elegivel", value: "3.740", width: "50%" }
-  ];
+type FunnelStep = { label: string; value: string; width: string };
+
+export function Funnel({ steps = [] }: { steps?: FunnelStep[] }) {
+  if (!steps.length) {
+    return (
+      <div className="flex h-40 items-center justify-center rounded-[20px] border border-dashed border-zinc-200 bg-zinc-50">
+        <p className="text-sm text-zinc-400">Nenhum dado de funil disponível.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">

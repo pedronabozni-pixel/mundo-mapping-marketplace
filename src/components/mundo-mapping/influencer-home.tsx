@@ -8,17 +8,7 @@ import {
   MetricCard,
   SectionCard,
   StatusBadge,
-  DataTable,
-  ProductVisualCard,
 } from "@/components/mundo-mapping/affiliate-ui";
-
-// ─── Static mock data kept only for legacy/stub pages ────────────────────────
-
-const materialRows = [
-  ["Mapa 360 Pro", "Story pack", "ZIP + legenda", "Atualizado hoje", "Disponível"],
-  ["O Que as Marcas Querem", "Feed 4:5", "Imagem + CTA", "Atualizado ontem", "Disponível"],
-  ["Mentoria Comercial MM", "Landing hero", "Banner principal", "Em revisão", "Pendente"],
-];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -170,7 +160,7 @@ export function InfluencerHome() {
 
           <section className="grid gap-6 xl:grid-cols-[1.45fr_0.8fr]">
             <SectionCard subtitle="Evolução dos cliques nos seus links de afiliado." title="Performance dos links">
-              <LineChart values={[18, 24, 31, 28, 36, 42, 45, 48, 54, 58, 63, 67]} />
+              <LineChart />
             </SectionCard>
 
             <SectionCard subtitle="Regras do modelo de afiliação." title="Como funciona">
@@ -243,12 +233,14 @@ export function InfluencerProductsSection() {
       subtitle="Produtos disponíveis para afiliação."
       title="Produtos afiliados"
     >
-      <div className="grid gap-5 lg:grid-cols-3">
-        <Link href="/mundo-mapping/influenciadores/shopping">
-          <ProductVisualCard commission="20% por venda" price="R$ 890,00" status="Público" title="Mapa 360 Pro" />
-        </Link>
-        <Link href="/mundo-mapping/influenciadores/shopping">
-          <ProductVisualCard commission="50% por venda" price="R$ 19,90" status="Público" title="O Que as Marcas Querem" />
+      <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center">
+        <p className="text-sm font-medium text-zinc-700">Você ainda não tem produtos afiliados.</p>
+        <p className="mt-2 text-sm text-zinc-500">Acesse o shopping e solicite afiliação aos produtos disponíveis.</p>
+        <Link
+          className="mt-5 inline-flex h-10 items-center justify-center rounded-xl bg-red-600 px-5 text-sm font-bold text-white shadow-[0_8px_24px_-10px_rgba(220,38,38,0.7)] transition hover:bg-red-700"
+          href="/mundo-mapping/influenciadores/shopping"
+        >
+          Ir para o shopping
         </Link>
       </div>
     </SectionCard>
@@ -269,7 +261,10 @@ export function InfluencerMaterialsSection() {
       subtitle="Materiais liberados pela empresa para cada produto aprovado na sua operação."
       title="Biblioteca de materiais"
     >
-      <DataTable columns={["Produto", "Material", "Formato", "Atualização", "Status"]} rows={materialRows} />
+      <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center">
+        <p className="text-sm font-medium text-zinc-700">Nenhum material disponível ainda.</p>
+        <p className="mt-2 text-sm text-zinc-500">Quando uma empresa liberar materiais para os seus produtos afiliados, eles aparecerão aqui.</p>
+      </div>
     </SectionCard>
   );
 }
