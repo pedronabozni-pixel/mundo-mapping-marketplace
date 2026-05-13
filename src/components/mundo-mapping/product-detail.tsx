@@ -1,12 +1,75 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { DataTable, MiniStat, PageHeader, SectionCard, StatusBadge } from "@/components/mundo-mapping/affiliate-ui";
 import { ProductRecord, useProductStore } from "@/components/mundo-mapping/product-store";
 
 const tabs = ["Visão geral", "Criativos", "Checkout", "Configurações"];
+
+// ─── Afiliados reais do Supabase ──────────────────────────────────────────────
+
+function AfiliadosAtivos({ productId }: { productId: string }) {
+  const [rows, setRows] = useState<string[][]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const supabase = createClient();
+      const { data: links } = await supabase
+        .from("links_afiliados")
+        .select("id, creator_id, link, cliques, ativo")
+        .eq("produto_id", productId)
+        .order("cliques", { ascending: false });
+
+      if (cancelled) return;
+      if (!links?.length) { setLoading(false); return; }
+
+      const creatorIds = [...new Set(links.map((l) => l.creator_id).filter(Boolean))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name, instagram")
+        .in("id", creatorIds);
+
+      if (cancelled) return;
+
+      const profileMap: Record<string, { full_name?: string; instagram?: string }> = {};
+      (profiles ?? []).forEach((p) => { profileMap[p.id] = p; });
+
+      setRows(
+        links.map((l) => {
+          const p = profileMap[l.creator_id] ?? {};
+          const name = p.full_name ?? l.creator_id?.slice(0, 8) ?? "—";
+          const link = l.link ?? "—";
+          const cliques = (l.cliques ?? 0).toLocaleString("pt-BR");
+          const status = l.ativo ? "Ativo" : "Inativo";
+          return [name, link, cliques, status];
+        }),
+      );
+      setLoading(false);
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [productId]);
+
+  if (loading) return <div className="h-24 animate-pulse rounded-xl bg-zinc-100" />;
+
+  if (!rows.length) {
+    return (
+      <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center">
+        <p className="text-sm font-medium text-zinc-700">Nenhum afiliado ativo ainda.</p>
+        <p className="mt-2 text-sm text-zinc-500">
+          Publique o produto no shopping para começar a receber afiliações.
+        </p>
+      </div>
+    );
+  }
+
+  return <DataTable columns={["Afiliado", "Link", "Cliques", "Status"]} rows={rows} />;
+}
 
 export function ProductDetail({ product }: { product: ProductRecord }) {
   const router = useRouter();
@@ -311,14 +374,7 @@ export function ProductDetail({ product }: { product: ProductRecord }) {
 
         <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
           <SectionCard subtitle="Cada afiliado aprovado recebe o próprio link e gera resultados independentes neste produto." title="Afiliados ativos">
-            <DataTable
-              columns={["Afiliado", "Link próprio", "Cliques", "Vendas", "Comissão", "Status"]}
-              rows={[
-                ["Ana Martinelli", "mm.link/ana/mapa360", "1.240", "38", "R$ 5.780", "Publicado"],
-                ["Jaine Chagas", "mm.link/jaine/mapa360", "980", "24", "R$ 3.650", "Publicado"],
-                ["Yuri Aguiar", "mm.link/yuri/mapa360", "614", "12", "R$ 1.824", "Publicado"]
-              ]}
-            />
+            <AfiliadosAtivos productId={product.id} />
           </SectionCard>
 
           <SectionCard subtitle="Apenas as duas ações principais do produto." title="Ações">
