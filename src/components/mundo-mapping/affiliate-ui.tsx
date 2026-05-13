@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ReactNode } from "react";
+import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners-logo";
 
 export type NavLink = {
   href: string;
@@ -416,8 +417,8 @@ export function AffiliateShell({
       <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-[1480px] gap-4 xl:grid-cols-[210px_1fr]">
         <aside className="flex h-full flex-col rounded-[24px] bg-[#181a20] p-3 text-white shadow-[0_34px_80px_-62px_rgba(0,0,0,0.78)]">
           <div className="rounded-[18px] px-3 py-3">
-            <p className="text-[11px] uppercase tracking-[0.22em] text-white/40">Mundo Mapping</p>
-            <h1 className="mt-2 text-lg font-semibold tracking-tight">Afiliados</h1>
+            <MappingPartnersLogo onDark size="sm" subtitle="Mundo Mapping" />
+            <h1 className="mt-4 text-lg font-semibold tracking-tight">Afiliados</h1>
             <p className="mt-1 text-sm text-white/55">Produtos e operação.</p>
           </div>
 
@@ -481,7 +482,7 @@ export function InfluencerShell({
         <header className="border-b border-zinc-200/80 bg-white/90 px-6 py-5 backdrop-blur">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-400">Mundo Mapping Partners</p>
+              <MappingPartnersLogo size="sm" />
               <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950">Área do influenciador</h1>
               <p className="mt-2 text-sm leading-6 text-zinc-500">Um ambiente próprio para operar links, produtos afiliados, comissão e materiais.</p>
             </div>

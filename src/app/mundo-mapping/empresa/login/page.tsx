@@ -5,21 +5,12 @@ export const dynamic = "force-dynamic";
 import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners-logo";
 
 type Tab = "entrar" | "cadastrar";
 
 function Logo() {
-  return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="flex h-14 w-14 items-center justify-center rounded-[18px] bg-[#B91C1C]">
-        <span className="text-xs font-bold leading-tight text-white text-center">Mapping<br/>Partners</span>
-      </div>
-      <div className="text-center">
-        <p className="text-base font-bold tracking-tight text-[#B91C1C]">Mapping Partners</p>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Área da Empresa</p>
-      </div>
-    </div>
-  );
+  return <MappingPartnersLogo size="lg" subtitle="Área da Empresa" variant="stacked" />;
 }
 
 function Field({

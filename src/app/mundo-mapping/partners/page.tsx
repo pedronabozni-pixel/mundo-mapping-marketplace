@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners-logo";
 
 function IconCheck() {
   return (
@@ -39,15 +40,7 @@ function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-zinc-200/80 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-[14px] bg-[#B91C1C]">
-            <span className="text-[9px] font-bold leading-tight text-white text-center">MP</span>
-          </div>
-          <div className="leading-tight">
-            <p className="text-[15px] font-bold tracking-tight text-[#B91C1C]">Mapping Partners</p>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">Mundo Mapping</p>
-          </div>
-        </div>
+        <MappingPartnersLogo size="md" subtitle="Mundo Mapping" />
         <Link
           className="inline-flex h-10 items-center justify-center rounded-xl bg-red-600 px-5 text-sm font-semibold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)] transition hover:bg-red-700"
           href="/mundo-mapping/empresa/login"
@@ -494,15 +487,7 @@ function Footer() {
   return (
     <footer className="border-t border-zinc-200/80 bg-white px-6 py-8">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-left">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-[12px] bg-[#B91C1C]">
-            <span className="text-[9px] font-bold text-white">MP</span>
-          </div>
-          <div className="leading-tight">
-            <p className="text-sm font-bold text-[#B91C1C]">Mapping Partners</p>
-            <p className="text-xs text-zinc-400">Uma sub-marca da Mundo Mapping</p>
-          </div>
-        </div>
+        <MappingPartnersLogo size="sm" subtitle="Uma sub-marca da Mundo Mapping" />
       </div>
     </footer>
   );

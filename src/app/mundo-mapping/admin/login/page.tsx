@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners-logo";
 
 async function checkAdminRole(access_token: string, user_id: string): Promise<boolean> {
   const res = await fetch("/api/mundo-mapping/admin/verify", {
@@ -63,10 +64,9 @@ export default function AdminLoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 px-4">
       <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-600">Mundo Mapping</p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">Painel Admin</h1>
-          <p className="mt-1 text-sm text-zinc-500">Acesso restrito a administradores</p>
+        <div className="mb-8 flex flex-col items-center gap-4 text-center">
+          <MappingPartnersLogo onDark size="lg" subtitle="Admin" variant="stacked" />
+          <p className="text-sm text-zinc-500">Acesso restrito a administradores</p>
         </div>
 
         <form className="space-y-4" onSubmit={handleSubmit}>

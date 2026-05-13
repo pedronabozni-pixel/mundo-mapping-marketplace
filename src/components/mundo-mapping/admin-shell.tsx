@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners-logo";
 
 const NAV = [
   { href: "/mundo-mapping/admin", label: "Dashboard", exact: true },
@@ -33,16 +34,8 @@ export function AdminShell({
       {/* ── Sidebar ── */}
       <aside className="fixed inset-y-0 left-0 z-50 flex w-56 flex-col border-r border-zinc-800/80 bg-zinc-950">
         {/* Brand */}
-        <div className="flex items-center gap-2.5 border-b border-zinc-800/80 px-5 py-4">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#B91C1C]">
-            <span className="text-[9px] font-bold text-white">MP</span>
-          </div>
-          <div className="leading-tight">
-            <p className="text-xs font-bold text-white">Mapping Partners</p>
-            <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-red-400">
-              Admin
-            </p>
-          </div>
+        <div className="border-b border-zinc-800/80 px-5 py-4">
+          <MappingPartnersLogo onDark size="sm" subtitle="Admin" />
         </div>
 
         {/* Nav */}
