@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { PageHeader, SectionCard, StatusBadge } from "@/components/mundo-mapping/affiliate-ui";
 
@@ -22,6 +23,7 @@ type Pedido = {
   preco_produto: number;
   url_produto: string;
   criado_em: string;
+  linkCodigo?: string;
 };
 
 type Tab = "pendente" | "aprovado" | "rejeitado";
@@ -90,26 +92,66 @@ function RejectModal({
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function SolicitacoesPage() {
+  const router = useRouter();
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dbError, setDbError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("pendente");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [rejectTarget, setRejectTarget] = useState<Pedido | null>(null);
 
   const load = useCallback(async () => {
+    setLoading(true);
+    setDbError(null);
+
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      router.replace("/mundo-mapping/empresa/login");
+      return;
+    }
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("pedidos_afiliacao")
       .select("*")
       .eq("empresa_id", user.id)
       .order("criado_em", { ascending: false });
 
-    setPedidos((data ?? []) as Pedido[]);
+    if (error) {
+      setDbError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    const rows = (data ?? []) as Pedido[];
+
+    // For approved rows, fetch the generated link codes
+    const approvedProductIds = rows
+      .filter((p) => p.status === "aprovado")
+      .map((p) => p.produto_id);
+
+    let linkMap: Record<string, string> = {};
+    if (approvedProductIds.length > 0) {
+      const { data: links } = await supabase
+        .from("links_afiliados")
+        .select("produto_id, creator_id, codigo")
+        .eq("empresa_id", user.id)
+        .in("produto_id", approvedProductIds);
+
+      (links ?? []).forEach((l) => {
+        const key = `${l.produto_id}:${l.creator_id}`;
+        linkMap[key] = l.codigo;
+      });
+    }
+
+    const enriched = rows.map((p) => ({
+      ...p,
+      linkCodigo: linkMap[`${p.produto_id}:${p.creator_id}`],
+    }));
+
+    setPedidos(enriched);
     setLoading(false);
-  }, []);
+  }, [router]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -139,8 +181,11 @@ export default function SolicitacoesPage() {
           .from("pedidos_afiliacao")
           .update({ status: "aprovado", atualizado_em: new Date().toISOString() })
           .eq("id", pedido.id);
+
         setPedidos((prev) =>
-          prev.map((p) => (p.id === pedido.id ? { ...p, status: "aprovado" } : p))
+          prev.map((p) =>
+            p.id === pedido.id ? { ...p, status: "aprovado", linkCodigo: codigo } : p
+          )
         );
         setActionLoading(null);
         return;
@@ -192,6 +237,8 @@ export default function SolicitacoesPage() {
     rejeitado: `Rejeitados${counts.rejeitado > 0 ? ` (${counts.rejeitado})` : ""}`,
   };
 
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+
   return (
     <>
       <PageHeader
@@ -223,13 +270,23 @@ export default function SolicitacoesPage() {
             ))}
           </div>
 
+          {/* DB error */}
+          {dbError && (
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <p className="font-semibold">Erro ao carregar solicitações</p>
+              <p className="mt-1 font-mono text-xs">{dbError}</p>
+              <p className="mt-2">Se a tabela ainda não existe, rode a migration <code>20260513_pedidos_afiliacao.sql</code> no Supabase SQL Editor.</p>
+            </div>
+          )}
+
+          {/* Content */}
           {loading ? (
             <div className="space-y-3">
               {[0, 1, 2].map((i) => (
                 <div key={i} className="h-20 animate-pulse rounded-2xl bg-zinc-100" />
               ))}
             </div>
-          ) : filtered.length === 0 ? (
+          ) : !dbError && filtered.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center text-sm text-zinc-500">
               {tab === "pendente"
                 ? "Nenhuma solicitação pendente. Quando creators solicitarem afiliação em produtos com aprovação manual, aparecerão aqui."
@@ -241,6 +298,8 @@ export default function SolicitacoesPage() {
             <div className="space-y-3">
               {filtered.map((pedido) => {
                 const isActing = actionLoading === pedido.id;
+                const linkUrl = pedido.linkCodigo ? `${origin}/r/${pedido.linkCodigo}` : null;
+
                 return (
                   <div
                     className="flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between"
@@ -248,10 +307,20 @@ export default function SolicitacoesPage() {
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm font-semibold text-zinc-950">{pedido.creator_nome || "Creator"}</span>
+                        <span className="text-sm font-semibold text-zinc-950">
+                          {pedido.creator_nome || "Creator"}
+                        </span>
                         <StatusBadge
-                          label={pedido.status === "pendente" ? "Pendente" : pedido.status === "aprovado" ? "Aprovado" : "Rejeitado"}
-                          tone={pedido.status === "pendente" ? "warning" : pedido.status === "aprovado" ? "success" : "danger"}
+                          label={
+                            pedido.status === "pendente" ? "Pendente"
+                            : pedido.status === "aprovado" ? "Aprovado"
+                            : "Rejeitado"
+                          }
+                          tone={
+                            pedido.status === "pendente" ? "warning"
+                            : pedido.status === "aprovado" ? "success"
+                            : "danger"
+                          }
                         />
                       </div>
                       <p className="mt-1 text-sm text-zinc-500">{pedido.produto_nome}</p>
@@ -259,8 +328,24 @@ export default function SolicitacoesPage() {
                         Solicitado em {formatDate(pedido.criado_em)} ·{" "}
                         {pedido.comissao_tipo === "percent"
                           ? `${pedido.comissao_valor}% de comissão`
-                          : `R$ ${pedido.comissao_valor.toFixed(2)} de comissão`}
+                          : `R$ ${Number(pedido.comissao_valor).toFixed(2)} de comissão`}
                       </p>
+
+                      {/* Link gerado (aprovados) */}
+                      {pedido.status === "aprovado" && linkUrl && (
+                        <div className="mt-2 flex items-center gap-2 overflow-hidden rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+                          <span className="flex-1 truncate font-mono text-xs text-emerald-800">{linkUrl}</span>
+                          <button
+                            className="shrink-0 text-xs font-semibold text-emerald-700 hover:underline"
+                            onClick={() => navigator.clipboard.writeText(linkUrl)}
+                            type="button"
+                          >
+                            Copiar
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Motivo da rejeição */}
                       {pedido.motivo_rejeicao && (
                         <p className="mt-1 text-xs text-red-600">Motivo: {pedido.motivo_rejeicao}</p>
                       )}
