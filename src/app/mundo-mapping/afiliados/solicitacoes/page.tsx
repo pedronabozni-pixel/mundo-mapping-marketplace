@@ -96,7 +96,7 @@ export default function SolicitacoesPage() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
   const [dbError, setDbError] = useState<string | null>(null);
-  const [debugInfo, setDebugInfo] = useState<{ userId: string; total: number } | null>(null);
+
   const [tab, setTab] = useState<Tab>("pendente");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [rejectTarget, setRejectTarget] = useState<Pedido | null>(null);
@@ -117,8 +117,6 @@ export default function SolicitacoesPage() {
       .select("*")
       .eq("empresa_id", user.id)
       .order("criado_em", { ascending: false });
-
-    setDebugInfo({ userId: user.id, total: data?.length ?? 0 });
 
     if (error) {
       setDbError(error.message);
@@ -272,20 +270,6 @@ export default function SolicitacoesPage() {
               </button>
             ))}
           </div>
-
-          {/* Debug info — remover após confirmar funcionamento */}
-          {debugInfo && (
-            <div className="mb-4 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-xs text-zinc-500 font-mono">
-              <span className="font-semibold text-zinc-700">Debug:</span>{" "}
-              empresa_id = <span className="text-zinc-900">{debugInfo.userId}</span>{" · "}
-              pedidos encontrados = <span className={debugInfo.total > 0 ? "text-emerald-700 font-semibold" : "text-zinc-900"}>{debugInfo.total}</span>
-              {debugInfo.total === 0 && (
-                <span className="ml-2 text-amber-600">
-                  — verifique se os pedidos foram criados com esse empresa_id e se a migration foi executada no Supabase.
-                </span>
-              )}
-            </div>
-          )}
 
           {/* DB error */}
           {dbError && (
