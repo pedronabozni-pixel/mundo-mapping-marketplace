@@ -440,11 +440,8 @@ export function AffiliateShell({
 
 const influencerNavLinks = [
   { href: "/mundo-mapping/influenciadores", label: "Painel" },
-  { href: "/mundo-mapping/influenciadores/marketplace", label: "Marketplace" },
   { href: "/mundo-mapping/influenciadores/shopping", label: "Shopping" },
   { href: "/mundo-mapping/influenciadores/meus-links", label: "Meus links" },
-  { href: "/mundo-mapping/influenciadores/produtos", label: "Produtos" },
-  { href: "/mundo-mapping/influenciadores/materiais", label: "Materiais" },
   { href: "/mundo-mapping/influenciadores/financeiro", label: "Financeiro" },
   { href: "/mundo-mapping/influenciadores/perfil", label: "Perfil" },
 ];
@@ -467,8 +464,8 @@ export function InfluencerShell({
               <p className="mt-2 text-sm leading-6 text-zinc-500">Um ambiente próprio para operar links, produtos afiliados, comissão e materiais.</p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <Link className="inline-flex h-11 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-semibold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)]" href="/mundo-mapping/influenciadores/financeiro">
-                Solicitar saque
+              <Link className="inline-flex h-11 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-semibold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)]" href="/mundo-mapping/influenciadores/shopping">
+                Acessar shopping
               </Link>
             </div>
           </div>

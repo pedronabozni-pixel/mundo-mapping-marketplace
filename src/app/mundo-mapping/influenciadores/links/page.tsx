@@ -1,9 +1,5 @@
-import { InfluencerLinksSection } from "@/components/mundo-mapping/influencer-home";
+import { redirect } from "next/navigation";
 
 export default function InfluencerLinksPage() {
-  return (
-    <div className="p-6">
-      <InfluencerLinksSection />
-    </div>
-  );
+  redirect("/mundo-mapping/influenciadores/meus-links");
 }

@@ -101,16 +101,10 @@ export function InfluencerHome() {
             Acessar shopping
           </Link>
           <Link
-            className="inline-flex h-11 items-center justify-center rounded-xl bg-white px-4 text-sm font-semibold text-zinc-950"
+            className="inline-flex h-11 items-center justify-center rounded-xl border border-white/15 bg-white/10 px-4 text-sm font-semibold text-white"
             href="/mundo-mapping/influenciadores/meus-links"
           >
             Ver meus links
-          </Link>
-          <Link
-            className="inline-flex h-11 items-center justify-center rounded-xl border border-white/15 bg-white/10 px-4 text-sm font-semibold text-white"
-            href="/mundo-mapping/influenciadores/marketplace"
-          >
-            Marketplace
           </Link>
         </div>
       </section>
