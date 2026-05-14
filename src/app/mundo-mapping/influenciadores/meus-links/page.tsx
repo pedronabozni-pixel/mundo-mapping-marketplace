@@ -36,6 +36,7 @@ export default function MeusLinksPage() {
   const [links, setLinks] = useState<LinkAfiliado[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -68,6 +69,20 @@ export default function MeusLinksPage() {
     await navigator.clipboard.writeText(getLinkUrl(codigo));
     setCopied(codigo);
     setTimeout(() => setCopied(null), 2000);
+  }
+
+  async function cancelarAfiliacao(linkId: string) {
+    if (!window.confirm("Tem certeza? Seu link será desativado e você não receberá mais comissões deste produto.")) return;
+    setCancellingId(linkId);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("links_afiliados")
+      .update({ ativo: false })
+      .eq("id", linkId);
+    if (!error) {
+      setLinks((prev) => prev.map((l) => l.id === linkId ? { ...l, ativo: false } : l));
+    }
+    setCancellingId(null);
   }
 
   const totalCliques = links.reduce((s, l) => s + l.cliques, 0);
@@ -125,6 +140,7 @@ export default function MeusLinksPage() {
                   <th className="px-4 py-3 text-right">Cliques</th>
                   <th className="px-4 py-3 text-right">Comissão</th>
                   <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
@@ -164,6 +180,18 @@ export default function MeusLinksPage() {
                           label={link.ativo ? "Ativo" : "Inativo"}
                           tone={link.ativo ? "success" : "warning"}
                         />
+                      </td>
+                      <td className="px-4 py-3">
+                        {link.ativo && (
+                          <button
+                            className="rounded-lg border border-red-100 px-2.5 py-1 text-xs font-semibold text-red-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                            disabled={cancellingId === link.id}
+                            onClick={() => cancelarAfiliacao(link.id)}
+                            type="button"
+                          >
+                            {cancellingId === link.id ? "…" : "Cancelar"}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );

@@ -354,6 +354,7 @@ export default function InfluencerShoppingPage() {
   const [loading, setLoading] = useState(true);
   const [selectedProduto, setSelectedProduto] = useState<Produto | null>(null);
   const [affiliationStatus, setAffiliationStatus] = useState<Record<string, AffStatus>>({});
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [nicho, setNicho] = useState("Todos");
   const [sort, setSort] = useState<SortOption>("relevant");
@@ -427,6 +428,21 @@ export default function InfluencerShoppingPage() {
     }
     return list;
   }, [produtos, search, nicho, sort]);
+
+  async function cancelarSolicitacao(produtoId: string) {
+    if (!window.confirm("Tem certeza que deseja cancelar esta solicitação?")) return;
+    setCancellingId(produtoId);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setCancellingId(null); return; }
+    await supabase
+      .from("pedidos_afiliacao")
+      .delete()
+      .eq("creator_id", user.id)
+      .eq("produto_id", produtoId);
+    setAffiliationStatus((prev) => ({ ...prev, [produtoId]: "none" }));
+    setCancellingId(null);
+  }
 
   if (loading) {
     return (
@@ -546,6 +562,16 @@ export default function InfluencerShoppingPage() {
                     >
                       {btn.label}
                     </button>
+                    {aff === "pending" && (
+                      <button
+                        className="w-full rounded-xl border border-red-100 py-2 text-xs font-semibold text-red-500 transition hover:border-red-200 hover:bg-red-50 disabled:opacity-50"
+                        disabled={cancellingId === produto.id}
+                        onClick={() => cancelarSolicitacao(produto.id)}
+                        type="button"
+                      >
+                        {cancellingId === produto.id ? "Cancelando…" : "Cancelar solicitação"}
+                      </button>
+                    )}
                   </div>
                 </article>
               );
