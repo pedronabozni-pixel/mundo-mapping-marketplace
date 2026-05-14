@@ -12,13 +12,13 @@ export default async function AffiliateRedirectPage({
 
   const supabase = await createClient();
 
-  const { data: urlProduto } = await supabase.rpc("registrar_clique", {
+  const { data: urlProduto, error } = await supabase.rpc("registrar_clique", {
     p_codigo: codigo,
   });
 
-  if (!urlProduto) {
-    redirect("/mundo-mapping/influenciadores/shopping");
+  if (!error && urlProduto) {
+    redirect(urlProduto as string);
   }
 
-  redirect(urlProduto as string);
+  redirect("/mundo-mapping/partners");
 }
