@@ -126,16 +126,19 @@ function Select({
 function Textarea({
   value,
   onChange,
-  rows = 5
+  rows = 5,
+  placeholder,
 }: {
   value: string;
   onChange: (value: string) => void;
   rows?: number;
+  placeholder?: string;
 }) {
   return (
     <textarea
       className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 outline-none transition focus:border-red-300 focus:ring-4 focus:ring-red-50"
       onChange={(event) => onChange(event.target.value)}
+      placeholder={placeholder}
       rows={rows}
       value={value}
     />
@@ -617,8 +620,39 @@ export function ProductEditor({
                     )}
                   </Field>
                 </div>
+                <Field label="Tipo de entregável">
+                  <Select
+                    onChange={(value) => patch("tipoEntregavel", value as "digital" | "fisico" | "evento" | "servico")}
+                    options={[
+                      { label: "Digital (ebook, curso, acesso)", value: "digital" },
+                      { label: "Físico (produto com entrega)", value: "fisico" },
+                      { label: "Evento (presencial ou online)", value: "evento" },
+                      { label: "Serviço (consultoria, mentoria)", value: "servico" },
+                    ]}
+                    value={form.tipoEntregavel}
+                  />
+                </Field>
                 <Field label="Cor principal do checkout">
-                  <Input onChange={(value) => patch("checkoutColor", value)} value={form.checkoutColor} />
+                  <div className="flex items-center gap-3">
+                    <input
+                      className="h-10 w-12 cursor-pointer rounded-lg border border-zinc-200 p-1"
+                      onChange={(e) => patch("checkoutColor", e.target.value)}
+                      type="color"
+                      value={form.checkoutColor}
+                    />
+                    <Input onChange={(value) => patch("checkoutColor", value)} value={form.checkoutColor} />
+                  </div>
+                </Field>
+                <Field label="Cor de fundo do checkout">
+                  <div className="flex items-center gap-3">
+                    <input
+                      className="h-10 w-12 cursor-pointer rounded-lg border border-zinc-200 p-1"
+                      onChange={(e) => patch("checkoutBgColor", e.target.value)}
+                      type="color"
+                      value={form.checkoutBgColor}
+                    />
+                    <Input onChange={(value) => patch("checkoutBgColor", value)} value={form.checkoutBgColor} />
+                  </div>
                 </Field>
                 <Field label="Mostrar no shopping de afiliados">
                   <Select
@@ -650,6 +684,31 @@ export function ProductEditor({
                 <div className="md:col-span-2">
                   <Field helper="Texto exibido abaixo do CTA com suporte ou instruções finais." label="Texto de suporte">
                     <Textarea onChange={(value) => patch("checkoutSupportText", value)} rows={4} value={form.checkoutSupportText} />
+                  </Field>
+                </div>
+                <div className="md:col-span-2">
+                  <Field helper="Mensagem exibida na página de obrigado após a compra." label="Mensagem pós-compra">
+                    <Textarea onChange={(value) => patch("checkoutThankyouMessage", value)} placeholder="Ex: Verifique seu e-mail para acessar o produto. Bem-vindo!" rows={3} value={form.checkoutThankyouMessage} />
+                  </Field>
+                </div>
+                <div className="md:col-span-2">
+                  <Field
+                    helper='Depoimentos em formato JSON. Ex: [{"name":"João","role":"Cliente","text":"Adorei!"}]'
+                    label="Depoimentos (JSON)"
+                  >
+                    <Textarea
+                      onChange={(value) => {
+                        try {
+                          const parsed = JSON.parse(value);
+                          patch("checkoutTestimonials", parsed);
+                        } catch {
+                          // allow invalid JSON while typing
+                        }
+                      }}
+                      placeholder='[{"name":"Nome","role":"Cargo ou cidade","text":"Depoimento aqui..."}]'
+                      rows={4}
+                      value={form.checkoutTestimonials.length > 0 ? JSON.stringify(form.checkoutTestimonials, null, 2) : ""}
+                    />
                   </Field>
                 </div>
                 <div className="md:col-span-2">

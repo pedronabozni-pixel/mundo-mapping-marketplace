@@ -67,6 +67,10 @@ export type ProductRecord = {
   checkoutGuaranteeText: string;
   checkoutSupportText: string;
   checkoutHighlights: string;
+  checkoutBgColor: string;
+  checkoutTestimonials: Array<{ name: string; role?: string; text: string; photo?: string }>;
+  checkoutThankyouMessage: string;
+  tipoEntregavel: "digital" | "fisico" | "evento" | "servico";
   supportEmail: string;
   logisticsMode: "digital" | "physical" | "service" | "daily";
   stockRequired: boolean;
@@ -138,6 +142,10 @@ export function fromRow(r: Record<string, any>): ProductRecord {
     checkoutGuaranteeText: r.checkout_garantia ?? "",
     checkoutSupportText: r.checkout_suporte ?? "",
     checkoutHighlights: r.checkout_highlights ?? "",
+    checkoutBgColor: r.checkout_cor_fundo ?? "#ffffff",
+    checkoutTestimonials: Array.isArray(r.checkout_depoimentos) ? r.checkout_depoimentos : [],
+    checkoutThankyouMessage: r.checkout_mensagem_obrigado ?? "",
+    tipoEntregavel: (r.tipo_entregavel as ProductRecord["tipoEntregavel"]) ?? "digital",
     supportEmail: r.suporte_email ?? "suporte@mundomapping.com",
     logisticsMode: (r.logistica_modo as ProductRecord["logisticsMode"]) ?? "digital",
     stockRequired: Boolean(r.estoque_requerido),
@@ -194,6 +202,10 @@ function toRow(input: ProductInput, userId: string, empresaNome?: string) {
     checkout_garantia: input.checkoutGuaranteeText,
     checkout_suporte: input.checkoutSupportText,
     checkout_highlights: input.checkoutHighlights,
+    checkout_cor_fundo: input.checkoutBgColor,
+    checkout_depoimentos: input.checkoutTestimonials.length > 0 ? input.checkoutTestimonials : null,
+    checkout_mensagem_obrigado: input.checkoutThankyouMessage || null,
+    tipo_entregavel: input.tipoEntregavel,
     suporte_email: input.supportEmail,
     logistica_modo: input.logisticsMode,
     estoque_requerido: input.stockRequired,
@@ -395,6 +407,10 @@ export function getEmptyProduct(): ProductInput {
     checkoutGuaranteeText: "",
     checkoutSupportText: "",
     checkoutHighlights: "",
+    checkoutBgColor: "#ffffff",
+    checkoutTestimonials: [],
+    checkoutThankyouMessage: "",
+    tipoEntregavel: "digital",
     supportEmail: "suporte@mundomapping.com",
     logisticsMode: "digital",
     stockRequired: false,
