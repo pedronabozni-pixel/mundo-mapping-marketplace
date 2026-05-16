@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { formatCPF, formatPhone, validateCPF } from "@/lib/cpf";
 
@@ -33,7 +33,11 @@ type PayMethod = "cartao" | "pix";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function formatCardNumber(v: string) {
+function fmtMoney(v: number) {
+  return v.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+}
+
+function formatCard(v: string) {
   return v.replace(/\D/g, "").slice(0, 16).replace(/(\d{4})(?=\d)/g, "$1 ");
 }
 
@@ -54,19 +58,14 @@ function installmentOptions(price: number) {
   return Array.from({ length: 12 }, (_, i) => {
     const n = i + 1;
     const val = Math.ceil((price / n) * 100) / 100;
-    const fmtVal = val.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
-    const fmtTotal = price.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
     return {
       n,
-      label: n === 1
-        ? `1× de R$ ${fmtTotal} (à vista)`
-        : `${n}× de R$ ${fmtVal} sem juros`,
+      label:
+        n === 1
+          ? `1× de R$ ${fmtMoney(price)} (à vista)`
+          : `${n}× de R$ ${fmtMoney(val)} sem juros`,
     };
   });
-}
-
-function fmtMoney(v: number) {
-  return v.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
 }
 
 function parseBenefits(highlights: string | null): string[] {
@@ -74,26 +73,33 @@ function parseBenefits(highlights: string | null): string[] {
   return highlights.split("\n").map((s) => s.trim()).filter(Boolean);
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Atoms ───────────────────────────────────────────────────────────────────
 
-function Field({ label, children, error }: { label: string; children: React.ReactNode; error?: string }) {
+function Field({
+  label, children, error,
+}: {
+  label: string; children: React.ReactNode; error?: string;
+}) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-zinc-700">{label}</label>
+      <label className="mb-1.5 block text-xs font-semibold text-zinc-600">{label}</label>
       {children}
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
     </div>
   );
 }
 
-function Input({
-  value, onChange, placeholder, type = "text", maxLength, inputMode,
+function TextInput({
+  value, onChange, placeholder, type = "text", maxLength, inputMode, autoComplete,
 }: {
   value: string; onChange: (v: string) => void; placeholder?: string;
-  type?: string; maxLength?: number; inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  type?: string; maxLength?: number;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  autoComplete?: string;
 }) {
   return (
     <input
+      autoComplete={autoComplete}
       className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
       inputMode={inputMode}
       maxLength={maxLength}
@@ -105,24 +111,6 @@ function Input({
   );
 }
 
-function Select({ value, onChange, options }: {
-  value: string | number;
-  onChange: (v: string) => void;
-  options: { value: string | number; label: string }[];
-}) {
-  return (
-    <select
-      className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 outline-none transition focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
-      onChange={(e) => onChange(e.target.value)}
-      value={value}
-    >
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>{o.label}</option>
-      ))}
-    </select>
-  );
-}
-
 function CheckIcon({ color }: { color: string }) {
   return (
     <svg className="mt-0.5 h-4 w-4 shrink-0" fill="none" stroke={color} strokeWidth={2.5} viewBox="0 0 24 24">
@@ -131,17 +119,31 @@ function CheckIcon({ color }: { color: string }) {
   );
 }
 
-function ShieldIcon() {
+function LockIcon() {
   return (
-    <svg className="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-      <path d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" strokeLinecap="round" strokeLinejoin="round" />
+    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
+  );
+}
+
+function SimBadge() {
+  return (
+    <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+      <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+      Modo simulação
+    </div>
   );
 }
 
 // ─── PIX Component ────────────────────────────────────────────────────────────
 
-function PixPayment({
+const PIX_AUTO_CONFIRM_SECONDS = 5;
+const PIX_EXPIRE_SECONDS = 30 * 60;
+const FAKE_PIX_PAYLOAD =
+  "00020126580014br.gov.bcb.pix0136mapping-partners-simulacao-checkout5204000053039865802BR5925Mapping Partners Simulado6009SAO PAULO62070503***6304ABCD";
+
+function PixSimulation({
   valor, produto, cliente, affiliateRef, onSuccess,
 }: {
   valor: number;
@@ -150,18 +152,20 @@ function PixPayment({
   affiliateRef: string;
   onSuccess: (pedidoId: string) => void;
 }) {
-  const [loading, setLoading] = useState(false);
+  type PixStep = "idle" | "loading" | "qr" | "confirming";
+  const [pixStep, setPixStep] = useState<PixStep>("idle");
   const [error, setError] = useState<string | null>(null);
-  const [pix, setPix] = useState<{ qrCode: string; payload: string; paymentId: string } | null>(null);
   const [pedidoId, setPedidoId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [secondsLeft, setSecondsLeft] = useState(30 * 60);
-  const [paid, setPaid] = useState(false);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [expireLeft, setExpireLeft] = useState(PIX_EXPIRE_SECONDS);
+  const [autoLeft, setAutoLeft] = useState(PIX_AUTO_CONFIRM_SECONDS);
+
+  const pedidoIdRef = useRef<string | null>(null);
+  const onSuccessRef = useRef(onSuccess);
+  useEffect(() => { onSuccessRef.current = onSuccess; }, [onSuccess]);
 
   async function gerarPix() {
-    setLoading(true);
+    setPixStep("loading");
     setError(null);
     try {
       const res = await fetch("/api/checkout/payment", {
@@ -179,94 +183,135 @@ function PixPayment({
         }),
       });
       const data = await res.json();
-      if (!data.ok) { setError(data.error ?? "Erro ao gerar PIX"); return; }
-      setPix({ qrCode: data.pix.qrCode, payload: data.pix.payload, paymentId: data.pix.paymentId });
+      if (!data.ok) { setError(data.error ?? "Erro ao gerar PIX"); setPixStep("idle"); return; }
+      pedidoIdRef.current = data.pedido_id;
       setPedidoId(data.pedido_id);
+      setPixStep("qr");
     } catch {
       setError("Erro de conexão. Tente novamente.");
-    } finally {
-      setLoading(false);
+      setPixStep("idle");
     }
   }
 
-  // Start polling when PIX is generated
+  // 30-min countdown + 5s auto-confirm
   useEffect(() => {
-    if (!pix) return;
-    timerRef.current = setInterval(() => setSecondsLeft((s) => Math.max(0, s - 1)), 1000);
-    pollRef.current = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/checkout/pix-status?payment_id=${pix.paymentId}`);
-        const data = await res.json();
-        if (data.paid) {
-          setPaid(true);
-          clearInterval(pollRef.current!);
-          clearInterval(timerRef.current!);
-          if (pedidoId) onSuccess(pedidoId);
+    if (pixStep !== "qr") return;
+
+    const expireTimer = setInterval(() => setExpireLeft((s) => (s > 0 ? s - 1 : 0)), 1000);
+    const autoTimer = setInterval(() => {
+      setAutoLeft((s) => {
+        if (s <= 1) {
+          clearInterval(autoTimer);
+          setPixStep("confirming");
+          setTimeout(() => {
+            if (pedidoIdRef.current) onSuccessRef.current(pedidoIdRef.current);
+          }, 1500);
+          return 0;
         }
-      } catch { /* ignore poll errors */ }
-    }, 5000);
+        return s - 1;
+      });
+    }, 1000);
+
     return () => {
-      clearInterval(pollRef.current!);
-      clearInterval(timerRef.current!);
+      clearInterval(expireTimer);
+      clearInterval(autoTimer);
     };
-  }, [pix, pedidoId, onSuccess]);
+  }, [pixStep]);
 
-  const mins = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
-  const secs = String(secondsLeft % 60).padStart(2, "0");
+  const expireMins = String(Math.floor(expireLeft / 60)).padStart(2, "0");
+  const expireSecs = String(expireLeft % 60).padStart(2, "0");
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(FAKE_PIX_PAYLOAD)}&color=111827&bgcolor=ffffff&margin=1&qzone=1`;
 
-  if (paid) {
+  if (pixStep === "confirming") {
     return (
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center">
-        <div className="mb-2 text-2xl">✓</div>
+      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center">
+        <div className="mb-3 text-4xl">✓</div>
         <p className="font-semibold text-emerald-800">Pagamento confirmado!</p>
         <p className="mt-1 text-sm text-emerald-700">Redirecionando...</p>
       </div>
     );
   }
 
-  if (!pix) {
+  if (pixStep === "idle" || pixStep === "loading") {
     return (
       <div className="space-y-4">
         {error && (
           <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
         )}
         <button
-          className="w-full rounded-xl bg-zinc-800 py-4 text-sm font-bold text-white transition hover:bg-zinc-900 disabled:opacity-50"
-          disabled={loading}
+          className="w-full rounded-xl bg-zinc-800 py-4 text-sm font-bold text-white transition hover:bg-zinc-900 disabled:opacity-60"
+          disabled={pixStep === "loading"}
           onClick={gerarPix}
           type="button"
         >
-          {loading ? "Gerando PIX..." : "Gerar QR Code PIX"}
+          {pixStep === "loading" ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              Gerando QR Code...
+            </span>
+          ) : (
+            "Gerar QR Code PIX"
+          )}
         </button>
         <p className="text-center text-xs text-zinc-400">O QR Code expira em 30 minutos</p>
       </div>
     );
   }
 
+  // pixStep === "qr"
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-center">
-        {/* QR Code */}
-        {pix.qrCode && (
+      {/* QR Code with logo overlay */}
+      <div className="flex flex-col items-center">
+        <div className="relative">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             alt="QR Code PIX"
-            className="mx-auto mb-3 h-48 w-48 rounded-xl"
-            src={`data:image/png;base64,${pix.qrCode}`}
+            className="h-[220px] w-[220px] rounded-2xl border border-zinc-200"
+            src={qrUrl}
           />
-        )}
-        <p className="mb-1 text-xs font-semibold text-zinc-500">Expira em</p>
-        <p className="font-mono text-xl font-bold text-zinc-800">{mins}:{secs}</p>
+          {/* Logo overlay */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-1.5 shadow-md">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              alt="Mapping Partners"
+              className="h-8 w-8 rounded-lg object-contain"
+              src="/logo-mapping-partners.png"
+            />
+          </div>
+        </div>
+
+        {/* Expire timer */}
+        <div className="mt-3 flex items-center gap-1.5 text-xs text-zinc-400">
+          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Expira em <span className="font-mono font-semibold text-zinc-600">{expireMins}:{expireSecs}</span>
+        </div>
+      </div>
+
+      {/* Auto-confirm countdown */}
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+        <p className="text-xs font-semibold text-emerald-700">
+          Confirmando automaticamente em {autoLeft}s... (modo simulação)
+        </p>
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-emerald-100">
+          <div
+            className="h-1.5 rounded-full bg-emerald-500 transition-all duration-1000"
+            style={{ width: `${((PIX_AUTO_CONFIRM_SECONDS - autoLeft) / PIX_AUTO_CONFIRM_SECONDS) * 100}%` }}
+          />
+        </div>
       </div>
 
       {/* Copy code */}
       <div>
-        <p className="mb-2 text-xs font-semibold text-zinc-500">Ou copie o código PIX:</p>
-        <div className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white p-3">
-          <span className="flex-1 truncate font-mono text-xs text-zinc-600">{pix.payload}</span>
+        <p className="mb-1.5 text-xs font-semibold text-zinc-500">Código PIX copia e cola:</p>
+        <div className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+          <span className="flex-1 truncate font-mono text-xs text-zinc-500">{FAKE_PIX_PAYLOAD.slice(0, 40)}...</span>
           <button
-            className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold transition ${copied ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"}`}
+            className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold transition ${copied ? "bg-emerald-100 text-emerald-700" : "bg-white text-zinc-700 hover:bg-zinc-100"}`}
             onClick={async () => {
-              await navigator.clipboard.writeText(pix.payload);
+              await navigator.clipboard.writeText(FAKE_PIX_PAYLOAD);
               setCopied(true);
               setTimeout(() => setCopied(false), 2000);
             }}
@@ -278,32 +323,27 @@ function PixPayment({
       </div>
 
       {/* Instructions */}
-      <div className="space-y-2 rounded-2xl border border-zinc-200 bg-white p-4">
-        <p className="text-xs font-semibold text-zinc-700">Como pagar:</p>
+      <div className="space-y-2 rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
+        <p className="text-xs font-semibold text-zinc-600">Como pagar via PIX:</p>
         {[
-          "Abra o app do seu banco",
-          "Acesse a área PIX",
-          "Escolha 'Pagar com QR Code' ou 'Copiar e colar'",
-          "Cole o código ou escaneie o QR Code",
-          "Confirme o pagamento",
-        ].map((step, i) => (
-          <div className="flex items-start gap-2" key={step}>
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-xs font-bold text-zinc-600">
+          "Abra o aplicativo do seu banco",
+          "Acesse a área PIX e escolha \"Pagar com QR Code\"",
+          "Escaneie o código ou cole o código copia e cola",
+          "Confirme o valor e finalize o pagamento",
+        ].map((s, i) => (
+          <div className="flex items-start gap-2" key={s}>
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-bold text-zinc-600">
               {i + 1}
             </span>
-            <p className="text-xs text-zinc-600">{step}</p>
+            <p className="text-xs leading-5 text-zinc-500">{s}</p>
           </div>
         ))}
       </div>
-
-      <p className="text-center text-xs text-zinc-400">
-        Aguardando confirmação do pagamento...
-      </p>
     </div>
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ─── Main component ───────────────────────────────────────────────────────────
 
 export default function CheckoutClient({
   produto,
@@ -314,23 +354,21 @@ export default function CheckoutClient({
 }) {
   const router = useRouter();
   const primaryColor = produto.checkout_cor ?? "#dc2626";
+  const isPhysical = produto.tipo_entregavel === "fisico";
   const benefits = parseBenefits(produto.checkout_highlights);
   const depoimentos = produto.checkout_depoimentos ?? [];
-  const ctaLabel = produto.checkout_cta ?? "Comprar agora";
-  const isPhysical = produto.tipo_entregavel === "fisico";
+  const ctaLabel = produto.checkout_cta || "Comprar agora";
+  const installmentList = installmentOptions(produto.preco);
 
-  // Step state
+  // Steps
   const [step, setStep] = useState<Step>("identificacao");
   const [method, setMethod] = useState<PayMethod>("cartao");
-  const [actionLoading, setActionLoading] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
 
-  // Step 1 — Identification
+  // Identification
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
   const [telefone, setTelefone] = useState("");
-  // Physical address
   const [cep, setCep] = useState("");
   const [rua, setRua] = useState("");
   const [numero, setNumero] = useState("");
@@ -339,22 +377,21 @@ export default function CheckoutClient({
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
   const [cepLoading, setCepLoading] = useState(false);
+  const [step1Error, setStep1Error] = useState<string | null>(null);
 
-  // Step 2 — Card
+  // Card
   const [cardNum, setCardNum] = useState("");
   const [cardName, setCardName] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
   const [installments, setInstallments] = useState(1);
+  const [cardLoading, setCardLoading] = useState(false);
   const [cardError, setCardError] = useState<string | null>(null);
 
-  const installmentList = installmentOptions(produto.preco);
   const brand = detectBrand(cardNum);
 
-  // CEP lookup
-  async function lookupCep(rawCep: string) {
-    const digits = rawCep.replace(/\D/g, "");
-    if (digits.length !== 8) return;
+  // CEP auto-fill
+  async function lookupCep(digits: string) {
     setCepLoading(true);
     try {
       const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
@@ -374,35 +411,48 @@ export default function CheckoutClient({
     if (!nome.trim()) return "Informe seu nome completo.";
     if (!email.trim() || !email.includes("@")) return "Informe um e-mail válido.";
     if (!validateCPF(cpf)) return "CPF inválido.";
-    if (!telefone.trim()) return "Informe seu telefone.";
+    if (!telefone.trim()) return "Informe seu telefone com DDD.";
     if (isPhysical) {
       if (!cep.trim()) return "Informe o CEP.";
       if (!rua.trim()) return "Informe a rua.";
       if (!numero.trim()) return "Informe o número.";
-      if (!cidade.trim()) return "Informe a cidade.";
-      if (!estado.trim()) return "Informe o estado.";
+      if (!cidade.trim() || !estado.trim()) return "Informe cidade e estado.";
     }
     return null;
   }
 
-  function handleStep1() {
+  function handleContinue() {
     const err = validateStep1();
-    if (err) { setFormError(err); return; }
-    setFormError(null);
+    if (err) { setStep1Error(err); return; }
+    setStep1Error(null);
     setStep("pagamento");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function buildObrigadoUrl(pedidoId: string) {
+    return `/checkout/${produto.slug}/obrigado?${new URLSearchParams({
+      pedido_id: pedidoId,
+      nome,
+      email,
+      valor: String(produto.preco),
+      forma_pagamento: method,
+      produto_nome: produto.nome,
+    })}`;
+  }
+
+  // Card simulation: 2s fake processing, then save + redirect
   async function handleCardPay() {
-    if (!cardNum.replace(/\D/g, "") || cardNum.replace(/\D/g, "").length < 13) {
-      setCardError("Número de cartão inválido."); return;
-    }
+    const rawCard = cardNum.replace(/\D/g, "");
+    if (rawCard.length < 13) { setCardError("Número de cartão inválido."); return; }
     if (!cardName.trim()) { setCardError("Informe o nome impresso no cartão."); return; }
-    if (!cardExpiry.includes("/")) { setCardError("Validade inválida."); return; }
-    if (!cardCvv || cardCvv.length < 3) { setCardError("CVV inválido."); return; }
+    if (!cardExpiry.includes("/")) { setCardError("Validade inválida (MM/AA)."); return; }
+    if (cardCvv.length < 3) { setCardError("CVV inválido."); return; }
 
     setCardError(null);
-    setActionLoading(true);
+    setCardLoading(true);
+
+    // Simulate 2s processing
+    await new Promise((r) => setTimeout(r, 2000));
 
     try {
       const res = await fetch("/api/checkout/payment", {
@@ -420,86 +470,59 @@ export default function CheckoutClient({
             nome, email, cpf, telefone,
             endereco: isPhysical ? { cep, rua, numero, complemento, bairro, cidade, estado } : undefined,
           },
-          cartao: {
-            numero: cardNum.replace(/\s/g, ""),
-            nome: cardName,
-            validade: cardExpiry,
-            cvv: cardCvv,
-          },
         }),
       });
-
       const data = await res.json();
-      if (!data.ok) {
-        setCardError(data.error ?? "Pagamento recusado. Verifique os dados do cartão.");
-        return;
-      }
-
-      // Success — redirect to obrigado
-      const params = new URLSearchParams({
-        pedido_id: data.pedido_id,
-        nome,
-        email,
-        valor: String(produto.preco),
-        forma_pagamento: "cartao",
-        produto_nome: produto.nome,
-      });
-      router.push(`/checkout/${produto.slug}/obrigado?${params.toString()}`);
+      if (!data.ok) { setCardError(data.error ?? "Erro ao processar."); setCardLoading(false); return; }
+      router.push(buildObrigadoUrl(data.pedido_id));
     } catch {
       setCardError("Erro de conexão. Tente novamente.");
-    } finally {
-      setActionLoading(false);
+      setCardLoading(false);
     }
   }
 
-  const handlePixSuccess = useCallback((pedidoId: string) => {
-    const params = new URLSearchParams({
-      pedido_id: pedidoId,
-      nome,
-      email,
-      valor: String(produto.preco),
-      forma_pagamento: "pix",
-      produto_nome: produto.nome,
-    });
-    router.push(`/checkout/${produto.slug}/obrigado?${params.toString()}`);
-  }, [router, produto.slug, produto.nome, produto.preco, nome, email]);
+  const handlePixSuccess = useCallback(
+    (pedidoId: string) => { router.push(buildObrigadoUrl(pedidoId)); },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [router, produto.slug, produto.nome, produto.preco, nome, email, method]
+  );
 
   const clienteData = { nome, email, cpf, telefone };
 
-  // ─── Render ───────────────────────────────────────────────────────────────
+  // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: produto.checkout_cor_fundo ?? "#f9fafb" }}>
       <div className="mx-auto max-w-6xl px-4 py-8 lg:py-12">
-        <div className="grid gap-8 lg:grid-cols-[1fr_440px]">
+        <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
 
-          {/* ── Left column — Product info ── */}
-          <div className="order-2 space-y-8 lg:order-1">
-            {/* Logo + Product name */}
+          {/* ══ Left column — product info (desktop) ══ */}
+          <div className="hidden space-y-8 lg:block">
+            {/* Logo + headline */}
             <div>
               {produto.capa_url && (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   alt={produto.nome}
-                  className="mb-4 h-16 w-auto rounded-xl object-contain"
+                  className="mb-5 h-14 w-auto rounded-xl object-contain"
                   src={produto.capa_url}
                 />
               )}
-              <h1 className="text-2xl font-bold text-zinc-900 lg:text-3xl">
+              <h1 className="text-3xl font-bold leading-snug text-zinc-900">
                 {produto.checkout_headline ?? produto.nome}
               </h1>
               {produto.checkout_subheadline && (
-                <p className="mt-3 text-base leading-7 text-zinc-600">{produto.checkout_subheadline}</p>
+                <p className="mt-4 text-base leading-7 text-zinc-500">{produto.checkout_subheadline}</p>
               )}
             </div>
 
-            {/* Guarantee badge */}
+            {/* Guarantee */}
             {produto.checkout_garantia && (
               <div
                 className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold"
-                style={{ backgroundColor: `${primaryColor}15`, color: primaryColor }}
+                style={{ backgroundColor: `${primaryColor}18`, color: primaryColor }}
               >
-                <ShieldIcon />
-                {produto.checkout_garantia}
+                🛡️ {produto.checkout_garantia}
               </div>
             )}
 
@@ -509,7 +532,7 @@ export default function CheckoutClient({
                 <p className="mb-4 text-sm font-semibold text-zinc-900">O que você recebe:</p>
                 <ul className="space-y-3">
                   {benefits.map((b) => (
-                    <li className="flex items-start gap-3 text-sm text-zinc-700" key={b}>
+                    <li className="flex items-start gap-3 text-sm text-zinc-600" key={b}>
                       <CheckIcon color={primaryColor} />
                       {b}
                     </li>
@@ -520,13 +543,14 @@ export default function CheckoutClient({
 
             {/* Testimonials */}
             {depoimentos.length > 0 && (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <p className="text-sm font-semibold text-zinc-900">O que dizem nossos clientes:</p>
                 {depoimentos.slice(0, 3).map((d, i) => (
                   <div className="rounded-2xl border border-zinc-200 bg-white p-5" key={i}>
-                    <p className="text-sm leading-6 text-zinc-700">"{d.text}"</p>
+                    <p className="text-sm leading-6 text-zinc-600">"{d.text}"</p>
                     <div className="mt-3 flex items-center gap-3">
                       {d.photo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img alt={d.name} className="h-9 w-9 rounded-full object-cover" src={d.photo} />
                       ) : (
                         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-sm font-bold text-zinc-600">
@@ -535,7 +559,7 @@ export default function CheckoutClient({
                       )}
                       <div>
                         <p className="text-sm font-semibold text-zinc-900">{d.name}</p>
-                        {d.role && <p className="text-xs text-zinc-500">{d.role}</p>}
+                        {d.role && <p className="text-xs text-zinc-400">{d.role}</p>}
                       </div>
                     </div>
                   </div>
@@ -544,38 +568,35 @@ export default function CheckoutClient({
             )}
 
             {/* Security seals */}
-            <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-zinc-200 bg-white px-6 py-4">
-              {[
-                { icon: "🔒", label: "Compra segura" },
-                { icon: "🛡️", label: "Dados criptografados" },
-                { icon: "✅", label: "Pagamento protegido" },
-                { icon: "🔐", label: "SSL certificado" },
-              ].map((s) => (
-                <div className="flex items-center gap-2 text-xs text-zinc-500" key={s.label}>
-                  <span>{s.icon}</span>
-                  <span>{s.label}</span>
-                </div>
+            <div className="flex flex-wrap gap-4 rounded-2xl border border-zinc-200 bg-white px-5 py-4">
+              {["🔒 Compra segura", "🛡️ Dados criptografados", "✅ SSL certificado"].map((s) => (
+                <span className="text-xs text-zinc-400" key={s}>{s}</span>
               ))}
             </div>
           </div>
 
-          {/* ── Right column — Checkout form ── */}
-          <div className="order-1 lg:order-2">
-            <div className="sticky top-6 space-y-4">
+          {/* ══ Right column — checkout form ══ */}
+          <div>
+            <div className="sticky top-6 space-y-3">
+              {/* Simulation badge */}
+              <div className="flex justify-end">
+                <SimBadge />
+              </div>
+
               {/* Order summary */}
               <div className="rounded-2xl border border-zinc-200 bg-white p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Seu pedido</p>
-                    <p className="mt-1 font-semibold text-zinc-900">{produto.nome}</p>
-                    <p className="text-xs text-zinc-500">{produto.empresa_nome ?? ""}</p>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Pedido</p>
+                    <p className="mt-1 truncate font-semibold text-zinc-900">{produto.nome}</p>
+                    {produto.empresa_nome && (
+                      <p className="text-xs text-zinc-400">{produto.empresa_nome}</p>
+                    )}
                   </div>
-                  <div className="text-right">
-                    <p className="text-xl font-bold text-zinc-900">
-                      R$ {fmtMoney(produto.preco)}
-                    </p>
+                  <div className="shrink-0 text-right">
+                    <p className="text-xl font-bold text-zinc-900">R$ {fmtMoney(produto.preco)}</p>
                     {installments > 1 && step === "pagamento" && method === "cartao" && (
-                      <p className="text-xs text-zinc-500">
+                      <p className="text-xs text-zinc-400">
                         {installments}× de R$ {fmtMoney(Math.ceil((produto.preco / installments) * 100) / 100)}
                       </p>
                     )}
@@ -588,18 +609,20 @@ export default function CheckoutClient({
                 {(["identificacao", "pagamento"] as Step[]).map((s, i) => (
                   <div className="flex items-center gap-2" key={s}>
                     <div
-                      className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
+                      className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition"
                       style={{
-                        backgroundColor: step === s || (i === 0 && step === "pagamento") ? primaryColor : "#e4e4e7",
-                        color: step === s || (i === 0 && step === "pagamento") ? "#fff" : "#71717a",
+                        backgroundColor:
+                          step === s || (i === 0 && step === "pagamento") ? primaryColor : "#e4e4e7",
+                        color:
+                          step === s || (i === 0 && step === "pagamento") ? "#fff" : "#71717a",
                       }}
                     >
                       {i === 0 && step === "pagamento" ? "✓" : i + 1}
                     </div>
-                    <span className={`text-xs font-medium ${step === s ? "text-zinc-900" : "text-zinc-400"}`}>
-                      {s === "identificacao" ? "Identificação" : "Pagamento"}
+                    <span className={`text-xs font-medium ${step === s ? "text-zinc-800" : "text-zinc-400"}`}>
+                      {s === "identificacao" ? "Seus dados" : "Pagamento"}
                     </span>
-                    {i === 0 && <div className="h-px w-8 bg-zinc-200" />}
+                    {i === 0 && <div className="h-px w-6 bg-zinc-200" />}
                   </div>
                 ))}
               </div>
@@ -607,17 +630,17 @@ export default function CheckoutClient({
               {/* ── Step 1: Identification ── */}
               {step === "identificacao" && (
                 <div className="rounded-2xl border border-zinc-200 bg-white p-5">
-                  <p className="mb-4 text-sm font-semibold text-zinc-900">Seus dados</p>
+                  <p className="mb-4 text-sm font-semibold text-zinc-900">Identificação</p>
                   <div className="space-y-3">
                     <Field label="Nome completo">
-                      <Input onChange={setNome} placeholder="João da Silva" value={nome} />
+                      <TextInput autoComplete="name" onChange={setNome} placeholder="João da Silva" value={nome} />
                     </Field>
                     <Field label="E-mail">
-                      <Input onChange={setEmail} placeholder="joao@email.com" type="email" value={email} />
+                      <TextInput autoComplete="email" onChange={setEmail} placeholder="joao@email.com" type="email" value={email} />
                     </Field>
                     <div className="grid grid-cols-2 gap-3">
                       <Field label="CPF">
-                        <Input
+                        <TextInput
                           inputMode="numeric"
                           maxLength={14}
                           onChange={(v) => setCpf(formatCPF(v))}
@@ -625,8 +648,9 @@ export default function CheckoutClient({
                           value={cpf}
                         />
                       </Field>
-                      <Field label="Telefone">
-                        <Input
+                      <Field label="Telefone (DDD)">
+                        <TextInput
+                          autoComplete="tel"
                           inputMode="tel"
                           maxLength={15}
                           onChange={(v) => setTelefone(formatPhone(v))}
@@ -636,66 +660,62 @@ export default function CheckoutClient({
                       </Field>
                     </div>
 
+                    {/* Physical address */}
                     {isPhysical && (
-                      <>
-                        <div className="border-t border-zinc-100 pt-3">
-                          <p className="mb-3 text-xs font-semibold text-zinc-500">Endereço de entrega</p>
-                        </div>
+                      <div className="space-y-3 border-t border-zinc-100 pt-3">
+                        <p className="text-xs font-semibold text-zinc-500">Endereço de entrega</p>
                         <Field label="CEP">
                           <div className="relative">
-                            <Input
+                            <TextInput
                               inputMode="numeric"
                               maxLength={9}
                               onChange={(v) => {
-                                const digits = v.replace(/\D/g, "").slice(0, 8);
-                                const fmt = digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
-                                setCep(fmt);
-                                if (digits.length === 8) lookupCep(digits);
+                                const d = v.replace(/\D/g, "").slice(0, 8);
+                                setCep(d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d);
+                                if (d.length === 8) lookupCep(d);
                               }}
                               placeholder="00000-000"
                               value={cep}
                             />
                             {cepLoading && (
-                              <div className="absolute right-3 top-3.5">
-                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600" />
-                              </div>
+                              <div className="absolute right-3 top-3.5 h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600" />
                             )}
                           </div>
                         </Field>
                         <Field label="Rua">
-                          <Input onChange={setRua} placeholder="Nome da rua" value={rua} />
+                          <TextInput onChange={setRua} placeholder="Nome da rua" value={rua} />
                         </Field>
                         <div className="grid grid-cols-2 gap-3">
                           <Field label="Número">
-                            <Input onChange={setNumero} placeholder="123" value={numero} />
+                            <TextInput onChange={setNumero} placeholder="123" value={numero} />
                           </Field>
                           <Field label="Complemento">
-                            <Input onChange={setComplemento} placeholder="Apto 4B" value={complemento} />
+                            <TextInput onChange={setComplemento} placeholder="Apto 4B" value={complemento} />
                           </Field>
                         </div>
                         <Field label="Bairro">
-                          <Input onChange={setBairro} placeholder="Centro" value={bairro} />
+                          <TextInput onChange={setBairro} placeholder="Centro" value={bairro} />
                         </Field>
                         <div className="grid grid-cols-2 gap-3">
                           <Field label="Cidade">
-                            <Input onChange={setCidade} placeholder="São Paulo" value={cidade} />
+                            <TextInput onChange={setCidade} placeholder="São Paulo" value={cidade} />
                           </Field>
                           <Field label="Estado">
-                            <Input maxLength={2} onChange={setEstado} placeholder="SP" value={estado} />
+                            <TextInput maxLength={2} onChange={setEstado} placeholder="SP" value={estado} />
                           </Field>
                         </div>
-                      </>
+                      </div>
                     )}
 
-                    {formError && (
+                    {step1Error && (
                       <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                        {formError}
+                        {step1Error}
                       </p>
                     )}
 
                     <button
-                      className="w-full rounded-xl py-4 text-sm font-bold text-white transition hover:opacity-90"
-                      onClick={handleStep1}
+                      className="w-full rounded-xl py-3.5 text-sm font-bold text-white transition hover:opacity-90"
+                      onClick={handleContinue}
                       style={{ backgroundColor: primaryColor }}
                       type="button"
                     >
@@ -709,9 +729,9 @@ export default function CheckoutClient({
               {step === "pagamento" && (
                 <div className="rounded-2xl border border-zinc-200 bg-white p-5">
                   <div className="mb-4 flex items-center justify-between">
-                    <p className="text-sm font-semibold text-zinc-900">Pagamento</p>
+                    <p className="text-sm font-semibold text-zinc-900">Forma de pagamento</p>
                     <button
-                      className="text-xs text-zinc-400 hover:text-zinc-600"
+                      className="text-xs text-zinc-400 transition hover:text-zinc-600"
                       onClick={() => setStep("identificacao")}
                       type="button"
                     >
@@ -719,11 +739,13 @@ export default function CheckoutClient({
                     </button>
                   </div>
 
-                  {/* Payment method tabs */}
-                  <div className="mb-5 flex gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1">
+                  {/* Method tabs */}
+                  <div className="mb-5 flex gap-1 rounded-xl border border-zinc-100 bg-zinc-50 p-1">
                     {(["cartao", "pix"] as PayMethod[]).map((m) => (
                       <button
-                        className={`flex-1 rounded-lg py-2 text-sm font-semibold transition ${method === m ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-500 hover:text-zinc-700"}`}
+                        className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
+                          method === m ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-400 hover:text-zinc-600"
+                        }`}
                         key={m}
                         onClick={() => setMethod(m)}
                         type="button"
@@ -733,20 +755,22 @@ export default function CheckoutClient({
                     ))}
                   </div>
 
-                  {/* Card form */}
+                  {/* Card */}
                   {method === "cartao" && (
                     <div className="space-y-3">
-                      <Field label={`Número do cartão${brand ? ` — ${brand}` : ""}`}>
-                        <Input
+                      <Field label={brand ? `Número do cartão — ${brand}` : "Número do cartão"}>
+                        <TextInput
+                          autoComplete="cc-number"
                           inputMode="numeric"
                           maxLength={19}
-                          onChange={(v) => setCardNum(formatCardNumber(v))}
+                          onChange={(v) => setCardNum(formatCard(v))}
                           placeholder="0000 0000 0000 0000"
                           value={cardNum}
                         />
                       </Field>
                       <Field label="Nome no cartão">
-                        <Input
+                        <TextInput
+                          autoComplete="cc-name"
                           onChange={(v) => setCardName(v.toUpperCase())}
                           placeholder="NOME COMO NO CARTÃO"
                           value={cardName}
@@ -754,7 +778,8 @@ export default function CheckoutClient({
                       </Field>
                       <div className="grid grid-cols-2 gap-3">
                         <Field label="Validade">
-                          <Input
+                          <TextInput
+                            autoComplete="cc-exp"
                             inputMode="numeric"
                             maxLength={5}
                             onChange={(v) => setCardExpiry(formatExpiry(v))}
@@ -763,7 +788,8 @@ export default function CheckoutClient({
                           />
                         </Field>
                         <Field label="CVV">
-                          <Input
+                          <TextInput
+                            autoComplete="cc-csc"
                             inputMode="numeric"
                             maxLength={4}
                             onChange={setCardCvv}
@@ -774,11 +800,15 @@ export default function CheckoutClient({
                         </Field>
                       </div>
                       <Field label="Parcelas">
-                        <Select
-                          onChange={(v) => setInstallments(Number(v))}
-                          options={installmentList.map((o) => ({ value: o.n, label: o.label }))}
+                        <select
+                          className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 outline-none transition focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
+                          onChange={(e) => setInstallments(Number(e.target.value))}
                           value={installments}
-                        />
+                        >
+                          {installmentList.map((o) => (
+                            <option key={o.n} value={o.n}>{o.label}</option>
+                          ))}
+                        </select>
                       </Field>
 
                       {cardError && (
@@ -788,24 +818,32 @@ export default function CheckoutClient({
                       )}
 
                       <button
-                        className="w-full rounded-xl py-4 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50"
-                        disabled={actionLoading}
+                        className="w-full rounded-xl py-4 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-60"
+                        disabled={cardLoading}
                         onClick={handleCardPay}
                         style={{ backgroundColor: primaryColor }}
                         type="button"
                       >
-                        {actionLoading ? "Processando..." : ctaLabel}
+                        {cardLoading ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            Processando pagamento...
+                          </span>
+                        ) : (
+                          ctaLabel
+                        )}
                       </button>
 
-                      <p className="text-center text-xs text-zinc-400">
-                        🔒 Compra 100% segura e criptografada
+                      <p className="flex items-center justify-center gap-1.5 text-xs text-zinc-400">
+                        <LockIcon />
+                        Compra 100% segura e criptografada
                       </p>
                     </div>
                   )}
 
-                  {/* PIX form */}
+                  {/* PIX */}
                   {method === "pix" && (
-                    <PixPayment
+                    <PixSimulation
                       affiliateRef={affiliateRef}
                       cliente={clienteData}
                       onSuccess={handlePixSuccess}
