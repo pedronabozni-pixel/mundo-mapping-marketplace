@@ -27,17 +27,11 @@ type Props = {
 };
 
 function embedUrl(url: string): string {
-  // YouTube
   const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]+)/);
   if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}?rel=0&modestbranding=1`;
 
-  // Vimeo
   const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
   if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
-
-  // Panda Video
-  const pandaMatch = url.match(/player\.pandavideo\.com\.br\/embed\/\?v=([A-Za-z0-9-]+)/);
-  if (pandaMatch) return url;
 
   return url;
 }
@@ -49,7 +43,6 @@ function tipoIcon(tipo: string) {
 }
 
 export default function LessonPlayer({
-  userId,
   produtoId,
   aulaId,
   aulaAtual,
@@ -78,7 +71,9 @@ export default function LessonPlayer({
         const nova = !concluida;
         setConcluida(nova);
         if (nova && proximaAula) {
-          router.push(`/membros/${proximaAula.slug}/${proximaAula.moduloId}/${proximaAula.id}`);
+          router.push(
+            `/membros/${proximaAula.slug}/${proximaAula.moduloId}/${proximaAula.id}`
+          );
         } else {
           router.refresh();
         }
@@ -91,136 +86,77 @@ export default function LessonPlayer({
   const videoSrc = aulaAtual.video_url ? embedUrl(aulaAtual.video_url) : null;
 
   return (
-    <div style={{ maxWidth: "860px", margin: "0 auto" }}>
-      {/* Player de vídeo */}
+    <div className="mx-auto max-w-[860px] px-6 py-8">
+      {/* Player */}
       {videoSrc ? (
-        <div style={{
-          width: "100%",
-          aspectRatio: "16/9",
-          borderRadius: "14px",
-          overflow: "hidden",
-          background: "#000",
-          marginBottom: "1.5rem",
-          boxShadow: "0 8px 32px #00000066",
-        }}>
-          <iframe
-            src={videoSrc}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            style={{ width: "100%", height: "100%", border: "none" }}
-          />
+        <div className="overflow-hidden rounded-2xl bg-black shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
+          <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+            <iframe
+              src={videoSrc}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="absolute inset-0 h-full w-full border-0"
+            />
+          </div>
         </div>
       ) : (
-        <div style={{
-          width: "100%",
-          aspectRatio: "16/9",
-          borderRadius: "14px",
-          background: "#1a1a1a",
-          border: "1px solid #2a2a2a",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          marginBottom: "1.5rem",
-          flexDirection: "column",
-          gap: "0.75rem",
-        }}>
-          <span style={{ fontSize: "3rem" }}>🎬</span>
-          <p style={{ color: "#4b5563", fontSize: "0.9rem" }}>Vídeo em breve</p>
+        <div className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-[#1a1a1a]">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5">
+            <span className="text-3xl">🎬</span>
+          </div>
+          <p className="text-sm text-white/30">Vídeo em breve</p>
         </div>
       )}
 
-      {/* Título e controles */}
-      <div style={{
-        display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "space-between",
-        gap: "1rem",
-        marginBottom: "1.5rem",
-        flexWrap: "wrap",
-      }}>
+      {/* Título e botão concluir */}
+      <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 style={{ fontSize: "1.4rem", fontWeight: 800, color: "#fff", marginBottom: "0.25rem" }}>
-            {aulaAtual.titulo}
-          </h1>
+          <h1 className="text-xl font-semibold text-white">{aulaAtual.titulo}</h1>
           {aulaAtual.duracao_minutos && (
-            <span style={{ fontSize: "0.8rem", color: "#4b5563" }}>
+            <p className="mt-1 text-sm text-white/40">
               ⏱ {aulaAtual.duracao_minutos} min
-            </span>
+            </p>
           )}
         </div>
 
         <button
           onClick={toggleConcluida}
           disabled={loading}
-          style={{
-            background: concluida
-              ? "linear-gradient(135deg, #059669, #10b981)"
-              : "linear-gradient(135deg, #6366f1, #8b5cf6)",
-            color: "#fff",
-            border: "none",
-            borderRadius: "10px",
-            padding: "0.7rem 1.5rem",
-            fontWeight: 700,
-            fontSize: "0.875rem",
-            cursor: loading ? "not-allowed" : "pointer",
-            opacity: loading ? 0.7 : 1,
-            whiteSpace: "nowrap",
-            flexShrink: 0,
-            transition: "opacity 0.2s",
-          }}
+          className={`inline-flex h-10 shrink-0 items-center justify-center rounded-xl px-5 text-sm font-bold text-white shadow-[0_12px_30px_-20px_rgba(220,38,38,0.8)] transition disabled:opacity-60 ${
+            concluida
+              ? "bg-emerald-600 hover:bg-emerald-700 shadow-none"
+              : "bg-red-600 hover:bg-red-700"
+          }`}
         >
-          {loading ? "..." : concluida ? "✓ Concluída" : "Marcar como concluída"}
+          {loading ? "…" : concluida ? "✓ Concluída" : "Marcar como concluída"}
         </button>
       </div>
 
       {/* Descrição */}
       {aulaAtual.descricao && (
-        <div style={{
-          background: "#1a1a1a",
-          border: "1px solid #2a2a2a",
-          borderRadius: "12px",
-          padding: "1.25rem",
-          marginBottom: "1.5rem",
-          color: "#d1d5db",
-          fontSize: "0.9rem",
-          lineHeight: 1.6,
-          whiteSpace: "pre-wrap",
-        }}>
+        <div className="mt-5 rounded-xl border border-white/[0.07] bg-[#1a1a1a] px-5 py-4 text-sm leading-6 text-white/60 whitespace-pre-wrap">
           {aulaAtual.descricao}
         </div>
       )}
 
       {/* Materiais */}
       {materiais.length > 0 && (
-        <div style={{ marginBottom: "1.5rem" }}>
-          <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#e5e7eb", marginBottom: "0.75rem" }}>
+        <div className="mt-6">
+          <h2 className="mb-3 text-sm font-semibold text-white/50 uppercase tracking-[0.12em]">
             Material de apoio
           </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          <div className="space-y-2">
             {materiais.map((mat) => (
               <a
                 key={mat.id}
                 href={mat.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.75rem",
-                  background: "#1a1a1a",
-                  border: "1px solid #2a2a2a",
-                  borderRadius: "10px",
-                  padding: "0.75rem 1rem",
-                  textDecoration: "none",
-                  transition: "border-color 0.15s",
-                  color: "#d1d5db",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#6366f1")}
-                onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#2a2a2a")}
+                className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-[#1a1a1a] px-4 py-3 transition hover:border-red-600/40 hover:bg-red-600/5"
               >
-                <span style={{ fontSize: "1.25rem" }}>{tipoIcon(mat.tipo)}</span>
-                <span style={{ fontSize: "0.875rem", fontWeight: 500 }}>{mat.titulo}</span>
-                <span style={{ marginLeft: "auto", fontSize: "0.75rem", color: "#4b5563" }}>↗</span>
+                <span className="text-xl">{tipoIcon(mat.tipo)}</span>
+                <span className="flex-1 text-sm text-white/70">{mat.titulo}</span>
+                <span className="text-xs text-white/30">↗</span>
               </a>
             ))}
           </div>
@@ -228,50 +164,22 @@ export default function LessonPlayer({
       )}
 
       {/* Navegação entre aulas */}
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        gap: "1rem",
-        paddingTop: "1rem",
-        borderTop: "1px solid #1f1f1f",
-        flexWrap: "wrap",
-      }}>
+      <div className="mt-8 flex items-center justify-between border-t border-white/[0.06] pt-6">
         {aulaAnterior ? (
           <a
             href={`/membros/${aulaAnterior.slug}/${aulaAnterior.moduloId}/${aulaAnterior.id}`}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              background: "#1a1a1a",
-              border: "1px solid #2a2a2a",
-              color: "#9ca3af",
-              textDecoration: "none",
-              borderRadius: "10px",
-              padding: "0.65rem 1.25rem",
-              fontSize: "0.875rem",
-              fontWeight: 600,
-            }}
+            className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/10 px-4 text-sm font-semibold text-white/50 transition hover:border-white/20 hover:text-white"
           >
             ← Aula anterior
           </a>
-        ) : <div />}
+        ) : (
+          <div />
+        )}
 
         {proximaAula && (
           <a
             href={`/membros/${proximaAula.slug}/${proximaAula.moduloId}/${proximaAula.id}`}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-              color: "#fff",
-              textDecoration: "none",
-              borderRadius: "10px",
-              padding: "0.65rem 1.25rem",
-              fontSize: "0.875rem",
-              fontWeight: 700,
-            }}
+            className="inline-flex h-10 items-center gap-2 rounded-xl bg-red-600 px-5 text-sm font-bold text-white shadow-[0_12px_30px_-20px_rgba(220,38,38,0.8)] transition hover:bg-red-700"
           >
             Próxima aula →
           </a>

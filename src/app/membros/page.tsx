@@ -3,222 +3,175 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners-logo";
+
+type Tab = "entrar" | "cadastrar";
+
+function Field({
+  label,
+  name,
+  type = "text",
+  placeholder,
+  required = true,
+}: {
+  label: string;
+  name: string;
+  type?: string;
+  placeholder?: string;
+  required?: boolean;
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-zinc-700">{label}</label>
+      <input
+        className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none placeholder:text-zinc-400 transition focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
+        name={name}
+        placeholder={placeholder}
+        required={required}
+        type={type}
+      />
+    </div>
+  );
+}
 
 export default function MembrosLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [modo, setModo] = useState<"login" | "cadastro">("login");
-  const [nome, setNome] = useState("");
+  const [tab, setTab] = useState<Tab>("entrar");
   const [loading, setLoading] = useState(false);
-  const [erro, setErro] = useState("");
-  const [msg, setMsg] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
 
-  const supabase = createClient();
+  function reset() {
+    setError(null);
+    setInfo(null);
+  }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function switchTab(t: Tab) {
+    setTab(t);
+    reset();
+  }
+
+  async function handleSignIn(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setErro("");
-    setMsg("");
+    reset();
     setLoading(true);
-
     try {
-      if (modo === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
-        if (error) throw new Error("E-mail ou senha incorretos.");
-        router.push("/membros/cursos");
-      } else {
-        if (!nome.trim()) throw new Error("Informe seu nome.");
-        const { error } = await supabase.auth.signUp({
-          email,
-          password: senha,
-          options: { data: { nome } },
-        });
-        if (error) throw new Error(error.message);
-        setMsg("Conta criada! Verifique seu e-mail para confirmar o cadastro.");
-        setModo("login");
+      const supabase = createClient();
+      const fd = new FormData(e.currentTarget);
+      const { error } = await supabase.auth.signInWithPassword({
+        email: fd.get("email") as string,
+        password: fd.get("password") as string,
+      });
+      if (error) setError("E-mail ou senha incorretos.");
+      else router.push("/membros/cursos");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro inesperado. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSignUp(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    reset();
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const fd = new FormData(e.currentTarget);
+      const password = fd.get("password") as string;
+      const confirm = fd.get("confirm") as string;
+      if (password !== confirm) {
+        setError("As senhas não coincidem.");
+        setLoading(false);
+        return;
       }
-    } catch (err: unknown) {
-      setErro(err instanceof Error ? err.message : "Erro inesperado.");
+      const { error } = await supabase.auth.signUp({
+        email: fd.get("email") as string,
+        password,
+        options: { data: { nome: fd.get("nome") as string } },
+      });
+      if (error) {
+        setError(error.message);
+      } else {
+        setInfo("Conta criada! Verifique seu e-mail para confirmar antes de entrar.");
+        setTab("entrar");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro inesperado. Tente novamente.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#0f0f0f",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontFamily: "Inter, system-ui, sans-serif",
-      padding: "1rem",
-    }}>
-      <div style={{
-        width: "100%",
-        maxWidth: "420px",
-        background: "#1a1a1a",
-        borderRadius: "16px",
-        padding: "2.5rem",
-        border: "1px solid #2a2a2a",
-      }}>
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <div style={{
-            width: "56px",
-            height: "56px",
-            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-            borderRadius: "14px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            margin: "0 auto 1rem",
-            fontSize: "1.5rem",
-          }}>
-            🎓
-          </div>
-          <h1 style={{ color: "#fff", fontSize: "1.5rem", fontWeight: 700, margin: 0 }}>
-            Área de Membros
-          </h1>
-          <p style={{ color: "#6b7280", fontSize: "0.875rem", marginTop: "0.25rem" }}>
-            {modo === "login" ? "Acesse seus cursos e conteúdos" : "Crie sua conta de aluno"}
-          </p>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[linear-gradient(180deg,#fff7f7_0%,#f6f7fb_24%,#f4f5f7_100%)] px-6 py-12">
+      <div className="w-full max-w-md">
+        <div className="flex justify-center">
+          <MappingPartnersLogo size="lg" subtitle="Área de Membros" variant="stacked" />
         </div>
 
-        <div style={{
-          display: "flex",
-          background: "#111",
-          borderRadius: "10px",
-          padding: "4px",
-          marginBottom: "1.5rem",
-        }}>
-          {(["login", "cadastro"] as const).map((m) => (
+        <div className="mt-8 flex w-full rounded-full border border-zinc-200 bg-white p-1">
+          {(["entrar", "cadastrar"] as Tab[]).map((t) => (
             <button
-              key={m}
-              onClick={() => { setModo(m); setErro(""); setMsg(""); }}
-              style={{
-                flex: 1,
-                padding: "0.5rem",
-                borderRadius: "7px",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "0.875rem",
-                fontWeight: 600,
-                transition: "all 0.2s",
-                background: modo === m ? "#6366f1" : "transparent",
-                color: modo === m ? "#fff" : "#6b7280",
-              }}
+              className={`flex-1 rounded-full py-2.5 text-sm font-semibold transition ${
+                tab === t ? "bg-zinc-900 text-white" : "text-zinc-500 hover:text-zinc-900"
+              }`}
+              key={t}
+              onClick={() => switchTab(t)}
+              type="button"
             >
-              {m === "login" ? "Entrar" : "Criar conta"}
+              {t === "entrar" ? "Entrar" : "Criar conta"}
             </button>
           ))}
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          {modo === "cadastro" && (
-            <div>
-              <label style={{ display: "block", color: "#9ca3af", fontSize: "0.8rem", marginBottom: "0.4rem", fontWeight: 500 }}>
-                Nome completo
-              </label>
-              <input
-                type="text"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                placeholder="Seu nome"
-                required
-                style={inputStyle}
-              />
+        <div className="mt-4 rounded-[24px] border border-zinc-200 bg-white p-8 shadow-[0_24px_80px_-54px_rgba(24,24,27,0.35)]">
+          {error && (
+            <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+          {info && (
+            <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              {info}
             </div>
           )}
 
-          <div>
-            <label style={{ display: "block", color: "#9ca3af", fontSize: "0.8rem", marginBottom: "0.4rem", fontWeight: 500 }}>
-              E-mail
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              required
-              style={inputStyle}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", color: "#9ca3af", fontSize: "0.8rem", marginBottom: "0.4rem", fontWeight: 500 }}>
-              Senha
-            </label>
-            <input
-              type="password"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              placeholder="••••••••"
-              required
-              minLength={6}
-              style={inputStyle}
-            />
-          </div>
-
-          {erro && (
-            <div style={{
-              background: "#7f1d1d33",
-              border: "1px solid #ef444433",
-              borderRadius: "8px",
-              padding: "0.75rem",
-              color: "#fca5a5",
-              fontSize: "0.875rem",
-            }}>
-              {erro}
-            </div>
+          {tab === "entrar" && (
+            <form className="space-y-4" onSubmit={handleSignIn}>
+              <Field label="E-mail" name="email" placeholder="seu@email.com" type="email" />
+              <Field label="Senha" name="password" placeholder="••••••••" type="password" />
+              <button
+                className="w-full rounded-xl bg-red-600 py-3 text-sm font-bold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)] transition hover:bg-red-700 disabled:opacity-60"
+                disabled={loading}
+                type="submit"
+              >
+                {loading ? "Entrando…" : "Entrar"}
+              </button>
+            </form>
           )}
 
-          {msg && (
-            <div style={{
-              background: "#14532d33",
-              border: "1px solid #22c55e33",
-              borderRadius: "8px",
-              padding: "0.75rem",
-              color: "#86efac",
-              fontSize: "0.875rem",
-            }}>
-              {msg}
-            </div>
+          {tab === "cadastrar" && (
+            <form className="space-y-4" onSubmit={handleSignUp}>
+              <Field label="Nome completo" name="nome" placeholder="Seu nome" />
+              <Field label="E-mail" name="email" placeholder="seu@email.com" type="email" />
+              <Field label="Senha" name="password" placeholder="••••••••" type="password" />
+              <Field label="Confirmar senha" name="confirm" placeholder="••••••••" type="password" />
+              <button
+                className="w-full rounded-xl bg-red-600 py-3 text-sm font-bold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)] transition hover:bg-red-700 disabled:opacity-60"
+                disabled={loading}
+                type="submit"
+              >
+                {loading ? "Criando conta…" : "Criar conta"}
+              </button>
+              <p className="text-center text-xs text-zinc-400">
+                Ao criar uma conta você concorda com os{" "}
+                <span className="font-medium text-zinc-600">Termos de Uso</span>
+              </p>
+            </form>
           )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              background: loading ? "#4338ca" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
-              color: "#fff",
-              border: "none",
-              borderRadius: "10px",
-              padding: "0.875rem",
-              fontSize: "1rem",
-              fontWeight: 700,
-              cursor: loading ? "not-allowed" : "pointer",
-              marginTop: "0.5rem",
-              opacity: loading ? 0.7 : 1,
-              transition: "opacity 0.2s",
-            }}
-          >
-            {loading ? "Aguarde..." : modo === "login" ? "Entrar" : "Criar conta"}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  background: "#111",
-  border: "1px solid #2a2a2a",
-  borderRadius: "8px",
-  padding: "0.75rem 1rem",
-  color: "#fff",
-  fontSize: "0.9375rem",
-  outline: "none",
-  boxSizing: "border-box",
-};
