@@ -72,6 +72,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "Erro ao salvar pedido." }, { status: 500 });
     }
 
+    // Concede acesso à área de membros automaticamente
+    const { data: produto } = await supabase
+      .from("produtos")
+      .select("tipo_entregavel")
+      .eq("id", produto_id)
+      .maybeSingle();
+
+    if (produto?.tipo_entregavel === "digital" || produto?.tipo_entregavel === "curso") {
+      await supabase
+        .from("acessos_membros")
+        .upsert(
+          {
+            empresa_id,
+            produto_id,
+            pedido_id: pedido.id,
+            comprador_email: cliente.email.toLowerCase().trim(),
+            comprador_nome: cliente.nome,
+            ativo: true,
+          },
+          { onConflict: "produto_id,comprador_email" }
+        );
+    }
+
     return NextResponse.json({ ok: true, pedido_id: pedido.id });
   } catch (err) {
     console.error("[checkout/payment]", err);

@@ -141,6 +141,9 @@ export function ProductDetail({ product }: { product: ProductRecord }) {
             <Link className="inline-flex h-11 items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700" href={`/mundo-mapping/afiliados/produtos/${product.slug}/editar`}>
               Editar produto
             </Link>
+            <Link className="inline-flex h-11 items-center justify-center rounded-xl border border-violet-200 bg-violet-50 px-4 text-sm font-semibold text-violet-700 transition hover:bg-violet-100" href={`/mundo-mapping/afiliados/produtos/${product.slug}/membros`}>
+              Área de membros
+            </Link>
             <button
               className="inline-flex h-11 items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 text-sm font-semibold text-red-700 transition hover:bg-red-100"
               onClick={() => setConfirmDelete(true)}
