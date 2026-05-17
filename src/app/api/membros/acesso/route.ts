@@ -15,22 +15,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "produto_id e comprador_email são obrigatórios." }, { status: 400 });
     }
 
-    // Verifica que o usuário é da empresa dona do produto
-    const { data: empresa } = await supabase
-      .from("empresas")
+    // Verifica que o produto pertence ao usuário autenticado (empresa_id = auth.uid())
+    const { data: produto } = await supabase
+      .from("produtos")
       .select("id")
-      .eq("auth_user_id", user.id)
+      .eq("id", produto_id)
+      .eq("empresa_id", user.id)
       .maybeSingle();
 
-    if (!empresa) {
-      return NextResponse.json({ ok: false, error: "Empresa não encontrada." }, { status: 403 });
+    if (!produto) {
+      return NextResponse.json({ ok: false, error: "Produto não encontrado." }, { status: 403 });
     }
 
     const { error } = await supabase
       .from("acessos_membros")
       .upsert(
         {
-          empresa_id: empresa.id,
+          empresa_id: user.id,
           produto_id,
           comprador_email: comprador_email.toLowerCase().trim(),
           comprador_nome: comprador_nome ?? null,
@@ -64,20 +65,10 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "Dados obrigatórios ausentes." }, { status: 400 });
     }
 
-    const { data: empresa } = await supabase
-      .from("empresas")
-      .select("id")
-      .eq("auth_user_id", user.id)
-      .maybeSingle();
-
-    if (!empresa) {
-      return NextResponse.json({ ok: false, error: "Empresa não encontrada." }, { status: 403 });
-    }
-
     const { error } = await supabase
       .from("acessos_membros")
       .update({ ativo: false })
-      .eq("empresa_id", empresa.id)
+      .eq("empresa_id", user.id)
       .eq("produto_id", produto_id)
       .eq("comprador_email", comprador_email.toLowerCase().trim());
 

@@ -32,14 +32,14 @@ type Acesso = {
 
 type Props = {
   produto: { id: string; slug: string; nome: string; tipo_entregavel: string | null };
-  empresa: { id: string; nome: string };
+  empresaId: string;
   modulosIniciais: Modulo[];
   acessosIniciais: Acesso[];
 };
 
 type Tab = "conteudo" | "acessos";
 
-export default function MembrosManagerClient({ produto, empresa, modulosIniciais, acessosIniciais }: Props) {
+export default function MembrosManagerClient({ produto, empresaId, modulosIniciais, acessosIniciais }: Props) {
   const [tab, setTab] = useState<Tab>("conteudo");
   const [modulos, setModulos] = useState<Modulo[]>(modulosIniciais);
   const [acessos, setAcessos] = useState<Acesso[]>(acessosIniciais);
@@ -68,7 +68,7 @@ export default function MembrosManagerClient({ produto, empresa, modulosIniciais
     const { data, error } = await supabase
       .from("modulos")
       .insert({
-        empresa_id: empresa.id,
+        empresa_id: empresaId,
         produto_id: produto.id,
         titulo: novoModulo.trim(),
         ordem: modulos.length,
@@ -98,7 +98,7 @@ export default function MembrosManagerClient({ produto, empresa, modulosIniciais
     const { data, error } = await supabase
       .from("aulas")
       .insert({
-        empresa_id: empresa.id,
+        empresa_id: empresaId,
         modulo_id: novaAula.moduloId,
         produto_id: produto.id,
         titulo: novaAula.titulo.trim(),

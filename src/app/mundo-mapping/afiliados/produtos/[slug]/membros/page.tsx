@@ -15,19 +15,11 @@ export default async function ProdutoMembrosPage({ params }: Props) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/mundo-mapping/login");
 
-  const { data: empresa } = await supabase
-    .from("empresas")
-    .select("id, nome")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
-
-  if (!empresa) redirect("/mundo-mapping/login");
-
   const { data: produto } = await supabase
     .from("produtos")
     .select("id, slug, nome, tipo_entregavel")
     .eq("slug", slug)
-    .eq("empresa_id", empresa.id)
+    .eq("empresa_id", user.id)
     .maybeSingle();
 
   if (!produto) notFound();
@@ -44,7 +36,7 @@ export default async function ProdutoMembrosPage({ params }: Props) {
     .eq("produto_id", produto.id)
     .order("ordem");
 
-  // Acessos ativos
+  // Acessos
   const { data: acessos } = await supabase
     .from("acessos_membros")
     .select("id, comprador_email, comprador_nome, ativo, expira_em, created_at")
@@ -54,7 +46,7 @@ export default async function ProdutoMembrosPage({ params }: Props) {
   return (
     <MembrosManagerClient
       produto={produto}
-      empresa={empresa}
+      empresaId={user.id}
       modulosIniciais={modulos ?? []}
       acessosIniciais={acessos ?? []}
     />
