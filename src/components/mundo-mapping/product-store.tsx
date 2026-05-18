@@ -77,6 +77,16 @@ export type ProductRecord = {
   shippingManagedBy: "company" | "customer" | "na";
   bookingRequired: boolean;
   noShowPolicy: string;
+  orderBumpAtivo: boolean;
+  orderBumpProdutoId: string;
+  orderBumpPreco: number;
+  orderBumpTexto: string;
+  orderBumpDescricao: string;
+  upsellAtivo: boolean;
+  upsellProdutoId: string;
+  upsellPreco: number;
+  upsellHeadline: string;
+  upsellTimerMinutos: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -152,6 +162,16 @@ export function fromRow(r: Record<string, any>): ProductRecord {
     shippingManagedBy: (r.frete_gerido_por as ProductRecord["shippingManagedBy"]) ?? "na",
     bookingRequired: Boolean(r.reserva_requerida),
     noShowPolicy: r.politica_no_show ?? "",
+    orderBumpAtivo: Boolean(r.order_bump_ativo),
+    orderBumpProdutoId: r.order_bump_produto_id ?? "",
+    orderBumpPreco: Number(r.order_bump_preco) || 0,
+    orderBumpTexto: r.order_bump_texto ?? "",
+    orderBumpDescricao: r.order_bump_descricao ?? "",
+    upsellAtivo: Boolean(r.upsell_ativo),
+    upsellProdutoId: r.upsell_produto_id ?? "",
+    upsellPreco: Number(r.upsell_preco) || 0,
+    upsellHeadline: r.upsell_headline ?? "",
+    upsellTimerMinutos: Number(r.upsell_timer_minutos) || 10,
     createdAt: r.criado_em ?? new Date().toISOString(),
     updatedAt: r.atualizado_em ?? new Date().toISOString(),
   };
@@ -212,6 +232,16 @@ function toRow(input: ProductInput, userId: string, empresaNome?: string) {
     frete_gerido_por: input.shippingManagedBy,
     reserva_requerida: input.bookingRequired,
     politica_no_show: input.noShowPolicy,
+    order_bump_ativo: input.orderBumpAtivo,
+    order_bump_produto_id: input.orderBumpProdutoId || null,
+    order_bump_preco: input.orderBumpPreco || null,
+    order_bump_texto: input.orderBumpTexto || null,
+    order_bump_descricao: input.orderBumpDescricao || null,
+    upsell_ativo: input.upsellAtivo,
+    upsell_produto_id: input.upsellProdutoId || null,
+    upsell_preco: input.upsellPreco || null,
+    upsell_headline: input.upsellHeadline || null,
+    upsell_timer_minutos: input.upsellTimerMinutos,
   };
 }
 
@@ -417,5 +447,15 @@ export function getEmptyProduct(): ProductInput {
     shippingManagedBy: "na",
     bookingRequired: false,
     noShowPolicy: "",
+    orderBumpAtivo: false,
+    orderBumpProdutoId: "",
+    orderBumpPreco: 0,
+    orderBumpTexto: "",
+    orderBumpDescricao: "",
+    upsellAtivo: false,
+    upsellProdutoId: "",
+    upsellPreco: 0,
+    upsellHeadline: "",
+    upsellTimerMinutos: 10,
   };
 }

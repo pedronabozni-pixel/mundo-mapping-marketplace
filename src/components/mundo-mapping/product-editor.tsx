@@ -217,7 +217,7 @@ export function ProductEditor({
   initialProduct?: ProductRecord;
 }) {
   const router = useRouter();
-  const { createProduct, updateProduct } = useProductStore();
+  const { createProduct, updateProduct, products } = useProductStore();
   const { plan, planLabel, limit, productCount, atLimit, loaded } = usePlanLimits();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
@@ -725,6 +725,99 @@ export function ProductEditor({
                 </div>
               </div>
 
+              {/* ── Order Bump ── */}
+              <div className="rounded-[24px] border border-zinc-200 p-5">
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-zinc-900">Order Bump</p>
+                    <p className="mt-1 text-xs text-zinc-500">Oferta extra exibida no checkout, antes do pagamento.</p>
+                  </div>
+                  <button
+                    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition ${form.orderBumpAtivo ? "bg-red-600" : "bg-zinc-200"}`}
+                    onClick={() => patch("orderBumpAtivo", !form.orderBumpAtivo)}
+                    type="button"
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${form.orderBumpAtivo ? "translate-x-6" : "translate-x-1"}`} />
+                  </button>
+                </div>
+                {form.orderBumpAtivo && (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="md:col-span-2">
+                      <Field helper="Produto que será oferecido como order bump." label="Produto do order bump">
+                        <Select
+                          onChange={(v) => patch("orderBumpProdutoId", v)}
+                          options={[
+                            { label: "Selecione um produto…", value: "" },
+                            ...products
+                              .filter((p) => p.id !== (initialProduct?.id ?? ""))
+                              .map((p) => ({ label: p.name, value: p.id })),
+                          ]}
+                          value={form.orderBumpProdutoId}
+                        />
+                      </Field>
+                    </div>
+                    <Field helper="Preço especial exibido no card do order bump." label="Preço especial (R$)">
+                      <Input min={0} onChange={(v) => patch("orderBumpPreco", Number(v) || 0)} type="number" value={form.orderBumpPreco} />
+                    </Field>
+                    <Field helper='Ex: "Sim! Quero adicionar por apenas R$X"' label="Texto principal do card">
+                      <Input onChange={(v) => patch("orderBumpTexto", v)} placeholder="Aproveite esta oferta exclusiva!" value={form.orderBumpTexto} />
+                    </Field>
+                    <div className="md:col-span-2">
+                      <Field label="Descrição curta">
+                        <Textarea onChange={(v) => patch("orderBumpDescricao", v)} placeholder="1-2 linhas descrevendo o benefício adicional." rows={2} value={form.orderBumpDescricao} />
+                      </Field>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* ── Upsell ── */}
+              <div className="rounded-[24px] border border-zinc-200 p-5">
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-zinc-900">Upsell (pós-compra)</p>
+                    <p className="mt-1 text-xs text-zinc-500">Oferta com 1 clique exibida na página de obrigado.</p>
+                  </div>
+                  <button
+                    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition ${form.upsellAtivo ? "bg-red-600" : "bg-zinc-200"}`}
+                    onClick={() => patch("upsellAtivo", !form.upsellAtivo)}
+                    type="button"
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${form.upsellAtivo ? "translate-x-6" : "translate-x-1"}`} />
+                  </button>
+                </div>
+                {form.upsellAtivo && (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="md:col-span-2">
+                      <Field helper="Produto que será oferecido como upsell." label="Produto do upsell">
+                        <Select
+                          onChange={(v) => patch("upsellProdutoId", v)}
+                          options={[
+                            { label: "Selecione um produto…", value: "" },
+                            ...products
+                              .filter((p) => p.id !== (initialProduct?.id ?? ""))
+                              .map((p) => ({ label: p.name, value: p.id })),
+                          ]}
+                          value={form.upsellProdutoId}
+                        />
+                      </Field>
+                    </div>
+                    <Field helper="Preço especial para quem acabou de comprar." label="Preço especial (R$)">
+                      <Input min={0} onChange={(v) => patch("upsellPreco", Number(v) || 0)} type="number" value={form.upsellPreco} />
+                    </Field>
+                    <Field helper="Padrão: 10 minutos." label="Timer de urgência (minutos)">
+                      <Input min={1} onChange={(v) => patch("upsellTimerMinutos", Number(v) || 10)} type="number" value={form.upsellTimerMinutos} />
+                    </Field>
+                    <div className="md:col-span-2">
+                      <Field label="Headline do upsell">
+                        <Input onChange={(v) => patch("upsellHeadline", v)} placeholder="Oferta exclusiva para quem acabou de comprar!" value={form.upsellHeadline} />
+                      </Field>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* ── Preview ── */}
               <div className="rounded-[24px] border border-zinc-200 bg-zinc-50 p-5">
                 <div className="mb-4 flex items-center justify-between">
                   <div>

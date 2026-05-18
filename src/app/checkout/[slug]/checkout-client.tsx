@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { formatCPF, formatPhone, validateCPF } from "@/lib/cpf";
+import type { ProdutoSimples } from "./page";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -26,6 +27,16 @@ export type Produto = {
   capa_url: string | null;
   comissao_tipo: string;
   comissao_valor: number;
+  order_bump_ativo: boolean | null;
+  order_bump_produto_id: string | null;
+  order_bump_preco: number | null;
+  order_bump_texto: string | null;
+  order_bump_descricao: string | null;
+  upsell_ativo: boolean | null;
+  upsell_produto_id: string | null;
+  upsell_preco: number | null;
+  upsell_headline: string | null;
+  upsell_timer_minutos: number | null;
 };
 
 type Step = "identificacao" | "pagamento";
@@ -75,11 +86,7 @@ function parseBenefits(highlights: string | null): string[] {
 
 // ─── Atoms ───────────────────────────────────────────────────────────────────
 
-function Field({
-  label, children, error,
-}: {
-  label: string; children: React.ReactNode; error?: string;
-}) {
+function Field({ label, children, error }: { label: string; children: React.ReactNode; error?: string }) {
   return (
     <div>
       <label className="mb-1.5 block text-xs font-semibold text-zinc-600">{label}</label>
@@ -136,6 +143,91 @@ function SimBadge() {
   );
 }
 
+// ─── Order Bump Card ──────────────────────────────────────────────────────────
+
+function OrderBumpCard({
+  produto,
+  orderBumpProduto,
+  selected,
+  onToggle,
+  primaryColor,
+}: {
+  produto: Produto;
+  orderBumpProduto: ProdutoSimples;
+  selected: boolean;
+  onToggle: () => void;
+  primaryColor: string;
+}) {
+  const specialPrice = produto.order_bump_preco ?? orderBumpProduto.preco;
+  const texto = produto.order_bump_texto || `Sim! Quero adicionar ${orderBumpProduto.nome} por apenas R$ ${fmtMoney(specialPrice)}`;
+
+  return (
+    <div
+      className="overflow-hidden rounded-2xl border-2 transition"
+      style={{ borderColor: selected ? primaryColor : "#e4e4e7" }}
+    >
+      {/* Header */}
+      <div
+        className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold uppercase tracking-wider"
+        style={{ backgroundColor: `${primaryColor}18`, color: primaryColor }}
+      >
+        <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+        </svg>
+        Oferta especial — adicione ao seu pedido
+      </div>
+
+      {/* Body */}
+      <button
+        className="flex w-full items-start gap-4 bg-white px-4 py-4 text-left transition hover:bg-zinc-50"
+        onClick={onToggle}
+        type="button"
+      >
+        {/* Custom checkbox */}
+        <div
+          className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition"
+          style={{
+            borderColor: selected ? primaryColor : "#d4d4d8",
+            backgroundColor: selected ? primaryColor : "white",
+          }}
+        >
+          {selected && (
+            <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+              <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </div>
+
+        {/* Product image */}
+        {orderBumpProduto.capa_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            alt={orderBumpProduto.nome}
+            className="h-14 w-14 shrink-0 rounded-xl object-cover"
+            src={orderBumpProduto.capa_url}
+          />
+        )}
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold leading-snug text-zinc-900">{texto}</p>
+          {produto.order_bump_descricao && (
+            <p className="mt-1 text-xs leading-5 text-zinc-500">{produto.order_bump_descricao}</p>
+          )}
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-xs text-zinc-400 line-through">
+              R$ {fmtMoney(orderBumpProduto.preco)}
+            </span>
+            <span className="text-sm font-bold" style={{ color: primaryColor }}>
+              R$ {fmtMoney(specialPrice)}
+            </span>
+          </div>
+        </div>
+      </button>
+    </div>
+  );
+}
+
 // ─── PIX Component ────────────────────────────────────────────────────────────
 
 const PIX_AUTO_CONFIRM_SECONDS = 5;
@@ -144,12 +236,15 @@ const FAKE_PIX_PAYLOAD =
   "00020126580014br.gov.bcb.pix0136mapping-partners-simulacao-checkout5204000053039865802BR5925Mapping Partners Simulado6009SAO PAULO62070503***6304ABCD";
 
 function PixSimulation({
-  valor, produto, cliente, affiliateRef, onSuccess,
+  valor, produto, cliente, affiliateRef, orderBumpAceito, orderBumpProdutoId, orderBumpValor, onSuccess,
 }: {
   valor: number;
   produto: Produto;
   cliente: { nome: string; email: string; cpf: string; telefone: string };
   affiliateRef: string;
+  orderBumpAceito: boolean;
+  orderBumpProdutoId: string | null;
+  orderBumpValor: number;
   onSuccess: (pedidoId: string) => void;
 }) {
   type PixStep = "idle" | "loading" | "qr" | "confirming";
@@ -180,6 +275,9 @@ function PixSimulation({
           forma_pagamento: "pix",
           parcelas: 1,
           cliente,
+          order_bump_aceito: orderBumpAceito,
+          order_bump_produto_id: orderBumpAceito ? orderBumpProdutoId : null,
+          order_bump_valor: orderBumpAceito ? orderBumpValor : 0,
         }),
       });
       const data = await res.json();
@@ -193,10 +291,8 @@ function PixSimulation({
     }
   }
 
-  // 30-min countdown + 5s auto-confirm
   useEffect(() => {
     if (pixStep !== "qr") return;
-
     const expireTimer = setInterval(() => setExpireLeft((s) => (s > 0 ? s - 1 : 0)), 1000);
     const autoTimer = setInterval(() => {
       setAutoLeft((s) => {
@@ -211,11 +307,7 @@ function PixSimulation({
         return s - 1;
       });
     }, 1000);
-
-    return () => {
-      clearInterval(expireTimer);
-      clearInterval(autoTimer);
-    };
+    return () => { clearInterval(expireTimer); clearInterval(autoTimer); };
   }, [pixStep]);
 
   const expireMins = String(Math.floor(expireLeft / 60)).padStart(2, "0");
@@ -249,39 +341,24 @@ function PixSimulation({
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
               Gerando QR Code...
             </span>
-          ) : (
-            "Gerar QR Code PIX"
-          )}
+          ) : "Gerar QR Code PIX"}
         </button>
         <p className="text-center text-xs text-zinc-400">O QR Code expira em 30 minutos</p>
       </div>
     );
   }
 
-  // pixStep === "qr"
   return (
     <div className="space-y-4">
-      {/* QR Code with logo overlay */}
       <div className="flex flex-col items-center">
         <div className="relative">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            alt="QR Code PIX"
-            className="h-[220px] w-[220px] rounded-2xl border border-zinc-200"
-            src={qrUrl}
-          />
-          {/* Logo overlay */}
+          <img alt="QR Code PIX" className="h-[220px] w-[220px] rounded-2xl border border-zinc-200" src={qrUrl} />
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-1.5 shadow-md">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              alt="Mapping Partners"
-              className="h-8 w-8 rounded-lg object-contain"
-              src="/logo-mapping-partners.png"
-            />
+            <img alt="Mapping Partners" className="h-8 w-8 rounded-lg object-contain" src="/logo-mapping-partners.png" />
           </div>
         </div>
-
-        {/* Expire timer */}
         <div className="mt-3 flex items-center gap-1.5 text-xs text-zinc-400">
           <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
@@ -290,7 +367,6 @@ function PixSimulation({
         </div>
       </div>
 
-      {/* Auto-confirm countdown */}
       <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
         <p className="text-xs font-semibold text-emerald-700">
           Confirmando automaticamente em {autoLeft}s... (modo simulação)
@@ -303,18 +379,13 @@ function PixSimulation({
         </div>
       </div>
 
-      {/* Copy code */}
       <div>
         <p className="mb-1.5 text-xs font-semibold text-zinc-500">Código PIX copia e cola:</p>
         <div className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
           <span className="flex-1 truncate font-mono text-xs text-zinc-500">{FAKE_PIX_PAYLOAD.slice(0, 40)}...</span>
           <button
             className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold transition ${copied ? "bg-emerald-100 text-emerald-700" : "bg-white text-zinc-700 hover:bg-zinc-100"}`}
-            onClick={async () => {
-              await navigator.clipboard.writeText(FAKE_PIX_PAYLOAD);
-              setCopied(true);
-              setTimeout(() => setCopied(false), 2000);
-            }}
+            onClick={async () => { await navigator.clipboard.writeText(FAKE_PIX_PAYLOAD); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
             type="button"
           >
             {copied ? "Copiado!" : "Copiar"}
@@ -322,19 +393,11 @@ function PixSimulation({
         </div>
       </div>
 
-      {/* Instructions */}
       <div className="space-y-2 rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
         <p className="text-xs font-semibold text-zinc-600">Como pagar via PIX:</p>
-        {[
-          "Abra o aplicativo do seu banco",
-          "Acesse a área PIX e escolha \"Pagar com QR Code\"",
-          "Escaneie o código ou cole o código copia e cola",
-          "Confirme o valor e finalize o pagamento",
-        ].map((s, i) => (
+        {["Abra o aplicativo do seu banco", "Acesse a área PIX e escolha \"Pagar com QR Code\"", "Escaneie o código ou cole o código copia e cola", "Confirme o valor e finalize o pagamento"].map((s, i) => (
           <div className="flex items-start gap-2" key={s}>
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-bold text-zinc-600">
-              {i + 1}
-            </span>
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-bold text-zinc-600">{i + 1}</span>
             <p className="text-xs leading-5 text-zinc-500">{s}</p>
           </div>
         ))}
@@ -348,9 +411,11 @@ function PixSimulation({
 export default function CheckoutClient({
   produto,
   affiliateRef,
+  orderBumpProduto,
 }: {
   produto: Produto;
   affiliateRef: string;
+  orderBumpProduto: ProdutoSimples | null;
 }) {
   const router = useRouter();
   const primaryColor = produto.checkout_cor ?? "#dc2626";
@@ -358,11 +423,22 @@ export default function CheckoutClient({
   const benefits = parseBenefits(produto.checkout_highlights);
   const depoimentos = produto.checkout_depoimentos ?? [];
   const ctaLabel = produto.checkout_cta || "Comprar agora";
-  const installmentList = installmentOptions(produto.preco);
 
   // Steps
   const [step, setStep] = useState<Step>("identificacao");
   const [method, setMethod] = useState<PayMethod>("cartao");
+
+  // Order bump
+  const hasOrderBump = Boolean(produto.order_bump_ativo && orderBumpProduto);
+  const [orderBumpSelected, setOrderBumpSelected] = useState(false);
+  const orderBumpValor = orderBumpSelected && orderBumpProduto
+    ? (produto.order_bump_preco ?? orderBumpProduto.preco)
+    : 0;
+  const totalValor = produto.preco + orderBumpValor;
+
+  // Installments based on total
+  const installmentList = installmentOptions(totalValor);
+  const [installments, setInstallments] = useState(1);
 
   // Identification
   const [nome, setNome] = useState("");
@@ -384,27 +460,18 @@ export default function CheckoutClient({
   const [cardName, setCardName] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
-  const [installments, setInstallments] = useState(1);
   const [cardLoading, setCardLoading] = useState(false);
   const [cardError, setCardError] = useState<string | null>(null);
 
   const brand = detectBrand(cardNum);
 
-  // CEP auto-fill
   async function lookupCep(digits: string) {
     setCepLoading(true);
     try {
       const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
       const data = await res.json();
-      if (!data.erro) {
-        setRua(data.logradouro ?? "");
-        setBairro(data.bairro ?? "");
-        setCidade(data.localidade ?? "");
-        setEstado(data.uf ?? "");
-      }
-    } catch { /* ignore */ } finally {
-      setCepLoading(false);
-    }
+      if (!data.erro) { setRua(data.logradouro ?? ""); setBairro(data.bairro ?? ""); setCidade(data.localidade ?? ""); setEstado(data.uf ?? ""); }
+    } catch { /* ignore */ } finally { setCepLoading(false); }
   }
 
   function validateStep1(): string | null {
@@ -430,17 +497,26 @@ export default function CheckoutClient({
   }
 
   function buildObrigadoUrl(pedidoId: string) {
-    return `/checkout/${produto.slug}/obrigado?${new URLSearchParams({
+    const params: Record<string, string> = {
       pedido_id: pedidoId,
       nome,
       email,
-      valor: String(produto.preco),
+      cpf,
+      telefone,
+      valor: String(totalValor),
       forma_pagamento: method,
       produto_nome: produto.nome,
-    })}`;
+    };
+    // Passa dados do upsell se ativo
+    if (produto.upsell_ativo && produto.upsell_produto_id) {
+      params.upsell_produto_id = produto.upsell_produto_id;
+      params.upsell_preco = String(produto.upsell_preco ?? 0);
+      params.upsell_headline = produto.upsell_headline ?? "";
+      params.upsell_timer = String(produto.upsell_timer_minutos ?? 10);
+    }
+    return `/checkout/${produto.slug}/obrigado?${new URLSearchParams(params)}`;
   }
 
-  // Card simulation: 2s fake processing, then save + redirect
   async function handleCardPay() {
     const rawCard = cardNum.replace(/\D/g, "");
     if (rawCard.length < 13) { setCardError("Número de cartão inválido."); return; }
@@ -450,8 +526,6 @@ export default function CheckoutClient({
 
     setCardError(null);
     setCardLoading(true);
-
-    // Simulate 2s processing
     await new Promise((r) => setTimeout(r, 2000));
 
     try {
@@ -463,13 +537,16 @@ export default function CheckoutClient({
           produto_nome: produto.nome,
           empresa_id: produto.empresa_id,
           ref: affiliateRef || undefined,
-          valor: produto.preco,
+          valor: totalValor,
           forma_pagamento: "cartao",
           parcelas: installments,
           cliente: {
             nome, email, cpf, telefone,
             endereco: isPhysical ? { cep, rua, numero, complemento, bairro, cidade, estado } : undefined,
           },
+          order_bump_aceito: orderBumpSelected,
+          order_bump_produto_id: orderBumpSelected ? produto.order_bump_produto_id : null,
+          order_bump_valor: orderBumpValor,
         }),
       });
       const data = await res.json();
@@ -484,7 +561,7 @@ export default function CheckoutClient({
   const handlePixSuccess = useCallback(
     (pedidoId: string) => { router.push(buildObrigadoUrl(pedidoId)); },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [router, produto.slug, produto.nome, produto.preco, nome, email, method]
+    [router, produto.slug, produto.nome, totalValor, nome, email, method]
   );
 
   const clienteData = { nome, email, cpf, telefone };
@@ -496,17 +573,12 @@ export default function CheckoutClient({
       <div className="mx-auto max-w-6xl px-4 py-8 lg:py-12">
         <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
 
-          {/* ══ Left column — product info (desktop) ══ */}
+          {/* ══ Left column ══ */}
           <div className="hidden space-y-8 lg:block">
-            {/* Logo + headline */}
             <div>
               {produto.capa_url && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  alt={produto.nome}
-                  className="mb-5 h-14 w-auto rounded-xl object-contain"
-                  src={produto.capa_url}
-                />
+                <img alt={produto.nome} className="mb-5 h-14 w-auto rounded-xl object-contain" src={produto.capa_url} />
               )}
               <h1 className="text-3xl font-bold leading-snug text-zinc-900">
                 {produto.checkout_headline ?? produto.nome}
@@ -516,17 +588,12 @@ export default function CheckoutClient({
               )}
             </div>
 
-            {/* Guarantee */}
             {produto.checkout_garantia && (
-              <div
-                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold"
-                style={{ backgroundColor: `${primaryColor}18`, color: primaryColor }}
-              >
+              <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold" style={{ backgroundColor: `${primaryColor}18`, color: primaryColor }}>
                 🛡️ {produto.checkout_garantia}
               </div>
             )}
 
-            {/* Benefits */}
             {benefits.length > 0 && (
               <div className="rounded-2xl border border-zinc-200 bg-white p-6">
                 <p className="mb-4 text-sm font-semibold text-zinc-900">O que você recebe:</p>
@@ -541,7 +608,6 @@ export default function CheckoutClient({
               </div>
             )}
 
-            {/* Testimonials */}
             {depoimentos.length > 0 && (
               <div className="space-y-3">
                 <p className="text-sm font-semibold text-zinc-900">O que dizem nossos clientes:</p>
@@ -553,9 +619,7 @@ export default function CheckoutClient({
                         // eslint-disable-next-line @next/next/no-img-element
                         <img alt={d.name} className="h-9 w-9 rounded-full object-cover" src={d.photo} />
                       ) : (
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-sm font-bold text-zinc-600">
-                          {d.name[0]}
-                        </div>
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-sm font-bold text-zinc-600">{d.name[0]}</div>
                       )}
                       <div>
                         <p className="text-sm font-semibold text-zinc-900">{d.name}</p>
@@ -567,7 +631,6 @@ export default function CheckoutClient({
               </div>
             )}
 
-            {/* Security seals */}
             <div className="flex flex-wrap gap-4 rounded-2xl border border-zinc-200 bg-white px-5 py-4">
               {["🔒 Compra segura", "🛡️ Dados criptografados", "✅ SSL certificado"].map((s) => (
                 <span className="text-xs text-zinc-400" key={s}>{s}</span>
@@ -575,10 +638,9 @@ export default function CheckoutClient({
             </div>
           </div>
 
-          {/* ══ Right column — checkout form ══ */}
+          {/* ══ Right column ══ */}
           <div>
             <div className="sticky top-6 space-y-3">
-              {/* Simulation badge */}
               <div className="flex justify-end">
                 <SimBadge />
               </div>
@@ -589,20 +651,49 @@ export default function CheckoutClient({
                   <div className="min-w-0">
                     <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Pedido</p>
                     <p className="mt-1 truncate font-semibold text-zinc-900">{produto.nome}</p>
-                    {produto.empresa_nome && (
-                      <p className="text-xs text-zinc-400">{produto.empresa_nome}</p>
-                    )}
+                    {produto.empresa_nome && <p className="text-xs text-zinc-400">{produto.empresa_nome}</p>}
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="text-xl font-bold text-zinc-900">R$ {fmtMoney(produto.preco)}</p>
+                    <p className="text-xl font-bold text-zinc-900">
+                      R$ {fmtMoney(totalValor)}
+                    </p>
+                    {orderBumpSelected && orderBumpProduto && (
+                      <p className="text-xs text-zinc-400">
+                        Inclui order bump
+                      </p>
+                    )}
                     {installments > 1 && step === "pagamento" && method === "cartao" && (
                       <p className="text-xs text-zinc-400">
-                        {installments}× de R$ {fmtMoney(Math.ceil((produto.preco / installments) * 100) / 100)}
+                        {installments}× de R$ {fmtMoney(Math.ceil((totalValor / installments) * 100) / 100)}
                       </p>
                     )}
                   </div>
                 </div>
+                {/* Breakdown when order bump selected */}
+                {orderBumpSelected && orderBumpProduto && (
+                  <div className="mt-3 space-y-1.5 border-t border-zinc-100 pt-3">
+                    <div className="flex justify-between text-xs text-zinc-500">
+                      <span>{produto.nome}</span>
+                      <span>R$ {fmtMoney(produto.preco)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-zinc-500">
+                      <span>{orderBumpProduto.nome}</span>
+                      <span>R$ {fmtMoney(orderBumpValor)}</span>
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {/* Order Bump Card */}
+              {hasOrderBump && orderBumpProduto && (
+                <OrderBumpCard
+                  onToggle={() => setOrderBumpSelected((v) => !v)}
+                  orderBumpProduto={orderBumpProduto}
+                  primaryColor={primaryColor}
+                  produto={produto}
+                  selected={orderBumpSelected}
+                />
+              )}
 
               {/* Step indicator */}
               <div className="flex items-center gap-2 px-1">
@@ -611,10 +702,8 @@ export default function CheckoutClient({
                     <div
                       className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition"
                       style={{
-                        backgroundColor:
-                          step === s || (i === 0 && step === "pagamento") ? primaryColor : "#e4e4e7",
-                        color:
-                          step === s || (i === 0 && step === "pagamento") ? "#fff" : "#71717a",
+                        backgroundColor: step === s || (i === 0 && step === "pagamento") ? primaryColor : "#e4e4e7",
+                        color: step === s || (i === 0 && step === "pagamento") ? "#fff" : "#71717a",
                       }}
                     >
                       {i === 0 && step === "pagamento" ? "✓" : i + 1}
@@ -627,7 +716,7 @@ export default function CheckoutClient({
                 ))}
               </div>
 
-              {/* ── Step 1: Identification ── */}
+              {/* ── Step 1 ── */}
               {step === "identificacao" && (
                 <div className="rounded-2xl border border-zinc-200 bg-white p-5">
                   <p className="mb-4 text-sm font-semibold text-zinc-900">Identificação</p>
@@ -640,27 +729,13 @@ export default function CheckoutClient({
                     </Field>
                     <div className="grid grid-cols-2 gap-3">
                       <Field label="CPF">
-                        <TextInput
-                          inputMode="numeric"
-                          maxLength={14}
-                          onChange={(v) => setCpf(formatCPF(v))}
-                          placeholder="000.000.000-00"
-                          value={cpf}
-                        />
+                        <TextInput inputMode="numeric" maxLength={14} onChange={(v) => setCpf(formatCPF(v))} placeholder="000.000.000-00" value={cpf} />
                       </Field>
                       <Field label="Telefone (DDD)">
-                        <TextInput
-                          autoComplete="tel"
-                          inputMode="tel"
-                          maxLength={15}
-                          onChange={(v) => setTelefone(formatPhone(v))}
-                          placeholder="(11) 99999-9999"
-                          value={telefone}
-                        />
+                        <TextInput autoComplete="tel" inputMode="tel" maxLength={15} onChange={(v) => setTelefone(formatPhone(v))} placeholder="(11) 99999-9999" value={telefone} />
                       </Field>
                     </div>
 
-                    {/* Physical address */}
                     {isPhysical && (
                       <div className="space-y-3 border-t border-zinc-100 pt-3">
                         <p className="text-xs font-semibold text-zinc-500">Endereço de entrega</p>
@@ -677,40 +752,24 @@ export default function CheckoutClient({
                               placeholder="00000-000"
                               value={cep}
                             />
-                            {cepLoading && (
-                              <div className="absolute right-3 top-3.5 h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600" />
-                            )}
+                            {cepLoading && <div className="absolute right-3 top-3.5 h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600" />}
                           </div>
                         </Field>
-                        <Field label="Rua">
-                          <TextInput onChange={setRua} placeholder="Nome da rua" value={rua} />
-                        </Field>
+                        <Field label="Rua"><TextInput onChange={setRua} placeholder="Nome da rua" value={rua} /></Field>
                         <div className="grid grid-cols-2 gap-3">
-                          <Field label="Número">
-                            <TextInput onChange={setNumero} placeholder="123" value={numero} />
-                          </Field>
-                          <Field label="Complemento">
-                            <TextInput onChange={setComplemento} placeholder="Apto 4B" value={complemento} />
-                          </Field>
+                          <Field label="Número"><TextInput onChange={setNumero} placeholder="123" value={numero} /></Field>
+                          <Field label="Complemento"><TextInput onChange={setComplemento} placeholder="Apto 4B" value={complemento} /></Field>
                         </div>
-                        <Field label="Bairro">
-                          <TextInput onChange={setBairro} placeholder="Centro" value={bairro} />
-                        </Field>
+                        <Field label="Bairro"><TextInput onChange={setBairro} placeholder="Centro" value={bairro} /></Field>
                         <div className="grid grid-cols-2 gap-3">
-                          <Field label="Cidade">
-                            <TextInput onChange={setCidade} placeholder="São Paulo" value={cidade} />
-                          </Field>
-                          <Field label="Estado">
-                            <TextInput maxLength={2} onChange={setEstado} placeholder="SP" value={estado} />
-                          </Field>
+                          <Field label="Cidade"><TextInput onChange={setCidade} placeholder="São Paulo" value={cidade} /></Field>
+                          <Field label="Estado"><TextInput maxLength={2} onChange={setEstado} placeholder="SP" value={estado} /></Field>
                         </div>
                       </div>
                     )}
 
                     {step1Error && (
-                      <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                        {step1Error}
-                      </p>
+                      <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{step1Error}</p>
                     )}
 
                     <button
@@ -725,27 +784,18 @@ export default function CheckoutClient({
                 </div>
               )}
 
-              {/* ── Step 2: Payment ── */}
+              {/* ── Step 2 ── */}
               {step === "pagamento" && (
                 <div className="rounded-2xl border border-zinc-200 bg-white p-5">
                   <div className="mb-4 flex items-center justify-between">
                     <p className="text-sm font-semibold text-zinc-900">Forma de pagamento</p>
-                    <button
-                      className="text-xs text-zinc-400 transition hover:text-zinc-600"
-                      onClick={() => setStep("identificacao")}
-                      type="button"
-                    >
-                      ← Voltar
-                    </button>
+                    <button className="text-xs text-zinc-400 transition hover:text-zinc-600" onClick={() => setStep("identificacao")} type="button">← Voltar</button>
                   </div>
 
-                  {/* Method tabs */}
                   <div className="mb-5 flex gap-1 rounded-xl border border-zinc-100 bg-zinc-50 p-1">
                     {(["cartao", "pix"] as PayMethod[]).map((m) => (
                       <button
-                        className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
-                          method === m ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-400 hover:text-zinc-600"
-                        }`}
+                        className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${method === m ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-400 hover:text-zinc-600"}`}
                         key={m}
                         onClick={() => setMethod(m)}
                         type="button"
@@ -755,48 +805,20 @@ export default function CheckoutClient({
                     ))}
                   </div>
 
-                  {/* Card */}
                   {method === "cartao" && (
                     <div className="space-y-3">
                       <Field label={brand ? `Número do cartão — ${brand}` : "Número do cartão"}>
-                        <TextInput
-                          autoComplete="cc-number"
-                          inputMode="numeric"
-                          maxLength={19}
-                          onChange={(v) => setCardNum(formatCard(v))}
-                          placeholder="0000 0000 0000 0000"
-                          value={cardNum}
-                        />
+                        <TextInput autoComplete="cc-number" inputMode="numeric" maxLength={19} onChange={(v) => setCardNum(formatCard(v))} placeholder="0000 0000 0000 0000" value={cardNum} />
                       </Field>
                       <Field label="Nome no cartão">
-                        <TextInput
-                          autoComplete="cc-name"
-                          onChange={(v) => setCardName(v.toUpperCase())}
-                          placeholder="NOME COMO NO CARTÃO"
-                          value={cardName}
-                        />
+                        <TextInput autoComplete="cc-name" onChange={(v) => setCardName(v.toUpperCase())} placeholder="NOME COMO NO CARTÃO" value={cardName} />
                       </Field>
                       <div className="grid grid-cols-2 gap-3">
                         <Field label="Validade">
-                          <TextInput
-                            autoComplete="cc-exp"
-                            inputMode="numeric"
-                            maxLength={5}
-                            onChange={(v) => setCardExpiry(formatExpiry(v))}
-                            placeholder="MM/AA"
-                            value={cardExpiry}
-                          />
+                          <TextInput autoComplete="cc-exp" inputMode="numeric" maxLength={5} onChange={(v) => setCardExpiry(formatExpiry(v))} placeholder="MM/AA" value={cardExpiry} />
                         </Field>
                         <Field label="CVV">
-                          <TextInput
-                            autoComplete="cc-csc"
-                            inputMode="numeric"
-                            maxLength={4}
-                            onChange={setCardCvv}
-                            placeholder="123"
-                            type="password"
-                            value={cardCvv}
-                          />
+                          <TextInput autoComplete="cc-csc" inputMode="numeric" maxLength={4} onChange={setCardCvv} placeholder="123" type="password" value={cardCvv} />
                         </Field>
                       </div>
                       <Field label="Parcelas">
@@ -805,16 +827,12 @@ export default function CheckoutClient({
                           onChange={(e) => setInstallments(Number(e.target.value))}
                           value={installments}
                         >
-                          {installmentList.map((o) => (
-                            <option key={o.n} value={o.n}>{o.label}</option>
-                          ))}
+                          {installmentList.map((o) => <option key={o.n} value={o.n}>{o.label}</option>)}
                         </select>
                       </Field>
 
                       {cardError && (
-                        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                          {cardError}
-                        </p>
+                        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{cardError}</p>
                       )}
 
                       <button
@@ -829,9 +847,7 @@ export default function CheckoutClient({
                             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                             Processando pagamento...
                           </span>
-                        ) : (
-                          ctaLabel
-                        )}
+                        ) : ctaLabel}
                       </button>
 
                       <p className="flex items-center justify-center gap-1.5 text-xs text-zinc-400">
@@ -841,14 +857,16 @@ export default function CheckoutClient({
                     </div>
                   )}
 
-                  {/* PIX */}
                   {method === "pix" && (
                     <PixSimulation
                       affiliateRef={affiliateRef}
                       cliente={clienteData}
                       onSuccess={handlePixSuccess}
+                      orderBumpAceito={orderBumpSelected}
+                      orderBumpProdutoId={produto.order_bump_produto_id}
+                      orderBumpValor={orderBumpValor}
                       produto={produto}
-                      valor={produto.preco}
+                      valor={totalValor}
                     />
                   )}
                 </div>

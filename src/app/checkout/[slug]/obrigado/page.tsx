@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import UpsellSection from "./upsell-section";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +19,7 @@ function formatCurrency(value: string | undefined): string {
 function getFormaPagamentoLabel(forma: string | undefined): string {
   if (!forma) return "—";
   if (forma.toLowerCase().includes("pix")) return "PIX";
+  if (forma === "upsell_1click") return "1-Click Upsell";
   if (
     forma.toLowerCase().includes("cart") ||
     forma.toLowerCase().includes("card") ||
@@ -38,14 +41,40 @@ export default async function ObrigadoPage({ params, searchParams }: Props) {
 
   const nome = resolvedSearchParams.nome as string | undefined;
   const email = resolvedSearchParams.email as string | undefined;
+  const cpf = resolvedSearchParams.cpf as string | undefined;
+  const telefone = resolvedSearchParams.telefone as string | undefined;
   const valor = resolvedSearchParams.valor as string | undefined;
-  const formaPagamento = resolvedSearchParams.forma_pagamento as
-    | string
-    | undefined;
+  const formaPagamento = resolvedSearchParams.forma_pagamento as string | undefined;
   const produtoNome = resolvedSearchParams.produto_nome as string | undefined;
 
-  const isPix =
-    formaPagamento?.toLowerCase().includes("pix") ?? false;
+  // Upsell params
+  const upsellProdutoId = resolvedSearchParams.upsell_produto_id as string | undefined;
+  const upsellPreco = parseFloat((resolvedSearchParams.upsell_preco as string) ?? "0");
+  const upsellHeadline = (resolvedSearchParams.upsell_headline as string) ?? "";
+  const upsellTimer = parseInt((resolvedSearchParams.upsell_timer as string) ?? "10", 10);
+
+  const isPix = formaPagamento?.toLowerCase().includes("pix") ?? false;
+
+  // Fetch upsell product if present
+  let upsellProduto: {
+    id: string;
+    slug: string;
+    nome: string;
+    empresa_id: string;
+    preco: number;
+    capa_url: string | null;
+  } | null = null;
+
+  if (upsellProdutoId) {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("produtos")
+      .select("id, slug, nome, empresa_id, preco, capa_url")
+      .eq("id", upsellProdutoId)
+      .eq("status", "published")
+      .maybeSingle();
+    upsellProduto = data ?? null;
+  }
 
   return (
     <div
@@ -53,11 +82,13 @@ export default async function ObrigadoPage({ params, searchParams }: Props) {
         minHeight: "100vh",
         backgroundColor: "#f3f4f6",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
-        padding: "1.5rem",
+        justifyContent: "flex-start",
+        padding: "2rem 1.5rem",
       }}
     >
+      {/* Thank you card */}
       <div
         style={{
           backgroundColor: "#ffffff",
@@ -207,6 +238,22 @@ export default async function ObrigadoPage({ params, searchParams }: Props) {
           Voltar para a área de parceiros
         </Link>
       </div>
+
+      {/* Upsell section */}
+      {upsellProduto && upsellPreco > 0 && nome && email && (
+        <div style={{ maxWidth: "480px", width: "100%" }}>
+          <UpsellSection
+            cpf={cpf ?? ""}
+            email={email}
+            nome={nome}
+            produto={upsellProduto}
+            telefone={telefone ?? ""}
+            upsellHeadline={upsellHeadline}
+            upsellPreco={upsellPreco}
+            upsellTimerMinutos={isNaN(upsellTimer) ? 10 : upsellTimer}
+          />
+        </div>
+      )}
     </div>
   );
 }

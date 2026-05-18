@@ -23,6 +23,24 @@ export type Produto = {
   capa_url: string | null;
   comissao_tipo: string;
   comissao_valor: number;
+  order_bump_ativo: boolean | null;
+  order_bump_produto_id: string | null;
+  order_bump_preco: number | null;
+  order_bump_texto: string | null;
+  order_bump_descricao: string | null;
+  upsell_ativo: boolean | null;
+  upsell_produto_id: string | null;
+  upsell_preco: number | null;
+  upsell_headline: string | null;
+  upsell_timer_minutos: number | null;
+};
+
+export type ProdutoSimples = {
+  id: string;
+  slug: string;
+  nome: string;
+  preco: number;
+  capa_url: string | null;
 };
 
 type Props = {
@@ -40,7 +58,12 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
   const { data: produto } = await supabase
     .from("produtos")
     .select(
-      "id, slug, nome, empresa_id, empresa_nome, preco, tipo_entregavel, checkout_headline, checkout_subheadline, checkout_cta, checkout_garantia, checkout_cor, checkout_cor_fundo, checkout_highlights, checkout_depoimentos, checkout_mensagem_obrigado, capa_url, comissao_tipo, comissao_valor"
+      `id, slug, nome, empresa_id, empresa_nome, preco, tipo_entregavel,
+       checkout_headline, checkout_subheadline, checkout_cta, checkout_garantia,
+       checkout_cor, checkout_cor_fundo, checkout_highlights, checkout_depoimentos,
+       checkout_mensagem_obrigado, capa_url, comissao_tipo, comissao_valor,
+       order_bump_ativo, order_bump_produto_id, order_bump_preco, order_bump_texto, order_bump_descricao,
+       upsell_ativo, upsell_produto_id, upsell_preco, upsell_headline, upsell_timer_minutos`
     )
     .eq("slug", slug)
     .eq("status", "published")
@@ -48,20 +71,10 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
 
   if (!produto) {
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-          backgroundColor: "#f3f4f6",
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 600, color: "#111827" }}>
-            Produto não encontrado
-          </h1>
-          <p style={{ color: "#6b7280", marginTop: "0.5rem" }}>
+      <div className="flex min-h-screen items-center justify-center bg-zinc-100">
+        <div className="text-center">
+          <h1 className="text-xl font-semibold text-zinc-900">Produto não encontrado</h1>
+          <p className="mt-2 text-sm text-zinc-500">
             O produto que você está procurando não existe ou não está disponível.
           </p>
         </div>
@@ -69,15 +82,23 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
     );
   }
 
+  // Busca produto do order bump (se ativo)
+  let orderBumpProduto: ProdutoSimples | null = null;
+  if (produto.order_bump_ativo && produto.order_bump_produto_id) {
+    const { data } = await supabase
+      .from("produtos")
+      .select("id, slug, nome, preco, capa_url")
+      .eq("id", produto.order_bump_produto_id)
+      .eq("status", "published")
+      .maybeSingle();
+    orderBumpProduto = data ?? null;
+  }
+
   return (
-    <div
-      style={{
-        backgroundColor: produto.checkout_cor_fundo ?? "#ffffff",
-        minHeight: "100vh",
-      }}
-    >
+    <div style={{ backgroundColor: produto.checkout_cor_fundo ?? "#ffffff", minHeight: "100vh" }}>
       <CheckoutClient
         affiliateRef={ref}
+        orderBumpProduto={orderBumpProduto}
         produto={{
           ...produto,
           comissao_tipo: produto.comissao_tipo ?? "percent",

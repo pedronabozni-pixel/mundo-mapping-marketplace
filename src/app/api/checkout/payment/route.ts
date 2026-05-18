@@ -9,7 +9,10 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { produto_id, empresa_id, ref, valor, forma_pagamento, parcelas, cliente } = body;
+    const {
+      produto_id, empresa_id, ref, valor, forma_pagamento, parcelas, cliente,
+      order_bump_aceito, order_bump_produto_id, order_bump_valor,
+    } = body;
 
     if (
       !produto_id || !empresa_id || !valor || !forma_pagamento ||
@@ -63,6 +66,9 @@ export async function POST(req: NextRequest) {
         parcelas: parcelas ?? 1,
         forma_pagamento,
         status: "simulado",
+        order_bump_aceito: order_bump_aceito ?? false,
+        order_bump_produto_id: order_bump_aceito ? (order_bump_produto_id ?? null) : null,
+        order_bump_valor: order_bump_aceito ? Number(order_bump_valor ?? 0) : 0,
       })
       .select("id")
       .single();
