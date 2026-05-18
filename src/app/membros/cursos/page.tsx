@@ -34,7 +34,7 @@ export default async function MeusCursosPage() {
             Área de Membros
           </p>
           <h1 className="mt-2 text-[26px] font-semibold tracking-tight text-zinc-950">
-            Meus Cursos
+            Meus Produtos
           </h1>
           <p className="mt-1 text-sm text-zinc-500">{user.email}</p>
         </div>
@@ -44,9 +44,9 @@ export default async function MeusCursosPage() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100">
               <span className="text-3xl">📚</span>
             </div>
-            <p className="font-semibold text-zinc-950">Nenhum curso disponível</p>
+            <p className="font-semibold text-zinc-950">Nenhum produto disponível</p>
             <p className="mt-1 text-sm text-zinc-500">
-              Você ainda não tem acesso a nenhum curso.
+              Você ainda não tem acesso a nenhum produto ainda.
             </p>
           </div>
         ) : (
