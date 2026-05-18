@@ -1,9 +1,22 @@
 const BASE_URL =
-  process.env.ASAAS_ENVIRONMENT === 'production'
-    ? 'https://api.asaas.com/api/v3'
-    : 'https://sandbox.asaas.com/api/v3';
+  process.env.ASAAS_ENVIRONMENT === "production"
+    ? "https://api.asaas.com/api/v3"
+    : "https://sandbox.asaas.com/api/v3";
 
-const API_KEY = process.env.ASAAS_API_KEY ?? '';
+const API_KEY = process.env.ASAAS_API_KEY ?? "";
+
+// ─── Error class ──────────────────────────────────────────────────────────────
+
+export class AsaasError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly httpStatus: number,
+  ) {
+    super(message);
+    this.name = "AsaasError";
+  }
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,83 +32,135 @@ export interface AsaasPayment {
   status: string;
   value: number;
   billingType: string;
+  failReasonCode?: string;
+  deniedReason?: string;
   errors?: Array<{ code: string; description: string }>;
+}
+
+export interface AsaasPixQrCode {
+  encodedImage: string;
+  payload: string;
+  expirationDate: string;
 }
 
 // ─── Internal request helper ──────────────────────────────────────────────────
 
-async function req<T>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
-  const url = `${BASE_URL}${path}`;
-
-  const res = await fetch(url, {
+async function asaasReq<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       access_token: API_KEY,
       ...(options.headers ?? {}),
     },
   });
 
-  const data = (await res.json()) as T;
+  const data = (await res.json()) as T & { errors?: Array<{ code: string; description: string }> };
 
   if (!res.ok) {
-    const err = data as { errors?: Array<{ code: string; description: string }> };
-    const message =
-      err.errors?.map((e) => `${e.code}: ${e.description}`).join(', ') ??
-      `Asaas API error ${res.status}`;
-    throw new Error(message);
+    const firstErr = data.errors?.[0];
+    const code = firstErr?.code ?? "unknown";
+    const description = firstErr?.description ?? `Asaas API error ${res.status}`;
+    throw new AsaasError(description, code, res.status);
   }
 
   return data;
 }
 
-function stripNonDigits(value: string): string {
-  return value.replace(/\D/g, '');
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+export function digitsOnly(value: string): string {
+  return value.replace(/\D/g, "");
 }
 
-// ─── Public functions ─────────────────────────────────────────────────────────
+export function todayISO(): string {
+  return new Date().toISOString().split("T")[0];
+}
 
-/**
- * Finds an existing Asaas customer by CPF/CNPJ or creates a new one.
- */
+export function isPaymentApproved(status: string): boolean {
+  return ["CONFIRMED", "RECEIVED", "AUTHORIZED"].includes(status);
+}
+
+// ─── Error mapping ────────────────────────────────────────────────────────────
+
+const CODE_MESSAGES: Record<string, string> = {
+  invalid_creditcard: "Cartão inválido. Verifique os dados e tente novamente.",
+  invalid_creditcard_number: "Número de cartão inválido.",
+  invalid_creditcard_holder: "Nome do titular inválido.",
+  invalid_creditcard_expiry_date: "Data de validade inválida.",
+  invalid_creditcard_ccv: "CVV inválido.",
+  expired_creditcard: "Cartão expirado.",
+  insufficient_funds: "Cartão sem limite disponível.",
+  card_declined: "Cartão recusado pela operadora.",
+  blocked_card: "Cartão bloqueado.",
+  do_not_honor: "Pagamento não autorizado pelo banco.",
+};
+
+const DECLINE_MESSAGES: Record<string, string> = {
+  INSUFFICIENT_FUNDS: "Cartão sem limite disponível.",
+  NO_FUNDS: "Cartão sem limite disponível.",
+  EXPIRED_CARD: "Cartão expirado.",
+  INVALID_CARD: "Cartão inválido. Verifique os dados.",
+  BLOCKED: "Cartão bloqueado.",
+  DO_NOT_HONOR: "Pagamento não autorizado pelo banco.",
+};
+
+export function mapAsaasCode(code: string): string {
+  return (
+    CODE_MESSAGES[code.toLowerCase().replace(/-/g, "_")] ??
+    "Pagamento recusado. Tente outro cartão ou use o PIX."
+  );
+}
+
+export function mapDeclineReason(payment: AsaasPayment): string {
+  if (payment.failReasonCode) {
+    const msg = DECLINE_MESSAGES[payment.failReasonCode.toUpperCase()];
+    if (msg) return msg;
+  }
+  if (payment.deniedReason) {
+    const key = payment.deniedReason.toUpperCase().replace(/\s+/g, "_");
+    const msg = DECLINE_MESSAGES[key];
+    if (msg) return msg;
+  }
+  return "Pagamento recusado. Tente outro cartão ou use o PIX.";
+}
+
+// ─── Customers ────────────────────────────────────────────────────────────────
+
+/** Finds an existing customer by CPF/CNPJ or creates a new one. */
 export async function findOrCreateCustomer(data: {
   name: string;
   email: string;
   cpfCnpj: string;
   phone?: string;
 }): Promise<AsaasCustomer> {
-  const cpfCnpj = stripNonDigits(data.cpfCnpj);
+  const cpfCnpj = digitsOnly(data.cpfCnpj);
 
-  const searchResult = await req<{
-    data: AsaasCustomer[];
-    totalCount: number;
-  }>(`/customers?cpfCnpj=${cpfCnpj}`);
+  const search = await asaasReq<{ data: AsaasCustomer[]; totalCount: number }>(
+    `/customers?cpfCnpj=${cpfCnpj}`
+  );
+  if (search.data.length > 0) return search.data[0];
 
-  if (searchResult.data.length > 0) {
-    return searchResult.data[0];
-  }
-
-  return req<AsaasCustomer>('/customers', {
-    method: 'POST',
+  return asaasReq<AsaasCustomer>("/customers", {
+    method: "POST",
     body: JSON.stringify({
       name: data.name,
       email: data.email,
       cpfCnpj,
-      ...(data.phone ? { phone: data.phone } : {}),
+      notificationDisabled: true,
+      ...(data.phone ? { mobilePhone: digitsOnly(data.phone) } : {}),
     }),
   });
 }
 
-/**
- * Creates a credit card payment.
- */
+// ─── Payments ─────────────────────────────────────────────────────────────────
+
+/** Creates a credit card payment. Card data is never logged in this function. */
 export async function createCardPayment(data: {
   customerId: string;
   value: number;
   installmentCount: number;
+  description?: string;
   creditCard: {
     holderName: string;
     number: string;
@@ -103,91 +168,83 @@ export async function createCardPayment(data: {
     expiryYear: string;
     ccv: string;
   };
-  creditCardHolderInfo: {
+  holderInfo: {
     name: string;
     email: string;
     cpfCnpj: string;
-    mobilePhone: string;
-    postalCode: string;
-    addressNumber: string;
+    mobilePhone?: string;
+    postalCode?: string;
+    addressNumber?: string;
   };
-  remoteIp: string;
+  remoteIp?: string;
 }): Promise<AsaasPayment> {
-  const dueDate = new Date().toISOString().split('T')[0];
   const { installmentCount, value } = data;
+  const useInstallments = installmentCount > 1;
 
-  const installmentValue =
-    installmentCount > 1
-      ? Math.ceil((value / installmentCount) * 100) / 100
-      : undefined;
-
-  const payload: Record<string, unknown> = {
-    customer: data.customerId,
-    billingType: 'CREDIT_CARD',
-    value,
-    dueDate,
-    installmentCount,
-    ...(installmentValue !== undefined ? { installmentValue } : {}),
-    creditCard: {
-      holderName: data.creditCard.holderName,
-      number: stripNonDigits(data.creditCard.number),
-      expiryMonth: data.creditCard.expiryMonth,
-      expiryYear: data.creditCard.expiryYear,
-      ccv: data.creditCard.ccv,
-    },
-    creditCardHolderInfo: {
-      name: data.creditCardHolderInfo.name,
-      email: data.creditCardHolderInfo.email,
-      cpfCnpj: stripNonDigits(data.creditCardHolderInfo.cpfCnpj),
-      mobilePhone: stripNonDigits(data.creditCardHolderInfo.mobilePhone),
-      postalCode: stripNonDigits(data.creditCardHolderInfo.postalCode),
-      addressNumber: data.creditCardHolderInfo.addressNumber,
-    },
-    remoteIp: data.remoteIp,
-    capture: true,
-  };
-
-  return req<AsaasPayment>('/payments', {
-    method: 'POST',
-    body: JSON.stringify(payload),
+  return asaasReq<AsaasPayment>("/payments", {
+    method: "POST",
+    body: JSON.stringify({
+      customer: data.customerId,
+      billingType: "CREDIT_CARD",
+      value,
+      dueDate: todayISO(),
+      description: data.description ?? "Compra",
+      ...(useInstallments && {
+        installmentCount,
+        installmentValue: Math.ceil((value / installmentCount) * 100) / 100,
+      }),
+      capture: true,
+      ...(data.remoteIp ? { remoteIp: data.remoteIp } : {}),
+      creditCard: {
+        holderName: data.creditCard.holderName,
+        number: digitsOnly(data.creditCard.number),
+        expiryMonth: data.creditCard.expiryMonth,
+        expiryYear: data.creditCard.expiryYear,
+        ccv: data.creditCard.ccv,
+      },
+      creditCardHolderInfo: {
+        name: data.holderInfo.name,
+        email: data.holderInfo.email,
+        cpfCnpj: digitsOnly(data.holderInfo.cpfCnpj),
+        mobilePhone: data.holderInfo.mobilePhone
+          ? digitsOnly(data.holderInfo.mobilePhone)
+          : undefined,
+        postalCode: data.holderInfo.postalCode
+          ? digitsOnly(data.holderInfo.postalCode)
+          : undefined,
+        addressNumber: data.holderInfo.addressNumber ?? undefined,
+      },
+    }),
   });
 }
 
-/**
- * Creates a PIX payment and returns the payment object (use getPixQrCode for the QR code).
- */
+/** Creates a PIX payment. Use getPixQrCode to retrieve the QR code. */
 export async function createPixPayment(data: {
   customerId: string;
   value: number;
-  dueDate: string;
+  dueDate?: string;
   description?: string;
 }): Promise<AsaasPayment> {
-  return req<AsaasPayment>('/payments', {
-    method: 'POST',
+  return asaasReq<AsaasPayment>("/payments", {
+    method: "POST",
     body: JSON.stringify({
       customer: data.customerId,
-      billingType: 'PIX',
+      billingType: "PIX",
       value: data.value,
-      dueDate: data.dueDate,
+      dueDate: data.dueDate ?? todayISO(),
       ...(data.description ? { description: data.description } : {}),
     }),
   });
 }
 
-/**
- * Retrieves the PIX QR code for an existing payment.
- */
-export async function getPixQrCode(paymentId: string): Promise<{
-  encodedImage: string;
-  payload: string;
-  expirationDate: string;
-}> {
-  return req(`/payments/${paymentId}/pixQrCode`);
+/** Retrieves the PIX QR code (base64 image + payload string) for a payment. */
+export async function getPixQrCode(paymentId: string): Promise<AsaasPixQrCode> {
+  return asaasReq<AsaasPixQrCode>(
+    `/payments/${encodeURIComponent(paymentId)}/pixQrCode`
+  );
 }
 
-/**
- * Retrieves the current status/details of a payment.
- */
+/** Retrieves the current status of a payment. */
 export async function getPaymentStatus(paymentId: string): Promise<AsaasPayment> {
-  return req<AsaasPayment>(`/payments/${paymentId}`);
+  return asaasReq<AsaasPayment>(`/payments/${encodeURIComponent(paymentId)}`);
 }

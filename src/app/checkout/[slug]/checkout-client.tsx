@@ -134,15 +134,6 @@ function LockIcon() {
   );
 }
 
-function SimBadge() {
-  return (
-    <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-      <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-      Modo simulação
-    </div>
-  );
-}
-
 // ─── Order Bump Card ──────────────────────────────────────────────────────────
 
 function OrderBumpCard({
@@ -230,10 +221,7 @@ function OrderBumpCard({
 
 // ─── PIX Component ────────────────────────────────────────────────────────────
 
-const PIX_AUTO_CONFIRM_SECONDS = 5;
 const PIX_EXPIRE_SECONDS = 30 * 60;
-const FAKE_PIX_PAYLOAD =
-  "00020126580014br.gov.bcb.pix0136mapping-partners-simulacao-checkout5204000053039865802BR5925Mapping Partners Simulado6009SAO PAULO62070503***6304ABCD";
 
 function PixSimulation({
   valor, produto, cliente, affiliateRef, orderBumpAceito, orderBumpProdutoId, orderBumpValor,
@@ -254,11 +242,14 @@ function PixSimulation({
   const [pixStep, setPixStep] = useState<PixStep>("idle");
   const [error, setError] = useState<string | null>(null);
   const [pedidoId, setPedidoId] = useState<string | null>(null);
+  const [asaasPaymentId, setAsaasPaymentId] = useState<string | null>(null);
+  const [qrCodeBase64, setQrCodeBase64] = useState<string | null>(null);
+  const [pixCode, setPixCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [expireLeft, setExpireLeft] = useState(PIX_EXPIRE_SECONDS);
-  const [autoLeft, setAutoLeft] = useState(PIX_AUTO_CONFIRM_SECONDS);
 
   const pedidoIdRef = useRef<string | null>(null);
+  const asaasPaymentIdRef = useRef<string | null>(null);
   const onSuccessRef = useRef(onSuccess);
   useEffect(() => { onSuccessRef.current = onSuccess; }, [onSuccess]);
 
@@ -288,7 +279,12 @@ function PixSimulation({
       const data = await res.json();
       if (!data.ok) { setError(data.error ?? "Erro ao gerar PIX"); setPixStep("idle"); return; }
       pedidoIdRef.current = data.pedido_id;
+      asaasPaymentIdRef.current = data.asaas_payment_id;
       setPedidoId(data.pedido_id);
+      setAsaasPaymentId(data.asaas_payment_id);
+      setQrCodeBase64(data.qr_code_base64);
+      setPixCode(data.pix_code);
+      setExpireLeft(PIX_EXPIRE_SECONDS);
       setPixStep("qr");
     } catch {
       setError("Erro de conexão. Tente novamente.");
@@ -299,25 +295,26 @@ function PixSimulation({
   useEffect(() => {
     if (pixStep !== "qr") return;
     const expireTimer = setInterval(() => setExpireLeft((s) => (s > 0 ? s - 1 : 0)), 1000);
-    const autoTimer = setInterval(() => {
-      setAutoLeft((s) => {
-        if (s <= 1) {
-          clearInterval(autoTimer);
+    const pollTimer = setInterval(async () => {
+      const pid = pedidoIdRef.current;
+      const apid = asaasPaymentIdRef.current;
+      if (!pid || !apid) return;
+      try {
+        const res = await fetch(`/api/checkout/pix-status?payment_id=${encodeURIComponent(apid)}&pedido_id=${encodeURIComponent(pid)}`);
+        const data = await res.json();
+        if (data.pago) {
+          clearInterval(pollTimer);
+          clearInterval(expireTimer);
           setPixStep("confirming");
-          setTimeout(() => {
-            if (pedidoIdRef.current) onSuccessRef.current(pedidoIdRef.current);
-          }, 1500);
-          return 0;
+          setTimeout(() => { if (pedidoIdRef.current) onSuccessRef.current(pedidoIdRef.current); }, 1500);
         }
-        return s - 1;
-      });
-    }, 1000);
-    return () => { clearInterval(expireTimer); clearInterval(autoTimer); };
+      } catch { /* network error, retry on next tick */ }
+    }, 3000);
+    return () => { clearInterval(expireTimer); clearInterval(pollTimer); };
   }, [pixStep]);
 
   const expireMins = String(Math.floor(expireLeft / 60)).padStart(2, "0");
   const expireSecs = String(expireLeft % 60).padStart(2, "0");
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(FAKE_PIX_PAYLOAD)}&color=111827&bgcolor=ffffff&margin=1&qzone=1`;
 
   if (pixStep === "confirming") {
     return (
@@ -358,7 +355,7 @@ function PixSimulation({
       <div className="flex flex-col items-center">
         <div className="relative">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="QR Code PIX" className="h-[220px] w-[220px] rounded-2xl border border-zinc-200" src={qrUrl} />
+          <img alt="QR Code PIX" className="h-[220px] w-[220px] rounded-2xl border border-zinc-200" src={qrCodeBase64 ? `data:image/png;base64,${qrCodeBase64}` : ""} />
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-1.5 shadow-md">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img alt="Mapping Partners" className="h-8 w-8 rounded-lg object-contain" src="/logo-mapping-partners.png" />
@@ -372,25 +369,20 @@ function PixSimulation({
         </div>
       </div>
 
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-        <p className="text-xs font-semibold text-emerald-700">
-          Confirmando automaticamente em {autoLeft}s... (modo simulação)
-        </p>
-        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-emerald-100">
-          <div
-            className="h-1.5 rounded-full bg-emerald-500 transition-all duration-1000"
-            style={{ width: `${((PIX_AUTO_CONFIRM_SECONDS - autoLeft) / PIX_AUTO_CONFIRM_SECONDS) * 100}%` }}
-          />
+      <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
+          <p className="text-xs font-semibold text-blue-700">Aguardando confirmação do pagamento...</p>
         </div>
       </div>
 
       <div>
         <p className="mb-1.5 text-xs font-semibold text-zinc-500">Código PIX copia e cola:</p>
         <div className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
-          <span className="flex-1 truncate font-mono text-xs text-zinc-500">{FAKE_PIX_PAYLOAD.slice(0, 40)}...</span>
+          <span className="flex-1 truncate font-mono text-xs text-zinc-500">{(pixCode ?? "").slice(0, 40)}...</span>
           <button
             className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold transition ${copied ? "bg-emerald-100 text-emerald-700" : "bg-white text-zinc-700 hover:bg-zinc-100"}`}
-            onClick={async () => { await navigator.clipboard.writeText(FAKE_PIX_PAYLOAD); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+            onClick={async () => { await navigator.clipboard.writeText(pixCode ?? ""); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
             type="button"
           >
             {copied ? "Copiado!" : "Copiar"}
@@ -569,8 +561,6 @@ export default function CheckoutClient({
 
     setCardError(null);
     setCardLoading(true);
-    await new Promise((r) => setTimeout(r, 2000));
-
     try {
       const res = await fetch("/api/checkout/payment", {
         method: "POST",
@@ -586,6 +576,13 @@ export default function CheckoutClient({
           cliente: {
             nome, email, cpf, telefone,
             endereco: isPhysical ? { cep, rua, numero, complemento, bairro, cidade, estado } : undefined,
+          },
+          cartao: {
+            holderName: cardName,
+            numero: rawCard,
+            mesValidade: cardExpiry.split("/")[0] ?? "",
+            anoValidade: cardExpiry.split("/")[1] ?? "",
+            cvv: cardCvv,
           },
           order_bump_aceito: orderBumpSelected,
           order_bump_produto_id: orderBumpSelected ? produto.order_bump_produto_id : null,
@@ -686,10 +683,6 @@ export default function CheckoutClient({
           {/* ══ Right column ══ */}
           <div>
             <div className="sticky top-6 space-y-3">
-              <div className="flex justify-end">
-                <SimBadge />
-              </div>
-
               {/* Order summary */}
               <div className="rounded-2xl border border-zinc-200 bg-white p-5">
                 <div className="flex items-start justify-between gap-4">
