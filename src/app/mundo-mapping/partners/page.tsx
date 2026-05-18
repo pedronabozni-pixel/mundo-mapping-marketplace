@@ -424,7 +424,7 @@ function Metrics() {
   ];
 
   return (
-    <section className="bg-[#0a0a0a] px-6 py-20">
+    <section className="bg-[#0a0a0a] px-6 pt-20 pb-10">
       <div className="mx-auto max-w-6xl">
         <div className="line-gradient mb-12" />
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -453,7 +453,7 @@ function HowItWorks() {
   ];
 
   return (
-    <section className="bg-[#0d0d0d] px-6 py-24">
+    <section className="bg-[#0d0d0d] px-6 pt-10 pb-24">
       <div className="mx-auto max-w-6xl">
         <FadeUp className="text-center">
           <Eyebrow>Como funciona</Eyebrow>
