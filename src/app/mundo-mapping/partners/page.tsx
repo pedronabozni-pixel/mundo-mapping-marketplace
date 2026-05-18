@@ -281,7 +281,7 @@ const creatorAvatars = [
 
 function Hero() {
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#0a0a0a]">
+    <section className="relative overflow-hidden bg-[#0a0a0a]">
       {/* Animated gradient blobs */}
       <div
         className="pointer-events-none absolute -right-60 -top-60 h-[700px] w-[700px] rounded-full opacity-25"
@@ -296,7 +296,7 @@ function Hero() {
       {/* Bottom fade */}
       <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#0a0a0a] to-transparent" />
 
-      <div className="relative mx-auto flex max-w-5xl flex-col items-center px-6 pb-28 pt-40 text-center lg:pt-48">
+      <div className="relative mx-auto flex max-w-5xl flex-col items-center px-6 pb-16 pt-32 text-center lg:pt-40">
         {/* Badge */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -315,19 +315,21 @@ function Hero() {
         {/* Title — word by word */}
         <h1 className="mx-auto mt-8 max-w-3xl text-5xl font-bold leading-[1.08] tracking-tight text-white sm:text-6xl lg:text-7xl">
           {heroWords.map((word, i) => (
-            <motion.span
-              key={i}
-              className="inline-block"
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.25 + i * 0.07, ease }}
-            >
-              {word === "creators" || word === "audiência" ? (
-                <span className="bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
-                  {word}
-                </span>
-              ) : word}{" "}
-            </motion.span>
+            <span key={i} className="inline-block">
+              <motion.span
+                className="inline-block"
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.55, delay: 0.25 + i * 0.07, ease }}
+              >
+                {word === "creators" || word === "audiência" ? (
+                  <span className="bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
+                    {word}
+                  </span>
+                ) : word}
+              </motion.span>
+              {i < heroWords.length - 1 && " "}
+            </span>
           ))}
         </h1>
 
@@ -463,7 +465,7 @@ function HowItWorks() {
           </p>
         </FadeUp>
 
-        <div className="mt-16 grid gap-6 lg:grid-cols-2">
+        <div className="mt-10 grid gap-6 lg:grid-cols-2">
           {/* Empresa */}
           <FadeUp delay={0.1}>
             <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-7">
@@ -740,16 +742,17 @@ function TaxModel() {
             </p>
             <div className="mt-8 grid gap-3 sm:grid-cols-3">
               {[
-                { plan: "Associate", fee: "Asaas + 2%", highlight: false },
-                { plan: "Partner", fee: "Asaas + R$0,99", highlight: true },
-                { plan: "Elite", fee: "Asaas + R$0,49", highlight: false },
+                { plan: "Associate", fee: "Asaas + 2%", price: "Grátis", highlight: false },
+                { plan: "Partner", fee: "Asaas + R$0,99", price: "R$117/mês", highlight: true },
+                { plan: "Elite", fee: "Asaas + R$0,49", price: "R$197/mês", highlight: false },
               ].map((item) => (
                 <div
                   key={item.plan}
                   className={`rounded-xl px-4 py-3 text-center text-sm transition ${item.highlight ? "border border-red-500/30 bg-red-600/10 text-red-300" : "border border-white/[0.06] bg-white/[0.03] text-white/50"}`}
                 >
                   <p className={`font-bold ${item.highlight ? "text-white" : ""}`}>{item.plan}</p>
-                  <p className="mt-1 text-xs">{item.fee}</p>
+                  <p className={`mt-0.5 text-base font-bold ${item.highlight ? "text-white" : "text-white/70"}`}>{item.price}</p>
+                  <p className="mt-1 text-xs opacity-70">{item.fee}</p>
                 </div>
               ))}
             </div>
