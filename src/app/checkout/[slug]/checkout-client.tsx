@@ -236,7 +236,8 @@ const FAKE_PIX_PAYLOAD =
   "00020126580014br.gov.bcb.pix0136mapping-partners-simulacao-checkout5204000053039865802BR5925Mapping Partners Simulado6009SAO PAULO62070503***6304ABCD";
 
 function PixSimulation({
-  valor, produto, cliente, affiliateRef, orderBumpAceito, orderBumpProdutoId, orderBumpValor, onSuccess,
+  valor, produto, cliente, affiliateRef, orderBumpAceito, orderBumpProdutoId, orderBumpValor,
+  cupomCodigo, cupomDesconto, onSuccess,
 }: {
   valor: number;
   produto: Produto;
@@ -245,6 +246,8 @@ function PixSimulation({
   orderBumpAceito: boolean;
   orderBumpProdutoId: string | null;
   orderBumpValor: number;
+  cupomCodigo: string | null;
+  cupomDesconto: number;
   onSuccess: (pedidoId: string) => void;
 }) {
   type PixStep = "idle" | "loading" | "qr" | "confirming";
@@ -278,6 +281,8 @@ function PixSimulation({
           order_bump_aceito: orderBumpAceito,
           order_bump_produto_id: orderBumpAceito ? orderBumpProdutoId : null,
           order_bump_valor: orderBumpAceito ? orderBumpValor : 0,
+          cupom_codigo: cupomCodigo ?? null,
+          cupom_desconto: cupomDesconto,
         }),
       });
       const data = await res.json();
@@ -434,7 +439,19 @@ export default function CheckoutClient({
   const orderBumpValor = orderBumpSelected && orderBumpProduto
     ? (produto.order_bump_preco ?? orderBumpProduto.preco)
     : 0;
-  const totalValor = produto.preco + orderBumpValor;
+
+  // Coupon
+  const [cupomInput, setCupomInput] = useState("");
+  const [cupomExpanded, setCupomExpanded] = useState(false);
+  const [cupomLoading, setCupomLoading] = useState(false);
+  const [cupomErro, setCupomErro] = useState<string | null>(null);
+  const [cupomAplicado, setCupomAplicado] = useState<{ codigo: string; percentual: number } | null>(null);
+
+  const baseValor = produto.preco + orderBumpValor;
+  const cupomDesconto = cupomAplicado
+    ? Math.round((baseValor * cupomAplicado.percentual / 100) * 100) / 100
+    : 0;
+  const totalValor = Math.max(0, baseValor - cupomDesconto);
 
   // Installments based on total
   const installmentList = installmentOptions(totalValor);
@@ -496,6 +513,32 @@ export default function CheckoutClient({
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  async function aplicarCupom() {
+    const codigo = cupomInput.trim().toUpperCase();
+    if (!codigo) return;
+    setCupomLoading(true);
+    setCupomErro(null);
+    setCupomAplicado(null);
+    try {
+      const res = await fetch("/api/checkout/validar-cupom", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ codigo, produto_id: produto.id, valor_pedido: baseValor }),
+      });
+      const data = await res.json();
+      if (data.valido) {
+        setCupomAplicado({ codigo: data.codigo, percentual: data.desconto_percentual });
+        setCupomExpanded(false);
+      } else {
+        setCupomErro(data.mensagem ?? "Cupom inválido ou expirado.");
+      }
+    } catch {
+      setCupomErro("Erro ao validar cupom. Tente novamente.");
+    } finally {
+      setCupomLoading(false);
+    }
+  }
+
   function buildObrigadoUrl(pedidoId: string) {
     const params: Record<string, string> = {
       pedido_id: pedidoId,
@@ -547,6 +590,8 @@ export default function CheckoutClient({
           order_bump_aceito: orderBumpSelected,
           order_bump_produto_id: orderBumpSelected ? produto.order_bump_produto_id : null,
           order_bump_valor: orderBumpValor,
+          cupom_codigo: cupomAplicado?.codigo ?? null,
+          cupom_desconto: cupomDesconto,
         }),
       });
       const data = await res.json();
@@ -669,17 +714,97 @@ export default function CheckoutClient({
                     )}
                   </div>
                 </div>
-                {/* Breakdown when order bump selected */}
-                {orderBumpSelected && orderBumpProduto && (
+                {/* Breakdown when order bump or coupon active */}
+                {(orderBumpSelected && orderBumpProduto || !!cupomAplicado) && (
                   <div className="mt-3 space-y-1.5 border-t border-zinc-100 pt-3">
                     <div className="flex justify-between text-xs text-zinc-500">
                       <span>{produto.nome}</span>
                       <span>R$ {fmtMoney(produto.preco)}</span>
                     </div>
-                    <div className="flex justify-between text-xs text-zinc-500">
-                      <span>{orderBumpProduto.nome}</span>
-                      <span>R$ {fmtMoney(orderBumpValor)}</span>
+                    {orderBumpSelected && orderBumpProduto && (
+                      <div className="flex justify-between text-xs text-zinc-500">
+                        <span>{orderBumpProduto.nome}</span>
+                        <span>R$ {fmtMoney(orderBumpValor)}</span>
+                      </div>
+                    )}
+                    {cupomAplicado && (
+                      <div className="flex justify-between text-xs font-semibold text-emerald-600">
+                        <span>Desconto ({cupomAplicado.codigo})</span>
+                        <span>- R$ {fmtMoney(cupomDesconto)}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Coupon input */}
+              <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white">
+                {!cupomAplicado ? (
+                  <>
+                    <button
+                      className="flex w-full items-center justify-between px-4 py-3 text-sm text-zinc-500 transition hover:bg-zinc-50"
+                      onClick={() => { setCupomExpanded((v) => !v); setCupomErro(null); }}
+                      type="button"
+                    >
+                      <span className="flex items-center gap-2">
+                        <svg className="h-4 w-4 text-zinc-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path d="M7 7h.01M17 17h.01M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        Tenho um cupom de desconto
+                      </span>
+                      <svg
+                        className={`h-4 w-4 text-zinc-400 transition-transform ${cupomExpanded ? "rotate-180" : ""}`}
+                        fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
+                      >
+                        <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+                    {cupomExpanded && (
+                      <div className="border-t border-zinc-100 px-4 pb-4 pt-3 space-y-2">
+                        <div className="flex gap-2">
+                          <input
+                            className="flex-1 rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm uppercase tracking-widest outline-none placeholder:normal-case placeholder:tracking-normal placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
+                            maxLength={20}
+                            onChange={(e) => { setCupomInput(e.target.value.toUpperCase()); setCupomErro(null); }}
+                            onKeyDown={(e) => { if (e.key === "Enter") aplicarCupom(); }}
+                            placeholder="SEUCODIGO"
+                            value={cupomInput}
+                          />
+                          <button
+                            className="shrink-0 rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-zinc-700 disabled:opacity-50"
+                            disabled={!cupomInput.trim() || cupomLoading}
+                            onClick={aplicarCupom}
+                            type="button"
+                          >
+                            {cupomLoading
+                              ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                              : "Aplicar"
+                            }
+                          </button>
+                        </div>
+                        {cupomErro && (
+                          <p className="text-xs text-red-600">{cupomErro}</p>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <div className="flex items-center gap-2.5">
+                      <span className="rounded-lg bg-emerald-100 px-2.5 py-1 text-xs font-bold tracking-wider text-emerald-700">
+                        {cupomAplicado.codigo}
+                      </span>
+                      <span className="text-xs font-semibold text-emerald-600">
+                        - R$ {fmtMoney(cupomDesconto)} de desconto
+                      </span>
                     </div>
+                    <button
+                      className="text-xs text-zinc-400 transition hover:text-zinc-700"
+                      onClick={() => { setCupomAplicado(null); setCupomInput(""); setCupomErro(null); }}
+                      type="button"
+                    >
+                      Remover
+                    </button>
                   </div>
                 )}
               </div>
@@ -861,6 +986,8 @@ export default function CheckoutClient({
                     <PixSimulation
                       affiliateRef={affiliateRef}
                       cliente={clienteData}
+                      cupomCodigo={cupomAplicado?.codigo ?? null}
+                      cupomDesconto={cupomDesconto}
                       onSuccess={handlePixSuccess}
                       orderBumpAceito={orderBumpSelected}
                       orderBumpProdutoId={produto.order_bump_produto_id}

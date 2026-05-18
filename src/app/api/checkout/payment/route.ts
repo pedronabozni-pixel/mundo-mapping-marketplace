@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
     const {
       produto_id, empresa_id, ref, valor, forma_pagamento, parcelas, cliente,
       order_bump_aceito, order_bump_produto_id, order_bump_valor,
+      cupom_codigo, cupom_desconto,
     } = body;
 
     if (
@@ -69,6 +70,8 @@ export async function POST(req: NextRequest) {
         order_bump_aceito: order_bump_aceito ?? false,
         order_bump_produto_id: order_bump_aceito ? (order_bump_produto_id ?? null) : null,
         order_bump_valor: order_bump_aceito ? Number(order_bump_valor ?? 0) : 0,
+        cupom_codigo: cupom_codigo ?? null,
+        cupom_desconto: Number(cupom_desconto ?? 0),
       })
       .select("id")
       .single();
@@ -76,6 +79,22 @@ export async function POST(req: NextRequest) {
     if (error || !pedido) {
       console.error("[checkout/payment]", error);
       return NextResponse.json({ ok: false, error: "Erro ao salvar pedido." }, { status: 500 });
+    }
+
+    // Incrementa uso do cupom
+    if (cupom_codigo) {
+      const { data: cupomRow } = await supabase
+        .from("cupons")
+        .select("id, usos_realizados")
+        .eq("produto_id", produto_id)
+        .ilike("codigo", cupom_codigo)
+        .maybeSingle();
+      if (cupomRow) {
+        await supabase
+          .from("cupons")
+          .update({ usos_realizados: cupomRow.usos_realizados + 1 })
+          .eq("id", cupomRow.id);
+      }
     }
 
     // Concede acesso à área de membros automaticamente

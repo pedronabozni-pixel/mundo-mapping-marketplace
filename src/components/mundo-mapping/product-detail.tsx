@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { DataTable, MiniStat, PageHeader, SectionCard, StatusBadge } from "@/components/mundo-mapping/affiliate-ui";
 import { ProductRecord, useProductStore } from "@/components/mundo-mapping/product-store";
+import { CuponsTab } from "@/components/mundo-mapping/cupons-tab";
 
-const tabs = ["Visão geral", "Criativos", "Checkout", "Configurações"];
+const tabs = ["Visão geral", "Criativos", "Checkout", "Cupons", "Configurações"];
 
 // ─── Afiliados reais do Supabase ──────────────────────────────────────────────
 
@@ -357,6 +358,9 @@ export function ProductDetail({ product }: { product: ProductRecord }) {
                     </button>
                   </div>
                 </div>
+              ) : null}
+              {activeTab === "Cupons" ? (
+                <CuponsTab empresaId={product.empresaId} productId={product.id} />
               ) : null}
               {activeTab === "Configurações" ? (
                 <div className="rounded-2xl border border-zinc-200 p-4 text-sm text-zinc-700">
