@@ -4,7 +4,7 @@ function getAsaasConfig() {
     apiKey: process.env.ASAAS_API_KEY ?? "",
     baseUrl:
       process.env.ASAAS_ENVIRONMENT === "production"
-        ? "https://api.asaas.com/api/v3"
+        ? "https://api.asaas.com/v3"
         : "https://sandbox.asaas.com/api/v3",
   };
 }
