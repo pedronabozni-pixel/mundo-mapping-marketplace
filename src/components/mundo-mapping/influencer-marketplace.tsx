@@ -2,35 +2,36 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import { fromRow, ProductRecord } from "@/components/mundo-mapping/product-store";
 import { MiniStat, SectionCard, StatusBadge } from "@/components/mundo-mapping/affiliate-ui";
-import { useProductStore } from "@/components/mundo-mapping/product-store";
 
 type RequestStatus = "idle" | "requested" | "approved";
 type MarketplaceFilter = "Todos" | "Em alta" | "Mais lucrativos" | "Novidades";
 
-const STORAGE_KEY = "mundo-mapping-influencer-affiliation-requests";
 const marketplaceFilters: MarketplaceFilter[] = ["Todos", "Em alta", "Mais lucrativos", "Novidades"];
 
 export function InfluencerMarketplace() {
-  const { products, ready } = useProductStore();
+  const [products, setProducts] = useState<ProductRecord[]>([]);
+  const [ready, setReady] = useState(false);
   const [requests, setRequests] = useState<Record<string, RequestStatus>>({});
   const [activeFilter, setActiveFilter] = useState<MarketplaceFilter>("Todos");
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        setRequests(JSON.parse(raw) as Record<string, RequestStatus>);
-      }
-    } catch {
-      setRequests({});
+    async function load() {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("produtos")
+        .select("*")
+        .eq("status", "published")
+        .eq("visivel_shopping", true)
+        .order("criado_em", { ascending: false });
+      setProducts((data ?? []).map(fromRow));
+      setReady(true);
     }
+    load();
   }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
-  }, [requests]);
 
   const visibleProducts = useMemo(() => {
     const baseProducts = products.filter((product) => product.visibleInShopping && product.status === "published");
@@ -41,7 +42,7 @@ export function InfluencerMarketplace() {
       : baseProducts;
 
     if (activeFilter === "Em alta") {
-      return searchedProducts.filter((product) => product.minimumCreatorScore >= 75 || product.approvalMode === "automatic");
+      return searchedProducts.filter((product) => product.approvalMode === "automatic");
     }
 
     if (activeFilter === "Mais lucrativos") {
@@ -139,7 +140,6 @@ export function InfluencerMarketplace() {
                     <MiniStat label="Comissão" tone="red" value={commissionLabel} />
                     <MiniStat label="Garantia" value={`${product.guaranteeDays} dias`} />
                     <MiniStat label="Tipo" value={product.category} />
-                    <MiniStat label="Score mínimo" value={`${product.minimumCreatorScore}/100`} />
                     <MiniStat label="Seguidores mínimos" value={product.minimumFollowers.toLocaleString("pt-BR")} />
                   </div>
 
@@ -149,7 +149,7 @@ export function InfluencerMarketplace() {
                         ? "Ao solicitar afiliação, a entrada pode ser aprovada automaticamente e o seu link é gerado na hora."
                         : "Ao solicitar afiliação, a empresa ou produtor revisa o perfil antes de liberar o seu link de venda."}
                     </p>
-                    <p className="mt-2">Regiões elegíveis: {product.allowedRegions}. {product.requireSocialProof ? "Exige creator com histórico validado." : "Aberto para creators elegíveis da base validada."}</p>
+                    <p className="mt-2">Regiões elegíveis: {product.allowedRegions}.</p>
                   </div>
 
                   <div className="flex flex-wrap gap-3">

@@ -23,9 +23,6 @@ export function ProductDashboard() {
 
   const publishedCount = products.filter((p) => p.status === "published").length;
   const shoppingCount = products.filter((p) => p.visibleInShopping).length;
-  const avgCreatorScore = products.length
-    ? Math.round(products.reduce((t, p) => t + p.minimumCreatorScore, 0) / products.length)
-    : 0;
 
   useEffect(() => {
     async function fetchMetrics() {
@@ -135,10 +132,6 @@ export function ProductDashboard() {
                 <p className="mt-2 text-sm leading-6 text-zinc-700">
                   A empresa ou produtor cadastra o produto. O link de venda pertence ao influenciador afiliado. Cada clique é rastreado pelo código único do creator.
                 </p>
-              </div>
-              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-                <p className="text-xs uppercase tracking-[0.12em] text-zinc-400">Score médio mínimo exigido</p>
-                <p className="mt-2 text-2xl font-semibold text-zinc-950">{avgCreatorScore}/100</p>
               </div>
               <Link
                 className="inline-flex text-sm font-semibold text-red-700"

@@ -44,11 +44,8 @@ export type ProductRecord = {
   status: ProductStatus;
   description: string;
   audience: string;
-  minimumCreatorScore: number;
   minimumFollowers: number;
   allowedRegions: string;
-  whitelistOnly: boolean;
-  requireSocialProof: boolean;
   materialsSummary: string;
   coverAssetMode: "link" | "file";
   coverAssetUrl: string;
@@ -128,11 +125,8 @@ export function fromRow(r: Record<string, any>): ProductRecord {
     status: (r.status as ProductStatus) ?? "draft",
     description: r.descricao ?? "",
     audience: r.publico ?? "",
-    minimumCreatorScore: Number(r.score_minimo) || 70,
-    minimumFollowers: Number(r.seguidores_minimo) || 5000,
+    minimumFollowers: Number(r.seguidores_minimo) || 2000,
     allowedRegions: r.regioes_permitidas ?? "Brasil",
-    whitelistOnly: Boolean(r.whitelist_only),
-    requireSocialProof: Boolean(r.exige_social_proof),
     materialsSummary: r.materiais_resumo ?? "",
     coverAssetMode: (r.capa_modo as "link" | "file") ?? "link",
     coverAssetUrl: r.capa_url ?? "",
@@ -197,11 +191,8 @@ function toRow(input: ProductInput, userId: string, empresaNome?: string) {
     visivel_shopping: input.visibleInShopping,
     status: input.status,
     publico: input.audience,
-    score_minimo: input.minimumCreatorScore,
     seguidores_minimo: input.minimumFollowers,
     regioes_permitidas: input.allowedRegions,
-    whitelist_only: input.whitelistOnly,
-    exige_social_proof: input.requireSocialProof,
     materiais_resumo: input.materialsSummary,
     capa_modo: input.coverAssetMode,
     capa_url: input.coverAssetUrl,
@@ -411,11 +402,8 @@ export function getEmptyProduct(): ProductInput {
     status: "draft",
     description: "",
     audience: "",
-    minimumCreatorScore: 70,
-    minimumFollowers: 5000,
+    minimumFollowers: 2000,
     allowedRegions: "Brasil",
-    whitelistOnly: false,
-    requireSocialProof: false,
     materialsSummary: "",
     coverAssetMode: "link",
     coverAssetUrl: "",
