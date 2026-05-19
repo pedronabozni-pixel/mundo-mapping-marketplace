@@ -420,7 +420,7 @@ function Metrics() {
     { prefix: "+", value: 16000, suffix: "", label: "creators validados", format: (n) => n.toLocaleString("pt-BR") },
     { prefix: "+", value: 80, suffix: "", label: "nichos cobertos", format: (n) => String(n) },
     { prefix: "", value: 1950, suffix: "", label: "cidades no Brasil", format: (n) => n.toLocaleString("pt-BR") },
-    { prefix: "R$", value: 5, suffix: "mi+", label: "em vendas geradas", format: (n) => String(n) },
+    { prefix: "R$", value: 8, suffix: "mi+", label: "em vendas geradas", format: (n) => String(n) },
   ];
 
   return (
