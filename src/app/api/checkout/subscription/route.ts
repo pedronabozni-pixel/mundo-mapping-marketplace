@@ -185,24 +185,39 @@ export async function POST(req: NextRequest) {
     plano_status: "pendente",
   }).eq("id", userId);
 
-  // Retrieve first payment QR code
+  // Retrieve first payment QR code — Asaas may take a few seconds to generate
+  // the payment after creating the subscription, so we retry up to 4 times.
   let paymentId: string | null = null;
   let pixPayload: string | null = null;
   let pixQrCode: string | null = null;
   let pixExpirationDate: string | null = null;
 
-  try {
-    const paymentsRes = await getSubscriptionPayments(subscription.id);
-    const firstPayment = paymentsRes.data?.[0];
-    if (firstPayment) {
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (attempt > 0) await sleep(2000);
+    try {
+      const paymentsRes = await getSubscriptionPayments(subscription.id);
+      const firstPayment = paymentsRes.data?.[0];
+      if (!firstPayment) {
+        console.log(`[subscription] pagamento PIX ainda não gerado (tentativa ${attempt + 1}/4)`);
+        continue;
+      }
       paymentId = firstPayment.id;
+      console.log(`[subscription] pagamento PIX encontrado: ${paymentId} (tentativa ${attempt + 1})`);
+
       const qr = await getPixQrCode(firstPayment.id);
       pixPayload = qr.payload;
       pixQrCode = qr.encodedImage;
       pixExpirationDate = qr.expirationDate;
+      break;
+    } catch (e) {
+      console.error(`[subscription] erro ao buscar QR PIX (tentativa ${attempt + 1}/4):`, e);
     }
-  } catch {
-    // QR retrieval can fail on sandbox; we still return subscriptionId for polling
+  }
+
+  if (!pixQrCode) {
+    console.warn(`[subscription] QR Code PIX não obtido após 4 tentativas para subscription ${subscription.id}`);
   }
 
   return NextResponse.json({

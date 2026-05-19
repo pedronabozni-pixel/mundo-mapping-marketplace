@@ -370,7 +370,7 @@ export async function createPixSubscription(data: {
 /** Returns the list of payments for a subscription. */
 export async function getSubscriptionPayments(subscriptionId: string): Promise<{ data: AsaasPayment[] }> {
   return asaasReq<{ data: AsaasPayment[] }>(
-    `/subscriptions/${encodeURIComponent(subscriptionId)}/payments`
+    `/payments?subscription=${encodeURIComponent(subscriptionId)}`
   );
 }
 
