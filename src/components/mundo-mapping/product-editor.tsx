@@ -79,17 +79,20 @@ function Input({
   onChange,
   placeholder,
   type = "text",
-  min
+  min,
+  max
 }: {
   value: string | number;
   onChange: (value: string) => void;
   placeholder?: string;
   type?: string;
   min?: number;
+  max?: number;
 }) {
   return (
     <input
       className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 outline-none transition focus:border-red-300 focus:ring-4 focus:ring-red-50"
+      max={max}
       min={min}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
@@ -281,7 +284,7 @@ export function ProductEditor({
       return;
     }
 
-    const guaranteeDays = Math.max(7, form.guaranteeDays || 0);
+    const guaranteeDays = Math.min(30, Math.max(7, form.guaranteeDays || 0));
     const normalized: ProductInput = {
       ...form,
       name: form.name.trim(),
@@ -472,8 +475,8 @@ export function ProductEditor({
               <Field label={form.commissionType === "percent" ? "Percentual do afiliado" : "Valor fixo da comissão"}>
                 <Input onChange={(value) => patch("commissionValue", Number(value) || 0)} type="number" value={form.commissionValue} />
               </Field>
-              <Field helper="Mínimo obrigatório de 7 dias." label="Janela de garantia (dias)">
-                <Input min={7} onChange={(value) => patch("guaranteeDays", Math.max(7, Number(value) || 0))} type="number" value={form.guaranteeDays} />
+              <Field helper="Mínimo 7 dias, máximo 30 dias." label="Janela de garantia (dias)">
+                <Input max={30} min={7} onChange={(value) => patch("guaranteeDays", Math.min(30, Math.max(7, Number(value) || 0)))} type="number" value={form.guaranteeDays} />
               </Field>
               <Field label="Liberação da comissão">
                 <div className="rounded-xl border border-zinc-100 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-500">
