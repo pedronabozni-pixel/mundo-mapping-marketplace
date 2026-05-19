@@ -435,9 +435,6 @@ export function ProductEditor({
               <Field helper="Nome que aparece no hub, no shopping e nos relatórios." label="Nome do produto">
                 <Input onChange={(value) => patch("name", value)} placeholder="Ex.: Mapa 360 Pro" value={form.name} />
               </Field>
-              <Field label="Marca">
-                <Input onChange={(value) => patch("brand", value)} value={form.brand} />
-              </Field>
               <Field helper="Selecione um dos tipos aceitos pela plataforma." label="Tipo de produto">
                 <Select
                   onChange={(value) => patch("category", value)}
@@ -446,7 +443,7 @@ export function ProductEditor({
                 />
               </Field>
               <Field label="Email de suporte">
-                <Input onChange={(value) => patch("supportEmail", value)} type="email" value={form.supportEmail} />
+                <Input onChange={(value) => patch("supportEmail", value)} placeholder="seu@email.com" type="email" value={form.supportEmail} />
               </Field>
               <div className="md:col-span-2">
               <Field helper="Texto principal usado no detalhe do produto e no shopping." label="Descrição">

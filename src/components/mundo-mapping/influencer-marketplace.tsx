@@ -37,7 +37,7 @@ export function InfluencerMarketplace() {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     const searchedProducts = normalizedSearch
-      ? baseProducts.filter((product) => product.name.toLowerCase().includes(normalizedSearch) || product.brand.toLowerCase().includes(normalizedSearch))
+      ? baseProducts.filter((product) => product.name.toLowerCase().includes(normalizedSearch))
       : baseProducts;
 
     if (activeFilter === "Em alta") {
@@ -115,8 +115,7 @@ export function InfluencerMarketplace() {
                 <div className="border-b border-zinc-100 bg-[linear-gradient(135deg,#fafafa_0%,#f4f4f5_100%)] p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-400">{product.brand}</p>
-                      <h3 className="mt-2 text-xl font-semibold tracking-tight text-zinc-950">{product.name}</h3>
+                      <h3 className="text-xl font-semibold tracking-tight text-zinc-950">{product.name}</h3>
                     </div>
                     <StatusBadge
                       label={

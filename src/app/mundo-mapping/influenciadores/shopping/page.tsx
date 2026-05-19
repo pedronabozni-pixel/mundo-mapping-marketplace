@@ -12,7 +12,6 @@ type Produto = {
   id: string;
   slug: string;
   nome: string;
-  marca: string;
   categoria: string;
   descricao: string;
   url_produto: string;
@@ -99,7 +98,7 @@ function LinkModal({
             produto_nome: produto.nome,
             produto_slug: produto.slug,
             empresa_id: produto.empresa_id,
-            empresa_nome: produto.empresa_nome ?? produto.marca,
+            empresa_nome: produto.empresa_nome ?? "",
             url_produto: produto.url_produto ?? "",
             comissao_tipo: produto.comissao_tipo,
             comissao_valor: produto.comissao_valor,
@@ -164,7 +163,7 @@ function LinkModal({
           produto_nome: produto.nome,
           produto_slug: produto.slug,
           empresa_id: produto.empresa_id,
-          empresa_nome: produto.empresa_nome ?? produto.marca,
+          empresa_nome: produto.empresa_nome ?? "",
           url_produto: produto.url_produto ?? "",
           comissao_tipo: produto.comissao_tipo,
           comissao_valor: produto.comissao_valor,
@@ -368,7 +367,7 @@ export default function InfluencerShoppingPage() {
       const [{ data: produtosData }, { data: myLinks }, { data: myRequests }] = await Promise.all([
         supabase
           .from("produtos")
-          .select("id, slug, nome, marca, categoria, descricao, url_produto, preco, comissao_tipo, comissao_valor, garantia_dias, seguidores_minimo, empresa_id, empresa_nome, aprovacao_modo")
+          .select("id, slug, nome, categoria, descricao, url_produto, preco, comissao_tipo, comissao_valor, garantia_dias, seguidores_minimo, empresa_id, empresa_nome, aprovacao_modo")
           .eq("status", "published")
           .eq("visivel_shopping", true)
           .order("criado_em", { ascending: false }),
@@ -412,7 +411,6 @@ export default function InfluencerShoppingPage() {
       list = list.filter(
         (p) =>
           p.nome.toLowerCase().includes(q) ||
-          (p.marca ?? "").toLowerCase().includes(q) ||
           (p.empresa_nome ?? "").toLowerCase().includes(q)
       );
     }
@@ -516,9 +514,11 @@ export default function InfluencerShoppingPage() {
                   <div className="flex-1 border-b border-zinc-100 bg-[linear-gradient(135deg,#fafafa_0%,#f4f4f5_100%)] p-5">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-400">
-                          {produto.empresa_nome ?? produto.marca}
-                        </p>
+                        {produto.empresa_nome && (
+                          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-400">
+                            {produto.empresa_nome}
+                          </p>
+                        )}
                         <h3 className="mt-2 text-lg font-semibold tracking-tight text-zinc-950">{produto.nome}</h3>
                       </div>
                       <div className="flex shrink-0 flex-col items-end gap-1.5">

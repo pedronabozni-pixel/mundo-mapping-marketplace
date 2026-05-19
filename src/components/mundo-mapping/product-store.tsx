@@ -26,7 +26,6 @@ export type ProductRecord = {
   id: string;
   slug: string;
   name: string;
-  brand: string;
   category: string;
   price: number;
   checkoutUrl: string;
@@ -111,7 +110,6 @@ export function fromRow(r: Record<string, any>): ProductRecord {
     id: r.id,
     slug: r.slug,
     name: r.nome ?? "",
-    brand: r.marca ?? "Mundo Mapping",
     category: r.categoria ?? "Infoproduto | Ebook",
     price: Number(r.preco) || 0,
     checkoutUrl: r.url_produto ?? "",
@@ -156,7 +154,7 @@ export function fromRow(r: Record<string, any>): ProductRecord {
     checkoutTestimonials: Array.isArray(r.checkout_depoimentos) ? r.checkout_depoimentos : [],
     checkoutThankyouMessage: r.checkout_mensagem_obrigado ?? "",
     tipoEntregavel: (r.tipo_entregavel as ProductRecord["tipoEntregavel"]) ?? "digital",
-    supportEmail: r.suporte_email ?? "suporte@mundomapping.com",
+    supportEmail: r.suporte_email ?? "",
     logisticsMode: (r.logistica_modo as ProductRecord["logisticsMode"]) ?? "digital",
     stockRequired: Boolean(r.estoque_requerido),
     shippingManagedBy: (r.frete_gerido_por as ProductRecord["shippingManagedBy"]) ?? "na",
@@ -182,7 +180,6 @@ function toRow(input: ProductInput, userId: string, empresaNome?: string) {
     empresa_id: userId,
     empresa_nome: empresaNome ?? null,
     nome: input.name,
-    marca: input.brand,
     categoria: input.category,
     descricao: input.description,
     url_produto: input.checkoutUrl,
@@ -396,7 +393,6 @@ export function useProductStore() {
 export function getEmptyProduct(): ProductInput {
   return {
     name: "",
-    brand: "Mundo Mapping",
     category: "Infoproduto | Ebook",
     price: 0,
     checkoutUrl: "",
@@ -441,7 +437,7 @@ export function getEmptyProduct(): ProductInput {
     checkoutTestimonials: [],
     checkoutThankyouMessage: "",
     tipoEntregavel: "digital",
-    supportEmail: "suporte@mundomapping.com",
+    supportEmail: "",
     logisticsMode: "digital",
     stockRequired: false,
     shippingManagedBy: "na",

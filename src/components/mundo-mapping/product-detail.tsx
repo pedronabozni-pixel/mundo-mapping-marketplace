@@ -167,7 +167,6 @@ export function ProductDetail({ product }: { product: ProductRecord }) {
                 <div className="w-full rounded-[18px] bg-white p-4">
                   <div className="h-28 rounded-2xl" style={{ backgroundColor: product.checkoutColor }} />
                   <p className="mt-4 text-lg font-semibold text-zinc-950">{product.name}</p>
-                  <p className="mt-1 text-sm text-zinc-500">{product.brand}</p>
                 </div>
               </div>
             </div>
