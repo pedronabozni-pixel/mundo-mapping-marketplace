@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { AdminSection, AdminBadge, Skeleton, Pagination } from "@/components/mundo-mapping/admin-ui";
 
 type ProdutoRow = {
@@ -23,40 +22,9 @@ export default function AdminProdutosPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const supabase = createClient();
-    const { data } = await supabase
-      .from("links_afiliados")
-      .select("produto_id, produto_nome, empresa_nome, creator_id, cliques, ativo");
-
-    const rows = (data ?? []) as {
-      produto_id: string;
-      produto_nome: string;
-      empresa_nome: string;
-      creator_id: string;
-      cliques: number;
-      ativo: boolean;
-    }[];
-
-    const map: Record<string, ProdutoRow> = {};
-    rows.forEach((r) => {
-      if (!map[r.produto_id]) {
-        map[r.produto_id] = {
-          produto_id: r.produto_id,
-          produto_nome: r.produto_nome,
-          empresa_nome: r.empresa_nome || "—",
-          creators: 0,
-          cliques: 0,
-          linksAtivos: 0,
-        };
-      }
-      map[r.produto_id].cliques += r.cliques ?? 0;
-      map[r.produto_id].creators = new Set(
-        rows.filter((x) => x.produto_id === r.produto_id).map((x) => x.creator_id)
-      ).size;
-      if (r.ativo) map[r.produto_id].linksAtivos++;
-    });
-
-    setProdutos(Object.values(map).sort((a, b) => b.cliques - a.cliques));
+    const res = await fetch("/api/mundo-mapping/admin/produtos");
+    const data = await res.json();
+    setProdutos(res.ok ? (data as ProdutoRow[]) : []);
     setLoading(false);
   }, []);
 

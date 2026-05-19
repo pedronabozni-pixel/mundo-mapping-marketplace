@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 import { AdminSection, AdminBadge, Skeleton, Pagination, ConfirmDialog } from "@/components/mundo-mapping/admin-ui";
 
 type Influenciador = {
@@ -18,20 +17,6 @@ type Influenciador = {
 };
 
 const PAGE_SIZE = 20;
-
-async function logAction(
-  supabase: ReturnType<typeof createClient>,
-  action: string,
-  targetId: string,
-  details?: Record<string, unknown>
-) {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-  await supabase.from("admin_actions").insert({
-    admin_id: user.id, admin_email: user.email,
-    action, target_type: "influenciador", target_id: targetId, details,
-  });
-}
 
 const APROVACAO_TONE: Record<string, "success" | "warning" | "danger" | "neutral"> = {
   aprovado: "success",
@@ -51,13 +36,9 @@ export default function AdminInfluenciadoresPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const supabase = createClient();
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, full_name, email, instagram_handle, instagram_followers, niche, status, status_aprovacao, created_at")
-      .eq("user_type", "influenciador")
-      .order("created_at", { ascending: false });
-    setInfluenciadores((data ?? []) as Influenciador[]);
+    const res = await fetch("/api/mundo-mapping/admin/influenciadores");
+    const data = await res.json();
+    setInfluenciadores(res.ok ? (data as Influenciador[]) : []);
     setLoading(false);
   }, []);
 
@@ -84,20 +65,21 @@ export default function AdminInfluenciadoresPage() {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   async function handleAction(inf: Influenciador, action: string) {
-    const supabase = createClient();
     const updates: Record<string, string> = {};
-
     if (action === "aprovar") updates.status_aprovacao = "aprovado";
     else if (action === "reprovar") updates.status_aprovacao = "reprovado";
     else if (action === "ativar") updates.status = "ativo";
     else if (action === "desativar") updates.status = "inativo";
 
-    const { error } = await supabase.from("profiles").update(updates).eq("id", inf.id);
-    if (!error) {
+    const res = await fetch(`/api/mundo-mapping/admin/profiles/${inf.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ updates, action, targetEmail: inf.email }),
+    });
+    if (res.ok) {
       setInfluenciadores((prev) =>
         prev.map((i) => i.id === inf.id ? { ...i, ...updates } : i)
       );
-      await logAction(supabase, action, inf.id, { email: inf.email });
     }
     setConfirm(null);
   }

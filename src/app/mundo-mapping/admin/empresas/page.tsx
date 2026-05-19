@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 import {
   AdminSection, AdminBadge, PlanBadge, Skeleton, Pagination, ConfirmDialog, PlanModal,
 } from "@/components/mundo-mapping/admin-ui";
@@ -19,20 +18,6 @@ type Empresa = {
 
 const PAGE_SIZE = 20;
 
-async function logAction(
-  supabase: ReturnType<typeof createClient>,
-  action: string,
-  targetId: string,
-  details?: Record<string, unknown>
-) {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-  await supabase.from("admin_actions").insert({
-    admin_id: user.id, admin_email: user.email,
-    action, target_type: "empresa", target_id: targetId, details,
-  });
-}
-
 export default function AdminEmpresasPage() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,13 +30,9 @@ export default function AdminEmpresasPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const supabase = createClient();
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, full_name, company_name, email, plano, status, created_at")
-      .eq("user_type", "empresa")
-      .order("created_at", { ascending: false });
-    setEmpresas((data ?? []) as Empresa[]);
+    const res = await fetch("/api/mundo-mapping/admin/empresas");
+    const data = await res.json();
+    setEmpresas(res.ok ? (data as Empresa[]) : []);
     setLoading(false);
   }, []);
 
@@ -72,22 +53,26 @@ export default function AdminEmpresasPage() {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   async function handleToggleStatus(empresa: Empresa, action: "ativar" | "desativar") {
-    const supabase = createClient();
     const newStatus = action === "ativar" ? "ativo" : "inativo";
-    const { error } = await supabase.from("profiles").update({ status: newStatus }).eq("id", empresa.id);
-    if (!error) {
+    const res = await fetch(`/api/mundo-mapping/admin/profiles/${empresa.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ updates: { status: newStatus }, action: `status_${newStatus}`, targetEmail: empresa.email }),
+    });
+    if (res.ok) {
       setEmpresas((prev) => prev.map((e) => e.id === empresa.id ? { ...e, status: newStatus } : e));
-      await logAction(supabase, `status_${newStatus}`, empresa.id, { email: empresa.email });
     }
     setConfirm(null);
   }
 
   async function handlePlanSave(empresa: Empresa, plan: string) {
-    const supabase = createClient();
-    const { error } = await supabase.from("profiles").update({ plano: plan }).eq("id", empresa.id);
-    if (!error) {
+    const res = await fetch(`/api/mundo-mapping/admin/profiles/${empresa.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ updates: { plano: plan }, action: "plano_alterado", targetEmail: empresa.email }),
+    });
+    if (res.ok) {
       setEmpresas((prev) => prev.map((e) => e.id === empresa.id ? { ...e, plano: plan } : e));
-      await logAction(supabase, "plano_alterado", empresa.id, { plano_anterior: empresa.plano, plano_novo: plan });
     }
     setPlanModal(null);
   }

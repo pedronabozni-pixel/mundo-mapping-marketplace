@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { AdminCard, AdminSection, Skeleton, AdminBadge, PlanBadge } from "@/components/mundo-mapping/admin-ui";
 
 type Stats = {
@@ -57,44 +56,20 @@ export default function AdminDashboard() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const supabase = createClient();
-
-    const [
-      { count: empCount },
-      { count: infCount },
-      { data: linksData },
-      { data: vendasData },
-      { data: recentP },
-      { data: recentV },
-    ] = await Promise.all([
-      supabase.from("profiles").select("*", { count: "exact", head: true }).eq("user_type", "empresa"),
-      supabase.from("profiles").select("*", { count: "exact", head: true }).eq("user_type", "influenciador"),
-      supabase.from("links_afiliados").select("cliques").eq("ativo", true),
-      supabase.from("vendas").select("comissao"),
-      supabase.from("profiles")
-        .select("id, full_name, company_name, email, user_type, plano, created_at")
-        .neq("user_type", "admin")
-        .order("created_at", { ascending: false })
-        .limit(10),
-      supabase.from("vendas")
-        .select("id, empresa_nome, creator_nome, produto_nome, comissao, status, criado_em")
-        .order("criado_em", { ascending: false })
-        .limit(10),
-    ]);
-
-    const links = linksData ?? [];
-    const vendas = vendasData ?? [];
-
-    setStats({
-      totalEmpresas: empCount ?? 0,
-      totalInfluenciadores: infCount ?? 0,
-      totalLinksAtivos: links.length,
-      totalCliques: links.reduce((s, l) => s + (l.cliques ?? 0), 0),
-      totalVendas: vendas.length,
-      totalComissao: vendas.reduce((s, v) => s + (v.comissao ?? 0), 0),
-    });
-    setRecentProfiles((recentP ?? []) as RecentProfile[]);
-    setRecentVendas((recentV ?? []) as RecentVenda[]);
+    const res = await fetch("/api/mundo-mapping/admin/stats");
+    const json = await res.json();
+    if (res.ok) {
+      setStats({
+        totalEmpresas: json.totalEmpresas,
+        totalInfluenciadores: json.totalInfluenciadores,
+        totalLinksAtivos: json.totalLinksAtivos,
+        totalCliques: json.totalCliques,
+        totalVendas: json.totalVendas,
+        totalComissao: json.totalComissao,
+      });
+      setRecentProfiles(json.recentProfiles as RecentProfile[]);
+      setRecentVendas(json.recentVendas as RecentVenda[]);
+    }
     setLoading(false);
   }, []);
 

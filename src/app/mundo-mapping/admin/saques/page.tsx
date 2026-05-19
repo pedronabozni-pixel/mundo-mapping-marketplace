@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { AdminSection, AdminBadge, Skeleton, Pagination } from "@/components/mundo-mapping/admin-ui";
 
 type Status = "pendente" | "aprovado" | "pago" | "recusado";
@@ -51,39 +50,9 @@ export default function AdminSaquesPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const supabase = createClient();
-
-    const { data: saques } = await supabase
-      .from("solicitacoes_saque")
-      .select("*")
-      .order("criado_em", { ascending: false });
-
-    if (!saques || saques.length === 0) { setRows([]); setLoading(false); return; }
-
-    const creatorIds = [...new Set(saques.map((s) => s.creator_id as string))];
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, full_name, email")
-      .in("id", creatorIds);
-
-    const profileMap = new Map((profiles ?? []).map((p) => [p.id as string, p]));
-
-    setRows(
-      saques.map((s) => {
-        const p = profileMap.get(s.creator_id as string);
-        return {
-          id: s.id as string,
-          creator_id: s.creator_id as string,
-          valor: s.valor as number,
-          chave_pix: s.chave_pix as string,
-          tipo_chave_pix: s.tipo_chave_pix as string,
-          status: (s.status ?? "pendente") as Status,
-          criado_em: s.criado_em as string,
-          creator_nome: (p?.full_name as string) ?? (p?.email as string) ?? s.creator_id,
-          creator_email: (p?.email as string) ?? "—",
-        };
-      })
-    );
+    const res = await fetch("/api/mundo-mapping/admin/saques");
+    const data = await res.json();
+    setRows(res.ok ? (data as SaqueRow[]) : []);
     setLoading(false);
   }, []);
 
@@ -91,9 +60,14 @@ export default function AdminSaquesPage() {
 
   async function updateStatus(id: string, status: Status) {
     setUpdating(id);
-    const supabase = createClient();
-    await supabase.from("solicitacoes_saque").update({ status }).eq("id", id);
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+    const res = await fetch(`/api/mundo-mapping/admin/saques/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    if (res.ok) {
+      setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+    }
     setUpdating(null);
   }
 
