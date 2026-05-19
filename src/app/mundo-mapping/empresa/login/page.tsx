@@ -113,6 +113,18 @@ export default function EmpresaLoginPage() {
         setError("As senhas não coincidem.");
         return;
       }
+      if (cpfCnpj) {
+        const checkRes = await fetch("/api/auth/check-cpf-cnpj", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cpf_cnpj: cpfCnpj }),
+        });
+        const { exists } = await checkRes.json() as { exists: boolean };
+        if (exists) {
+          setError("Este CPF/CNPJ já está cadastrado na plataforma.");
+          return;
+        }
+      }
       const { data, error } = await supabase.auth.signUp({
         email: fd.get("email") as string,
         password,

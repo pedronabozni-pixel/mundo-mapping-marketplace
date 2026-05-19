@@ -117,7 +117,7 @@ export default function InfluenciadorLoginPage() {
           email: fd.get("email") as string,
           user_type: "influenciador",
           full_name: fd.get("full_name") as string,
-          instagram: fd.get("instagram") as string,
+          instagram_handle: fd.get("instagram") as string,
         }, { onConflict: "id" });
         window.location.href = "/mundo-mapping/influenciadores";
       } else {
