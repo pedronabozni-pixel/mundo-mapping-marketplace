@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { AdminCard, AdminSection, Skeleton, AdminBadge, PlanBadge } from "@/components/mundo-mapping/admin-ui";
 
@@ -55,58 +55,68 @@ export default function AdminDashboard() {
   const [recentVendas, setRecentVendas] = useState<RecentVenda[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function load() {
-      const supabase = createClient();
+  const load = useCallback(async () => {
+    setLoading(true);
+    const supabase = createClient();
 
-      const [
-        { count: empCount },
-        { count: infCount },
-        { data: linksData },
-        { data: vendasData },
-        { data: recentP },
-        { data: recentV },
-      ] = await Promise.all([
-        supabase.from("profiles").select("*", { count: "exact", head: true }).eq("user_type", "empresa"),
-        supabase.from("profiles").select("*", { count: "exact", head: true }).eq("user_type", "influenciador"),
-        supabase.from("links_afiliados").select("cliques").eq("ativo", true),
-        supabase.from("vendas").select("comissao"),
-        supabase.from("profiles")
-          .select("id, full_name, company_name, email, user_type, plano, created_at")
-          .neq("user_type", "admin")
-          .order("created_at", { ascending: false })
-          .limit(10),
-        supabase.from("vendas")
-          .select("id, empresa_nome, creator_nome, produto_nome, comissao, status, criado_em")
-          .order("criado_em", { ascending: false })
-          .limit(10),
-      ]);
+    const [
+      { count: empCount },
+      { count: infCount },
+      { data: linksData },
+      { data: vendasData },
+      { data: recentP },
+      { data: recentV },
+    ] = await Promise.all([
+      supabase.from("profiles").select("*", { count: "exact", head: true }).eq("user_type", "empresa"),
+      supabase.from("profiles").select("*", { count: "exact", head: true }).eq("user_type", "influenciador"),
+      supabase.from("links_afiliados").select("cliques").eq("ativo", true),
+      supabase.from("vendas").select("comissao"),
+      supabase.from("profiles")
+        .select("id, full_name, company_name, email, user_type, plano, created_at")
+        .neq("user_type", "admin")
+        .order("created_at", { ascending: false })
+        .limit(10),
+      supabase.from("vendas")
+        .select("id, empresa_nome, creator_nome, produto_nome, comissao, status, criado_em")
+        .order("criado_em", { ascending: false })
+        .limit(10),
+    ]);
 
-      const links = linksData ?? [];
-      const vendas = vendasData ?? [];
+    const links = linksData ?? [];
+    const vendas = vendasData ?? [];
 
-      setStats({
-        totalEmpresas: empCount ?? 0,
-        totalInfluenciadores: infCount ?? 0,
-        totalLinksAtivos: links.length,
-        totalCliques: links.reduce((s, l) => s + (l.cliques ?? 0), 0),
-        totalVendas: vendas.length,
-        totalComissao: vendas.reduce((s, v) => s + (v.comissao ?? 0), 0),
-      });
-      setRecentProfiles((recentP ?? []) as RecentProfile[]);
-      setRecentVendas((recentV ?? []) as RecentVenda[]);
-      setLoading(false);
-    }
-    load();
+    setStats({
+      totalEmpresas: empCount ?? 0,
+      totalInfluenciadores: infCount ?? 0,
+      totalLinksAtivos: links.length,
+      totalCliques: links.reduce((s, l) => s + (l.cliques ?? 0), 0),
+      totalVendas: vendas.length,
+      totalComissao: vendas.reduce((s, v) => s + (v.comissao ?? 0), 0),
+    });
+    setRecentProfiles((recentP ?? []) as RecentProfile[]);
+    setRecentVendas((recentV ?? []) as RecentVenda[]);
+    setLoading(false);
   }, []);
+
+  useEffect(() => { load(); }, [load]);
 
   return (
     <div className="space-y-6 p-7">
       {/* Header */}
-      <div className="border-b border-zinc-800 pb-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">Admin / Plataforma</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">Dashboard</h1>
-        <p className="mt-1 text-sm text-zinc-500">Visão geral em tempo real da plataforma Mapping Partners.</p>
+      <div className="flex items-start justify-between gap-4 border-b border-zinc-800 pb-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">Admin / Plataforma</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">Dashboard</h1>
+          <p className="mt-1 text-sm text-zinc-500">Visão geral em tempo real da plataforma Mapping Partners.</p>
+        </div>
+        <button
+          className="flex shrink-0 items-center gap-1.5 rounded-xl border border-zinc-800 px-3 py-1.5 text-xs font-semibold text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-40"
+          disabled={loading}
+          onClick={load}
+          type="button"
+        >
+          ↻ Atualizar
+        </button>
       </div>
 
       {/* KPIs */}

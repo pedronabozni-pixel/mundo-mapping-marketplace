@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { AdminSection, AdminBadge, Skeleton, Pagination } from "@/components/mundo-mapping/admin-ui";
 
@@ -21,46 +21,46 @@ export default function AdminProdutosPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    async function load() {
-      const supabase = createClient();
-      const { data } = await supabase
-        .from("links_afiliados")
-        .select("produto_id, produto_nome, empresa_nome, creator_id, cliques, ativo");
+  const load = useCallback(async () => {
+    setLoading(true);
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("links_afiliados")
+      .select("produto_id, produto_nome, empresa_nome, creator_id, cliques, ativo");
 
-      const rows = (data ?? []) as {
-        produto_id: string;
-        produto_nome: string;
-        empresa_nome: string;
-        creator_id: string;
-        cliques: number;
-        ativo: boolean;
-      }[];
+    const rows = (data ?? []) as {
+      produto_id: string;
+      produto_nome: string;
+      empresa_nome: string;
+      creator_id: string;
+      cliques: number;
+      ativo: boolean;
+    }[];
 
-      const map: Record<string, ProdutoRow> = {};
-      rows.forEach((r) => {
-        if (!map[r.produto_id]) {
-          map[r.produto_id] = {
-            produto_id: r.produto_id,
-            produto_nome: r.produto_nome,
-            empresa_nome: r.empresa_nome || "—",
-            creators: 0,
-            cliques: 0,
-            linksAtivos: 0,
-          };
-        }
-        map[r.produto_id].cliques += r.cliques ?? 0;
-        map[r.produto_id].creators = new Set(
-          rows.filter((x) => x.produto_id === r.produto_id).map((x) => x.creator_id)
-        ).size;
-        if (r.ativo) map[r.produto_id].linksAtivos++;
-      });
+    const map: Record<string, ProdutoRow> = {};
+    rows.forEach((r) => {
+      if (!map[r.produto_id]) {
+        map[r.produto_id] = {
+          produto_id: r.produto_id,
+          produto_nome: r.produto_nome,
+          empresa_nome: r.empresa_nome || "—",
+          creators: 0,
+          cliques: 0,
+          linksAtivos: 0,
+        };
+      }
+      map[r.produto_id].cliques += r.cliques ?? 0;
+      map[r.produto_id].creators = new Set(
+        rows.filter((x) => x.produto_id === r.produto_id).map((x) => x.creator_id)
+      ).size;
+      if (r.ativo) map[r.produto_id].linksAtivos++;
+    });
 
-      setProdutos(Object.values(map).sort((a, b) => b.cliques - a.cliques));
-      setLoading(false);
-    }
-    load();
+    setProdutos(Object.values(map).sort((a, b) => b.cliques - a.cliques));
+    setLoading(false);
   }, []);
+
+  useEffect(() => { load(); }, [load]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -74,10 +74,20 @@ export default function AdminProdutosPage() {
 
   return (
     <div className="space-y-6 p-7">
-      <div className="border-b border-zinc-800 pb-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">Admin / Produtos</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">Gestão de produtos</h1>
-        <p className="mt-1 text-sm text-zinc-500">Produtos com links de afiliado ativos na plataforma.</p>
+      <div className="flex items-start justify-between gap-4 border-b border-zinc-800 pb-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">Admin / Produtos</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">Gestão de produtos</h1>
+          <p className="mt-1 text-sm text-zinc-500">Produtos com links de afiliado ativos na plataforma.</p>
+        </div>
+        <button
+          className="flex shrink-0 items-center gap-1.5 rounded-xl border border-zinc-800 px-3 py-1.5 text-xs font-semibold text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-40"
+          disabled={loading}
+          onClick={load}
+          type="button"
+        >
+          ↻ Atualizar
+        </button>
       </div>
 
       <input

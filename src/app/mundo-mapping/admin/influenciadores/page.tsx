@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { AdminSection, AdminBadge, Skeleton, Pagination, ConfirmDialog } from "@/components/mundo-mapping/admin-ui";
@@ -49,19 +49,19 @@ export default function AdminInfluenciadoresPage() {
   const [filterStatus, setFilterStatus] = useState("todos");
   const [confirm, setConfirm] = useState<{ inf: Influenciador; action: string } | null>(null);
 
-  useEffect(() => {
-    async function load() {
-      const supabase = createClient();
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, full_name, email, instagram_handle, instagram_followers, niche, status, status_aprovacao, created_at")
-        .eq("user_type", "influenciador")
-        .order("created_at", { ascending: false });
-      setInfluenciadores((data ?? []) as Influenciador[]);
-      setLoading(false);
-    }
-    load();
+  const load = useCallback(async () => {
+    setLoading(true);
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, instagram_handle, instagram_followers, niche, status, status_aprovacao, created_at")
+      .eq("user_type", "influenciador")
+      .order("created_at", { ascending: false });
+    setInfluenciadores((data ?? []) as Influenciador[]);
+    setLoading(false);
   }, []);
+
+  useEffect(() => { load(); }, [load]);
 
   const niches = useMemo(() => {
     const set = new Set(influenciadores.map((i) => i.niche).filter(Boolean) as string[]);
@@ -104,9 +104,19 @@ export default function AdminInfluenciadoresPage() {
 
   return (
     <div className="space-y-6 p-7">
-      <div className="border-b border-zinc-800 pb-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">Admin / Influenciadores</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">Gestão de influenciadores</h1>
+      <div className="flex items-start justify-between gap-4 border-b border-zinc-800 pb-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">Admin / Influenciadores</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">Gestão de influenciadores</h1>
+        </div>
+        <button
+          className="flex shrink-0 items-center gap-1.5 rounded-xl border border-zinc-800 px-3 py-1.5 text-xs font-semibold text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-40"
+          disabled={loading}
+          onClick={load}
+          type="button"
+        >
+          ↻ Atualizar
+        </button>
       </div>
 
       {/* Filters */}

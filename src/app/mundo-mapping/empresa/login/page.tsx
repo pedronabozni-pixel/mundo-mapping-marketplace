@@ -126,7 +126,13 @@ export default function EmpresaLoginPage() {
         },
       });
       if (error) {
-        setError(error.message);
+        if (error.message.toLowerCase().includes("already registered") || error.message.toLowerCase().includes("already been registered")) {
+          setError("__duplicate_email__");
+        } else {
+          setError(error.message);
+        }
+      } else if (data.user && (data.user.identities?.length ?? 1) === 0) {
+        setError("__duplicate_email__");
       } else if (data.session) {
         await supabase.from("profiles").upsert({
           id: data.session.user.id,
@@ -190,7 +196,17 @@ export default function EmpresaLoginPage() {
 
         <div className="mt-4 rounded-[24px] border border-zinc-200 bg-white p-5 shadow-[0_24px_80px_-54px_rgba(24,24,27,0.35)] sm:p-8">
           {error && (
-            <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+            <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error === "__duplicate_email__" ? (
+                <>
+                  Este e-mail já está cadastrado.{" "}
+                  <button className="font-semibold underline underline-offset-2" onClick={() => switchTab("entrar")} type="button">
+                    Fazer login
+                  </button>
+                  {" "}ou use outro e-mail.
+                </>
+              ) : error}
+            </div>
           )}
           {info && (
             <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{info}</div>

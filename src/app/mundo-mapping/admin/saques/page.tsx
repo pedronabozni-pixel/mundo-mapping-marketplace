@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { AdminSection, AdminBadge, Skeleton, Pagination } from "@/components/mundo-mapping/admin-ui";
 
@@ -49,7 +49,8 @@ export default function AdminSaquesPage() {
   const [filter, setFilter] = useState<Status | "todos">("todos");
   const [page, setPage] = useState(1);
 
-  async function load() {
+  const load = useCallback(async () => {
+    setLoading(true);
     const supabase = createClient();
 
     const { data: saques } = await supabase
@@ -84,9 +85,9 @@ export default function AdminSaquesPage() {
       })
     );
     setLoading(false);
-  }
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   async function updateStatus(id: string, status: Status) {
     setUpdating(id);
@@ -109,10 +110,20 @@ export default function AdminSaquesPage() {
 
   return (
     <div className="space-y-6 p-7">
-      <div className="border-b border-zinc-800 pb-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">Admin / Saques</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">Solicitações de saque</h1>
-        <p className="mt-1 text-sm text-zinc-500">Gerencie os pedidos de saque dos influenciadores.</p>
+      <div className="flex items-start justify-between gap-4 border-b border-zinc-800 pb-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">Admin / Saques</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">Solicitações de saque</h1>
+          <p className="mt-1 text-sm text-zinc-500">Gerencie os pedidos de saque dos influenciadores.</p>
+        </div>
+        <button
+          className="flex shrink-0 items-center gap-1.5 rounded-xl border border-zinc-800 px-3 py-1.5 text-xs font-semibold text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-40"
+          disabled={loading}
+          onClick={load}
+          type="button"
+        >
+          ↻ Atualizar
+        </button>
       </div>
 
       {/* Summary cards */}

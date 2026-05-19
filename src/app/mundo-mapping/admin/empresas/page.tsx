@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -43,19 +43,19 @@ export default function AdminEmpresasPage() {
   const [planModal, setPlanModal] = useState<Empresa | null>(null);
   const [confirm, setConfirm] = useState<{ empresa: Empresa; action: "ativar" | "desativar" } | null>(null);
 
-  useEffect(() => {
-    async function load() {
-      const supabase = createClient();
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, full_name, company_name, email, plano, status, created_at")
-        .eq("user_type", "empresa")
-        .order("created_at", { ascending: false });
-      setEmpresas((data ?? []) as Empresa[]);
-      setLoading(false);
-    }
-    load();
+  const load = useCallback(async () => {
+    setLoading(true);
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, full_name, company_name, email, plano, status, created_at")
+      .eq("user_type", "empresa")
+      .order("created_at", { ascending: false });
+    setEmpresas((data ?? []) as Empresa[]);
+    setLoading(false);
   }, []);
+
+  useEffect(() => { load(); }, [load]);
 
   const filtered = useMemo(() => {
     return empresas.filter((e) => {
@@ -94,9 +94,19 @@ export default function AdminEmpresasPage() {
 
   return (
     <div className="space-y-6 p-7">
-      <div className="border-b border-zinc-800 pb-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">Admin / Empresas e Produtores</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">Gestão de empresas e produtores</h1>
+      <div className="flex items-start justify-between gap-4 border-b border-zinc-800 pb-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">Admin / Empresas e Produtores</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">Gestão de empresas e produtores</h1>
+        </div>
+        <button
+          className="flex shrink-0 items-center gap-1.5 rounded-xl border border-zinc-800 px-3 py-1.5 text-xs font-semibold text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-40"
+          disabled={loading}
+          onClick={load}
+          type="button"
+        >
+          ↻ Atualizar
+        </button>
       </div>
 
       {/* Filters */}
