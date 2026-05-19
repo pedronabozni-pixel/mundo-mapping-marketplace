@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners-logo";
 
 export type NavLink = {
@@ -384,6 +386,46 @@ export function BlueprintBlock({
   );
 }
 
+function SidebarContent({ currentPath, onNavigate }: { currentPath: string; onNavigate?: () => void }) {
+  return (
+    <>
+      <div className="rounded-[18px] px-3 py-3">
+        <MappingPartnersLogo onDark size="sm" subtitle="Mundo Mapping" />
+        <h1 className="mt-4 text-lg font-semibold tracking-tight">Afiliados</h1>
+        <p className="mt-1 text-sm text-white/55">Produtos e operação.</p>
+      </div>
+
+      <nav className="mt-4 space-y-1.5">
+        {affiliateNavLinks.map((item) => {
+          const isActive = currentPath === item.href;
+          return (
+            <Link
+              className={cn(
+                "block rounded-[14px] px-3.5 py-3 text-left transition",
+                isActive
+                  ? "bg-red-600 text-white shadow-[0_18px_40px_-28px_rgba(220,38,38,0.85)]"
+                  : "text-white/72 hover:bg-white/[0.05] hover:text-white"
+              )}
+              href={item.href}
+              key={item.href}
+              onClick={onNavigate}
+            >
+              <p className="text-sm font-semibold">{item.label}</p>
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="mt-auto rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
+        <p className="text-sm font-semibold">Modelo do módulo</p>
+        <p className="mt-2 text-sm leading-6 text-white/58">
+          A empresa ou produtor cadastra o produto. O influenciador afiliado recebe o próprio link para vender.
+        </p>
+      </div>
+    </>
+  );
+}
+
 export function AffiliateShell({
   children,
   currentPath
@@ -391,46 +433,62 @@ export function AffiliateShell({
   children: ReactNode;
   currentPath: string;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
-    <div className="min-h-screen bg-[#f3f4f6] p-4 text-zinc-900 md:p-5">
-      <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-[1480px] gap-4 xl:grid-cols-[210px_1fr]">
-        <aside className="flex h-full flex-col rounded-[24px] bg-[#181a20] p-3 text-white shadow-[0_34px_80px_-62px_rgba(0,0,0,0.78)]">
-          <div className="rounded-[18px] px-3 py-3">
-            <MappingPartnersLogo onDark size="sm" subtitle="Mundo Mapping" />
-            <h1 className="mt-4 text-lg font-semibold tracking-tight">Afiliados</h1>
-            <p className="mt-1 text-sm text-white/55">Produtos e operação.</p>
+    <div className="min-h-screen bg-[#f3f4f6] text-zinc-900">
+      {/* ── Mobile top bar ── */}
+      <div className="flex items-center justify-between bg-[#181a20] px-4 py-3 xl:hidden">
+        <MappingPartnersLogo onDark size="sm" subtitle="Mundo Mapping" />
+        <button
+          aria-label="Abrir menu"
+          className="flex h-10 w-10 items-center justify-center rounded-xl text-white/80 hover:bg-white/10 hover:text-white"
+          onClick={() => setMenuOpen(true)}
+          type="button"
+        >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </div>
+
+      {/* ── Mobile drawer overlay ── */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-50 xl:hidden" onClick={() => setMenuOpen(false)}>
+          <div className="absolute inset-0 bg-black/50" />
+          <aside
+            className="absolute left-0 top-0 flex h-full w-[260px] flex-col bg-[#181a20] p-3 text-white shadow-[4px_0_40px_rgba(0,0,0,0.4)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-2 flex items-center justify-between px-1 py-2">
+              <span className="text-sm font-semibold text-white/60">Menu</span>
+              <button
+                aria-label="Fechar menu"
+                className="flex h-8 w-8 items-center justify-center rounded-xl text-white/60 hover:bg-white/10 hover:text-white"
+                onClick={() => setMenuOpen(false)}
+                type="button"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+            <SidebarContent currentPath={currentPath} onNavigate={() => setMenuOpen(false)} />
+          </aside>
+        </div>
+      )}
+
+      {/* ── Main layout ── */}
+      <div className="p-4 md:p-5">
+        <div className="mx-auto grid min-h-[calc(100vh-5rem)] max-w-[1480px] gap-4 xl:min-h-[calc(100vh-2.5rem)] xl:grid-cols-[210px_1fr]">
+          {/* Desktop sidebar */}
+          <aside className="hidden h-full flex-col rounded-[24px] bg-[#181a20] p-3 text-white shadow-[0_34px_80px_-62px_rgba(0,0,0,0.78)] xl:flex">
+            <SidebarContent currentPath={currentPath} />
+          </aside>
+
+          <div className="rounded-[28px] border border-white/70 bg-[#fcfcfd] shadow-[0_40px_120px_-80px_rgba(15,23,42,0.38)]">
+            {children}
           </div>
-
-          <nav className="mt-4 space-y-1.5">
-            {affiliateNavLinks.map((item) => {
-              const isActive = currentPath === item.href;
-              return (
-                <Link
-                  className={cn(
-                    "block rounded-[14px] px-3.5 py-3 text-left transition",
-                    isActive
-                      ? "bg-red-600 text-white shadow-[0_18px_40px_-28px_rgba(220,38,38,0.85)]"
-                      : "text-white/72 hover:bg-white/[0.05] hover:text-white"
-                  )}
-                  href={item.href}
-                  key={item.href}
-                >
-                  <p className="text-sm font-semibold">{item.label}</p>
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="mt-auto rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
-            <p className="text-sm font-semibold">Modelo do módulo</p>
-            <p className="mt-2 text-sm leading-6 text-white/58">
-              A empresa ou produtor cadastra o produto. O influenciador afiliado recebe o próprio link para vender.
-            </p>
-          </div>
-        </aside>
-
-        <div className="rounded-[28px] border border-white/70 bg-[#fcfcfd] shadow-[0_40px_120px_-80px_rgba(15,23,42,0.38)]">
-          {children}
         </div>
       </div>
     </div>

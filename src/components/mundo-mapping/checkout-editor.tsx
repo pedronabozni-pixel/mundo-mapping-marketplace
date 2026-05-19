@@ -55,10 +55,13 @@ function isUrl(v: string) {
   return /^https?:\/\//.test(v.trim());
 }
 
+type PreviewMode = "desktop" | "mobile";
+
 export function CheckoutEditor({ product }: { product: ProductRecord }) {
   const { updateProduct } = useProductStore();
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [previewMode, setPreviewMode] = useState<PreviewMode>("desktop");
 
   const [checkoutColor, setCheckoutColor] = useState(product.checkoutColor || "#dc2626");
   const [checkoutBgColor, setCheckoutBgColor] = useState(product.checkoutBgColor || "#ffffff");
@@ -303,110 +306,201 @@ export function CheckoutEditor({ product }: { product: ProductRecord }) {
             subtitle="Simulação fiel do checkout em tempo real."
             title="Preview"
           >
-            <div
-              className="overflow-hidden rounded-2xl border border-zinc-200 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.12)]"
-              style={{ backgroundColor: checkoutBgColor }}
-            >
-              {/* ── Checkout header ── */}
-              <div className="px-6 py-5" style={{ backgroundColor: `${checkoutColor}14` }}>
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: checkoutColor }} />
-                  <span className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: checkoutColor }}>
-                    Checkout seguro
-                  </span>
-                </div>
-                <h3 className="text-lg font-bold leading-snug text-zinc-950">
-                  {checkoutHeadline || product.name}
-                </h3>
-                {checkoutSubheadline ? (
-                  <p className="mt-2 text-sm leading-6 text-zinc-600">{checkoutSubheadline}</p>
-                ) : (
-                  product.description && (
-                    <p className="mt-2 text-sm leading-6 text-zinc-500 line-clamp-2">{product.description}</p>
-                  )
-                )}
-              </div>
-
-              <div className="px-6 py-5 space-y-5">
-                {/* ── Benefits ── */}
-                {previewBenefits.length > 0 && (
-                  <ul className="space-y-2.5">
-                    {previewBenefits.map((item) => (
-                      <li className="flex items-start gap-2.5 text-sm text-zinc-700" key={item}>
-                        <svg className="mt-0.5 h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ color: checkoutColor }} viewBox="0 0 24 24">
-                          <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {/* ── Order box ── */}
-                <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
-                  <div className="flex items-end justify-between gap-3">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.1em] text-zinc-400">Investimento</p>
-                      <p className="mt-1 text-3xl font-bold tabular-nums text-zinc-950">
-                        R$ {product.price.toFixed(2)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold" style={{ borderColor: `${checkoutColor}40`, color: checkoutColor }}>
-                      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      Compra segura
-                    </div>
-                  </div>
-
-                  <button
-                    className="mt-4 inline-flex h-12 w-full items-center justify-center rounded-xl text-sm font-bold text-white shadow-[0_6px_20px_-8px_rgba(0,0,0,0.3)] transition"
-                    style={{ backgroundColor: checkoutColor }}
-                    type="button"
-                  >
-                    {checkoutCtaLabel || "Comprar agora"}
-                  </button>
-
-                  {checkoutGuaranteeText ? (
-                    <div className="mt-3 flex items-center gap-2 rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2">
-                      <svg className="h-4 w-4 shrink-0 text-zinc-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      <span className="text-xs text-zinc-500">{checkoutGuaranteeText}</span>
-                    </div>
-                  ) : null}
-
-                  {(checkoutSupportText || supportEmail) && (
-                    <p className="mt-3 text-center text-xs text-zinc-400">
-                      {checkoutSupportText || `Suporte: ${supportEmail}`}
-                    </p>
-                  )}
-                </div>
-
-                {/* ── Testimonials ── */}
-                {testimonials.some((t) => t.name.trim() || t.text.trim()) && (
-                  <div className="space-y-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-400">O que dizem nossos clientes</p>
-                    {testimonials.filter((t) => t.name.trim() || t.text.trim()).map((t, i) => (
-                      <div className="rounded-xl border border-zinc-100 bg-white p-4" key={i}>
-                        <p className="text-sm leading-6 text-zinc-600">&ldquo;{t.text || "…"}&rdquo;</p>
-                        <div className="mt-3 flex items-center gap-2">
-                          <div className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: checkoutColor }}>
-                            {t.name.charAt(0).toUpperCase() || "?"}
-                          </div>
-                          <div>
-                            <p className="text-xs font-semibold text-zinc-800">{t.name || "Cliente"}</p>
-                            {t.role && <p className="text-xs text-zinc-400">{t.role}</p>}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+            {/* Toggle Desktop / Mobile */}
+            <div className="mb-4 inline-flex rounded-full border border-zinc-200 bg-zinc-50 p-1">
+              <button
+                className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${previewMode === "desktop" ? "bg-zinc-900 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-800"}`}
+                onClick={() => setPreviewMode("desktop")}
+                type="button"
+              >
+                Desktop
+              </button>
+              <button
+                className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${previewMode === "mobile" ? "bg-zinc-900 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-800"}`}
+                onClick={() => setPreviewMode("mobile")}
+                type="button"
+              >
+                Mobile
+              </button>
             </div>
+
+            {previewMode === "mobile" ? (
+              /* ── Phone frame ── */
+              <div className="flex justify-center py-2">
+                <div className="relative w-[300px] shrink-0 rounded-[40px] border-[10px] border-zinc-800 bg-zinc-800 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.5)]">
+                  <div className="absolute left-1/2 top-0 z-10 h-5 w-20 -translate-x-1/2 rounded-b-2xl bg-zinc-800" />
+                  <div
+                    className="max-h-[560px] overflow-y-auto rounded-[32px]"
+                    style={{ backgroundColor: checkoutBgColor }}
+                  >
+                    <CheckoutPreviewContent
+                      benefits={previewBenefits}
+                      checkoutBgColor={checkoutBgColor}
+                      checkoutColor={checkoutColor}
+                      checkoutCtaLabel={checkoutCtaLabel}
+                      checkoutGuaranteeText={checkoutGuaranteeText}
+                      checkoutHeadline={checkoutHeadline}
+                      checkoutSubheadline={checkoutSubheadline}
+                      checkoutSupportText={checkoutSupportText}
+                      product={product}
+                      supportEmail={supportEmail}
+                      testimonials={testimonials}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* ── Desktop frame ── */
+              <div
+                className="overflow-hidden rounded-2xl border border-zinc-200 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.12)]"
+                style={{ backgroundColor: checkoutBgColor }}
+              >
+                <CheckoutPreviewContent
+                  benefits={previewBenefits}
+                  checkoutBgColor={checkoutBgColor}
+                  checkoutColor={checkoutColor}
+                  checkoutCtaLabel={checkoutCtaLabel}
+                  checkoutGuaranteeText={checkoutGuaranteeText}
+                  checkoutHeadline={checkoutHeadline}
+                  checkoutSubheadline={checkoutSubheadline}
+                  checkoutSupportText={checkoutSupportText}
+                  product={product}
+                  supportEmail={supportEmail}
+                  testimonials={testimonials}
+                />
+              </div>
+            )}
           </SectionCard>
         </div>
+      </div>
+    </>
+  );
+}
+
+type PreviewProps = {
+  product: ProductRecord;
+  checkoutColor: string;
+  checkoutBgColor: string;
+  checkoutHeadline: string;
+  checkoutSubheadline: string;
+  checkoutCtaLabel: string;
+  checkoutGuaranteeText: string;
+  checkoutSupportText: string;
+  supportEmail: string;
+  benefits: string[];
+  testimonials: Testimonial[];
+};
+
+function CheckoutPreviewContent({
+  product,
+  checkoutColor,
+  checkoutHeadline,
+  checkoutSubheadline,
+  checkoutCtaLabel,
+  checkoutGuaranteeText,
+  checkoutSupportText,
+  supportEmail,
+  benefits,
+  testimonials,
+}: PreviewProps) {
+  return (
+    <>
+      {/* header */}
+      <div className="px-5 py-5" style={{ backgroundColor: `${checkoutColor}14` }}>
+        <div className="flex items-center gap-2 mb-3">
+          <div className="h-3 w-3 rounded-full" style={{ backgroundColor: checkoutColor }} />
+          <span className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: checkoutColor }}>
+            Checkout seguro
+          </span>
+        </div>
+        <h3 className="text-base font-bold leading-snug text-zinc-950">
+          {checkoutHeadline || product.name}
+        </h3>
+        {checkoutSubheadline ? (
+          <p className="mt-2 text-sm leading-6 text-zinc-600">{checkoutSubheadline}</p>
+        ) : (
+          product.description && (
+            <p className="mt-2 text-sm leading-6 text-zinc-500 line-clamp-2">{product.description}</p>
+          )
+        )}
+      </div>
+
+      <div className="space-y-4 px-5 py-5">
+        {/* benefits */}
+        {benefits.length > 0 && (
+          <ul className="space-y-2">
+            {benefits.map((item) => (
+              <li className="flex items-start gap-2 text-sm text-zinc-700" key={item}>
+                <svg className="mt-0.5 h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ color: checkoutColor }} viewBox="0 0 24 24">
+                  <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* order box */}
+        <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+          <div className="flex items-end justify-between gap-2">
+            <div>
+              <p className="text-xs uppercase tracking-[0.1em] text-zinc-400">Investimento</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-zinc-950">
+                R$ {product.price.toFixed(2)}
+              </p>
+            </div>
+            <div className="flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold" style={{ borderColor: `${checkoutColor}40`, color: checkoutColor }}>
+              <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Seguro
+            </div>
+          </div>
+
+          <button
+            className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-xl text-sm font-bold text-white shadow-[0_6px_20px_-8px_rgba(0,0,0,0.3)] transition"
+            style={{ backgroundColor: checkoutColor }}
+            type="button"
+          >
+            {checkoutCtaLabel || "Comprar agora"}
+          </button>
+
+          {checkoutGuaranteeText ? (
+            <div className="mt-3 flex items-center gap-2 rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2">
+              <svg className="h-4 w-4 shrink-0 text-zinc-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="text-xs text-zinc-500">{checkoutGuaranteeText}</span>
+            </div>
+          ) : null}
+
+          {(checkoutSupportText || supportEmail) && (
+            <p className="mt-3 text-center text-xs text-zinc-400">
+              {checkoutSupportText || `Suporte: ${supportEmail}`}
+            </p>
+          )}
+        </div>
+
+        {/* testimonials */}
+        {testimonials.some((t) => t.name.trim() || t.text.trim()) && (
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-400">O que dizem nossos clientes</p>
+            {testimonials.filter((t) => t.name.trim() || t.text.trim()).map((t, i) => (
+              <div className="rounded-xl border border-zinc-100 bg-white p-3" key={i}>
+                <p className="text-xs leading-5 text-zinc-600">&ldquo;{t.text || "…"}&rdquo;</p>
+                <div className="mt-2 flex items-center gap-2">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: checkoutColor }}>
+                    {t.name.charAt(0).toUpperCase() || "?"}
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-zinc-800">{t.name || "Cliente"}</p>
+                    {t.role && <p className="text-xs text-zinc-400">{t.role}</p>}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </>
   );

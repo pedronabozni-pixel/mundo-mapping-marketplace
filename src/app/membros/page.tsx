@@ -125,7 +125,7 @@ export default function MembrosLoginPage() {
           ))}
         </div>
 
-        <div className="mt-4 rounded-[24px] border border-zinc-200 bg-white p-8 shadow-[0_24px_80px_-54px_rgba(24,24,27,0.35)]">
+        <div className="mt-4 rounded-[24px] border border-zinc-200 bg-white p-5 shadow-[0_24px_80px_-54px_rgba(24,24,27,0.35)] sm:p-8">
           {error && (
             <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {error}

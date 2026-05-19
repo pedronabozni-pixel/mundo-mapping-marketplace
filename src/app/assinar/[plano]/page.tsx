@@ -379,7 +379,7 @@ export default function AssinarPage() {
           {/* Left: form */}
           <div>
             {step === "sucesso" ? (
-              <div className="flex flex-col items-center gap-6 rounded-[24px] border border-zinc-200 bg-white px-8 py-12 text-center shadow-sm">
+              <div className="flex flex-col items-center gap-6 rounded-[24px] border border-zinc-200 bg-white px-5 py-8 text-center shadow-sm sm:px-8 sm:py-12">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
                   <svg className="h-7 w-7 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                     <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
@@ -403,7 +403,7 @@ export default function AssinarPage() {
                 </button>
               </div>
             ) : step === "pix" && pixData ? (
-              <div className="rounded-[24px] border border-zinc-200 bg-white px-8 py-8 shadow-sm">
+              <div className="rounded-[24px] border border-zinc-200 bg-white px-5 py-6 shadow-sm sm:px-8 sm:py-8">
                 <h2 className="mb-6 text-lg font-semibold text-zinc-950">Pagamento via PIX</h2>
                 <PixPending
                   copied={copied}
@@ -418,7 +418,7 @@ export default function AssinarPage() {
             ) : (
               <div className="rounded-[24px] border border-zinc-200 bg-white shadow-sm">
                 {/* Step header */}
-                <div className="border-b border-zinc-100 px-8 py-6">
+                <div className="border-b border-zinc-100 px-5 py-5 sm:px-8 sm:py-6">
                   <div className="flex items-center gap-3">
                     <StepDot active={step === "dados"} done={step === "pagamento"} label="1" />
                     <div className="h-px flex-1 bg-zinc-200" />
@@ -432,7 +432,7 @@ export default function AssinarPage() {
                   </h2>
                 </div>
 
-                <div className="px-8 py-7">
+                <div className="px-5 py-5 sm:px-8 sm:py-7">
                   {error && (
                     <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                       {error}
