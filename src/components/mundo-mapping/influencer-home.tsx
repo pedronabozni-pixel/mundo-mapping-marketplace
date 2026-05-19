@@ -91,7 +91,7 @@ export function InfluencerHome() {
           Seu desempenho vem dos seus links. Cada produto aprovado libera um link próprio para vender.
         </h2>
         <p className="mt-4 max-w-2xl text-sm leading-7 text-white/80">
-          Aqui você acompanha cliques, vendas, comissão e materiais — separado do painel da empresa.
+          Aqui você acompanha cliques, vendas, comissão e materiais — separado do painel da empresa ou produtor.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
@@ -162,7 +162,7 @@ export function InfluencerHome() {
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                   <p className="text-xs uppercase tracking-[0.12em] text-zinc-400">Origem da venda</p>
                   <p className="mt-2 text-sm leading-6 text-zinc-700">
-                    A empresa cadastra o produto. A venda acontece pelo seu link de afiliado exclusivo.
+                    A empresa ou produtor cadastra o produto. A venda acontece pelo seu link de afiliado exclusivo.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
@@ -252,12 +252,12 @@ export function InfluencerMaterialsSection() {
           Ver produtos afiliados
         </Link>
       }
-      subtitle="Materiais liberados pela empresa para cada produto aprovado na sua operação."
+      subtitle="Materiais liberados pela empresa ou produtor para cada produto aprovado na sua operação."
       title="Biblioteca de materiais"
     >
       <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center">
         <p className="text-sm font-medium text-zinc-700">Nenhum material disponível ainda.</p>
-        <p className="mt-2 text-sm text-zinc-500">Quando uma empresa liberar materiais para os seus produtos afiliados, eles aparecerão aqui.</p>
+        <p className="mt-2 text-sm text-zinc-500">Quando a empresa ou produtor liberar materiais para os seus produtos afiliados, eles aparecerão aqui.</p>
       </div>
     </SectionCard>
   );

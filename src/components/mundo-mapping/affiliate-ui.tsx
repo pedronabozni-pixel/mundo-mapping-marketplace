@@ -425,7 +425,7 @@ export function AffiliateShell({
           <div className="mt-auto rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
             <p className="text-sm font-semibold">Modelo do módulo</p>
             <p className="mt-2 text-sm leading-6 text-white/58">
-              A empresa cadastra o produto. O influenciador afiliado recebe o próprio link para vender.
+              A empresa ou produtor cadastra o produto. O influenciador afiliado recebe o próprio link para vender.
             </p>
           </div>
         </aside>

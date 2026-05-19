@@ -7,7 +7,7 @@ import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners
 
 const NAV = [
   { href: "/mundo-mapping/admin", label: "Dashboard", exact: true },
-  { href: "/mundo-mapping/admin/empresas", label: "Empresas" },
+  { href: "/mundo-mapping/admin/empresas", label: "Empresas e Produtores" },
   { href: "/mundo-mapping/admin/influenciadores", label: "Influenciadores" },
   { href: "/mundo-mapping/admin/produtos", label: "Produtos" },
   { href: "/mundo-mapping/admin/saques", label: "Saques" },

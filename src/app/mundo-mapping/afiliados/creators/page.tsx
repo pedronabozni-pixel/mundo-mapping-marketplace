@@ -100,7 +100,7 @@ export default function CreatorsPage() {
       </div>
 
       <SectionCard
-        subtitle="Todos os creators que geraram links de afiliado para os produtos da sua empresa."
+        subtitle="Todos os creators que geraram links de afiliado para os produtos da sua conta."
         title="Creators afiliados"
       >
         {links.length === 0 ? (

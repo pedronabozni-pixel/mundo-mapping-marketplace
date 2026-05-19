@@ -95,8 +95,8 @@ export default function AdminEmpresasPage() {
   return (
     <div className="space-y-6 p-7">
       <div className="border-b border-zinc-800 pb-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">Admin / Empresas</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">Gestão de empresas</h1>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">Admin / Empresas e Produtores</p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">Gestão de empresas e produtores</h1>
       </div>
 
       {/* Filters */}
@@ -130,22 +130,22 @@ export default function AdminEmpresasPage() {
       </div>
 
       <AdminSection
-        subtitle={`${filtered.length} empresa${filtered.length !== 1 ? "s" : ""} encontrada${filtered.length !== 1 ? "s" : ""}`}
-        title="Empresas"
+        subtitle={`${filtered.length} conta${filtered.length !== 1 ? "s" : ""} encontrada${filtered.length !== 1 ? "s" : ""}`}
+        title="Empresas e Produtores"
       >
         {loading ? (
           <div className="space-y-3">
             {[...Array(6)].map((_, i) => <Skeleton className="h-12" key={i} />)}
           </div>
         ) : paginated.length === 0 ? (
-          <p className="py-8 text-center text-sm text-zinc-600">Nenhuma empresa encontrada.</p>
+          <p className="py-8 text-center text-sm text-zinc-600">Nenhuma conta encontrada.</p>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-zinc-800 text-left text-xs font-semibold uppercase tracking-[0.1em] text-zinc-600">
-                    <th className="pb-3">Empresa</th>
+                    <th className="pb-3">Empresa / Produtor</th>
                     <th className="pb-3">Plano</th>
                     <th className="pb-3">Status</th>
                     <th className="pb-3">Cadastro</th>

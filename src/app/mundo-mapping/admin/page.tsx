@@ -112,7 +112,7 @@ export default function AdminDashboard() {
       {/* KPIs */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <AdminCard
-          label="Empresas cadastradas"
+          label="Empresas e produtores"
           loading={loading}
           sub="Usuários com tipo empresa"
           value={stats ? String(stats.totalEmpresas) : "0"}

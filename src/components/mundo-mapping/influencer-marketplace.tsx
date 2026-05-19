@@ -70,7 +70,7 @@ export function InfluencerMarketplace() {
     <div className="space-y-6 p-6">
       <SectionCard
         action={<StatusBadge label={`${visibleProducts.length} produtos disponíveis`} tone="success" />}
-        subtitle="Todos os produtos publicados por todas as empresas e abertos para afiliação aparecem aqui para o influenciador solicitar entrada."
+        subtitle="Todos os produtos publicados por empresas e produtores e abertos para afiliação aparecem aqui para o influenciador solicitar entrada."
         title="Marketplace de afiliação"
       >
         <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -148,7 +148,7 @@ export function InfluencerMarketplace() {
                     <p>
                       {product.approvalMode === "automatic"
                         ? "Ao solicitar afiliação, a entrada pode ser aprovada automaticamente e o seu link é gerado na hora."
-                        : "Ao solicitar afiliação, a empresa revisa o perfil antes de liberar o seu link de venda."}
+                        : "Ao solicitar afiliação, a empresa ou produtor revisa o perfil antes de liberar o seu link de venda."}
                     </p>
                     <p className="mt-2">Regiões elegíveis: {product.allowedRegions}. {product.requireSocialProof ? "Exige creator com histórico validado." : "Aberto para creators elegíveis da base validada."}</p>
                   </div>

@@ -34,13 +34,13 @@ export function ProductListPage() {
             </Link>
           )
         }
-        description="Todos os produtos cadastrados pela sua empresa. Clique em um produto para acessar o hub completo."
+        description="Todos os produtos cadastrados pela sua conta. Clique em um produto para acessar o hub completo."
         eyebrow="Mundo Mapping / Afiliados / Produtos"
         title="Meus produtos"
       />
 
       <div className="p-6">
-        <SectionCard subtitle="Catálogo completo da empresa com links diretos para cada hub de produto." title="Produtos cadastrados">
+        <SectionCard subtitle="Catálogo completo da sua conta com links diretos para cada hub de produto." title="Produtos cadastrados">
           {!ready ? (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {[0, 1, 2, 3, 4, 5].map((i) => (

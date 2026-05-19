@@ -81,14 +81,14 @@ export function ProductDashboard() {
             )}
           </>
         }
-        description="Leitura executiva do catálogo cadastrado pela empresa, com foco em produto, afiliação e vendas geradas pelos links dos influenciadores."
-        eyebrow="Mundo Mapping / Afiliados / Dashboard empresa"
+        description="Leitura executiva do catálogo cadastrado pela sua conta, com foco em produto, afiliação e vendas geradas pelos links dos influenciadores."
+        eyebrow="Mundo Mapping / Afiliados / Dashboard"
         title="Cockpit de produtos"
       />
 
       <div className="space-y-6 p-6">
         <div className="grid gap-4 md:grid-cols-4">
-          <MetricCard emphasis label="Produtos ativos" meta="Publicados pela empresa" value={`${publishedCount}`} />
+          <MetricCard emphasis label="Produtos ativos" meta="Publicados pela sua conta" value={`${publishedCount}`} />
           <MetricCard label="Creators afiliados" meta="Com link ativo para seus produtos" value={affiliatesLabel} />
           <MetricCard label="Produtos no shopping" meta="Visíveis para afiliação" value={`${shoppingCount}`} />
           <MetricCard label="Comissão gerada" meta="Total histórico para creators" value={comissaoLabel} />
@@ -96,7 +96,7 @@ export function ProductDashboard() {
 
         <div className="grid gap-6 xl:grid-cols-[1.45fr_0.8fr]">
           {/* Products list */}
-          <SectionCard subtitle="Visão objetiva do catálogo criado pela empresa." title="Produtos cadastrados">
+          <SectionCard subtitle="Visão objetiva do catálogo da sua conta." title="Produtos cadastrados">
             {!ready ? (
               <div className="grid gap-5 lg:grid-cols-2">
                 {[0, 1, 2, 3].map((i) => (
@@ -133,7 +133,7 @@ export function ProductDashboard() {
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                 <p className="text-xs uppercase tracking-[0.12em] text-zinc-400">Modelo comercial</p>
                 <p className="mt-2 text-sm leading-6 text-zinc-700">
-                  A empresa cadastra o produto. O link de venda pertence ao influenciador afiliado. Cada clique é rastreado pelo código único do creator.
+                  A empresa ou produtor cadastra o produto. O link de venda pertence ao influenciador afiliado. Cada clique é rastreado pelo código único do creator.
                 </p>
               </div>
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">

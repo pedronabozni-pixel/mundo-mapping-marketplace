@@ -474,7 +474,7 @@ function HowItWorks() {
                   <IconBuilding />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-widest text-red-500/60">Para empresa</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-red-500/60">Para empresas e produtores</p>
                   <p className="font-semibold text-white">Anuncie no modelo de performance</p>
                 </div>
               </div>
@@ -653,7 +653,7 @@ function ForWhom() {
           <FadeUp delay={0.1}>
             <div className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.03] p-8">
               <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 rounded-full bg-red-600/5 blur-3xl" />
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-500/60">Empresas</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-500/60">Empresas e Produtores</p>
               <h3 className="mt-2 text-xl font-semibold text-white">Qualquer negócio que vende online</h3>
               <p className="mt-2 text-sm leading-6 text-white/45">
                 Ideal para quem quer escalar vendas com marketing de performance puro.
@@ -679,7 +679,7 @@ function ForWhom() {
                 className="btn-shimmer mt-8 inline-flex h-10 items-center rounded-xl bg-red-600/90 px-5 text-sm font-semibold text-white transition hover:bg-red-600"
                 href="/mundo-mapping/empresa/login"
               >
-                Cadastrar empresa →
+                Cadastrar →
               </Link>
             </div>
           </FadeUp>
