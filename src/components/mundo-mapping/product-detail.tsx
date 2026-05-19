@@ -8,7 +8,7 @@ import { DataTable, MiniStat, PageHeader, SectionCard, StatusBadge } from "@/com
 import { ProductRecord, useProductStore } from "@/components/mundo-mapping/product-store";
 import { CuponsTab } from "@/components/mundo-mapping/cupons-tab";
 
-const tabs = ["Visão geral", "Criativos", "Checkout", "Cupons", "Configurações"];
+const tabs = ["Visão geral", "Criativos", "Cupons", "Configurações"];
 
 // ─── Afiliados reais do Supabase ──────────────────────────────────────────────
 
@@ -74,20 +74,20 @@ function AfiliadosAtivos({ productId }: { productId: string }) {
 
 export function ProductDetail({ product }: { product: ProductRecord }) {
   const router = useRouter();
-  const { products, setProductStatus, updateProduct, deleteProduct } = useProductStore();
+  const { products, setProductStatus, deleteProduct } = useProductStore();
   const [activeTab, setActiveTab] = useState("Visão geral");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
-  const [checkoutDraft, setCheckoutDraft] = useState({
-    checkoutColor: product.checkoutColor,
-    checkoutHeadline: product.checkoutHeadline,
-    checkoutSubheadline: product.checkoutSubheadline,
-    checkoutCtaLabel: product.checkoutCtaLabel,
-    checkoutGuaranteeText: product.checkoutGuaranteeText,
-    checkoutSupportText: product.checkoutSupportText,
-    checkoutHighlights: product.checkoutHighlights
-  });
-  const [checkoutFeedback, setCheckoutFeedback] = useState<string | null>(null);
+
+  const isCheckoutDefault = useMemo(() =>
+    product.checkoutColor === "#dc2626" &&
+    product.checkoutBgColor === "#ffffff" &&
+    (product.checkoutCtaLabel === "Comprar agora" || !product.checkoutCtaLabel.trim()) &&
+    !product.checkoutHeadline.trim() &&
+    !product.checkoutSubheadline.trim() &&
+    !product.checkoutHighlights.trim() &&
+    product.checkoutTestimonials.length === 0,
+  [product]);
 
   const commissionLabel = useMemo(() => {
     if (product.commissionType === "percent") {
@@ -97,21 +97,6 @@ export function ProductDetail({ product }: { product: ProductRecord }) {
   }, [product.commissionType, product.commissionValue]);
 
   const statusTone = product.status === "published" ? "success" : product.status === "paused" ? "red" : "warning";
-
-  async function saveCheckout() {
-    setCheckoutFeedback("Salvando…");
-    const updated = await updateProduct(product.slug, {
-      ...product,
-      ...checkoutDraft
-    });
-
-    if (!updated) {
-      setCheckoutFeedback("Não foi possível salvar o checkout.");
-      return;
-    }
-
-    setCheckoutFeedback("Checkout atualizado com sucesso.");
-  }
 
   return (
     <>
@@ -141,6 +126,9 @@ export function ProductDetail({ product }: { product: ProductRecord }) {
             </button>
             <Link className="inline-flex h-11 items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700" href={`/mundo-mapping/afiliados/produtos/${product.slug}/editar`}>
               Editar produto
+            </Link>
+            <Link className="inline-flex h-11 items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700" href={`/mundo-mapping/afiliados/produtos/${product.slug}/checkout`}>
+              Editar checkout
             </Link>
             <Link className="inline-flex h-11 items-center justify-center rounded-xl border border-violet-200 bg-violet-50 px-4 text-sm font-semibold text-violet-700 transition hover:bg-violet-100" href={`/mundo-mapping/afiliados/produtos/${product.slug}/membros`}>
               Área de membros
@@ -221,13 +209,13 @@ export function ProductDetail({ product }: { product: ProductRecord }) {
                   <div className="rounded-2xl border border-zinc-200 p-4">
                     <p className="text-sm font-medium text-zinc-500">Elegibilidade mínima</p>
                     <p className="mt-3 text-sm leading-6 text-zinc-700">
-                      Score mínimo {product.minimumCreatorScore}, a partir de {product.minimumFollowers.toLocaleString("pt-BR")} seguidores e regiões: {product.allowedRegions}.
+                      A partir de {product.minimumFollowers.toLocaleString("pt-BR")} seguidores. Regiões elegíveis: {product.allowedRegions}.
                     </p>
                   </div>
                   <div className="rounded-2xl border border-zinc-200 p-4">
                     <p className="text-sm font-medium text-zinc-500">Regras operacionais</p>
                     <p className="mt-3 text-sm leading-6 text-zinc-700">
-                      {product.couponEnabled ? "Cupom habilitado." : "Cupom desabilitado."} {product.whitelistOnly ? "Afiliação restrita a whitelist." : "Afiliação aberta para creators elegíveis."}
+                      {product.couponEnabled ? "Cupom habilitado." : "Cupom desabilitado."} Afiliação aberta para creators elegíveis.
                     </p>
                   </div>
                 </div>
@@ -236,126 +224,6 @@ export function ProductDetail({ product }: { product: ProductRecord }) {
                 <div className="rounded-2xl border border-zinc-200 p-4">
                   <p className="text-sm font-medium text-zinc-500">Materiais de divulgação</p>
                   <p className="mt-3 text-sm leading-6 text-zinc-700">{product.materialsSummary || "Sem materiais informados."}</p>
-                </div>
-              ) : null}
-              {activeTab === "Checkout" ? (
-                <div className="space-y-4">
-                  {checkoutFeedback ? (
-                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{checkoutFeedback}</div>
-                  ) : null}
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-zinc-700">Cor principal</span>
-                      <input
-                        className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 outline-none transition focus:border-red-300 focus:ring-4 focus:ring-red-50"
-                        onChange={(event) => setCheckoutDraft((current) => ({ ...current, checkoutColor: event.target.value }))}
-                        value={checkoutDraft.checkoutColor}
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-zinc-700">Texto do CTA</span>
-                      <input
-                        className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 outline-none transition focus:border-red-300 focus:ring-4 focus:ring-red-50"
-                        onChange={(event) => setCheckoutDraft((current) => ({ ...current, checkoutCtaLabel: event.target.value }))}
-                        value={checkoutDraft.checkoutCtaLabel}
-                      />
-                    </label>
-                    <label className="block md:col-span-2">
-                      <span className="mb-2 block text-sm font-medium text-zinc-700">Headline</span>
-                      <input
-                        className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 outline-none transition focus:border-red-300 focus:ring-4 focus:ring-red-50"
-                        onChange={(event) => setCheckoutDraft((current) => ({ ...current, checkoutHeadline: event.target.value }))}
-                        value={checkoutDraft.checkoutHeadline}
-                      />
-                    </label>
-                    <label className="block md:col-span-2">
-                      <span className="mb-2 block text-sm font-medium text-zinc-700">Subheadline</span>
-                      <textarea
-                        className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 outline-none transition focus:border-red-300 focus:ring-4 focus:ring-red-50"
-                        onChange={(event) => setCheckoutDraft((current) => ({ ...current, checkoutSubheadline: event.target.value }))}
-                        rows={3}
-                        value={checkoutDraft.checkoutSubheadline}
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-zinc-700">Texto de garantia</span>
-                      <input
-                        className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 outline-none transition focus:border-red-300 focus:ring-4 focus:ring-red-50"
-                        onChange={(event) => setCheckoutDraft((current) => ({ ...current, checkoutGuaranteeText: event.target.value }))}
-                        value={checkoutDraft.checkoutGuaranteeText}
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-zinc-700">Texto de suporte</span>
-                      <input
-                        className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 outline-none transition focus:border-red-300 focus:ring-4 focus:ring-red-50"
-                        onChange={(event) => setCheckoutDraft((current) => ({ ...current, checkoutSupportText: event.target.value }))}
-                        value={checkoutDraft.checkoutSupportText}
-                      />
-                    </label>
-                    <label className="block md:col-span-2">
-                      <span className="mb-2 block text-sm font-medium text-zinc-700">Highlights</span>
-                      <textarea
-                        className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 outline-none transition focus:border-red-300 focus:ring-4 focus:ring-red-50"
-                        onChange={(event) => setCheckoutDraft((current) => ({ ...current, checkoutHighlights: event.target.value }))}
-                        rows={4}
-                        value={checkoutDraft.checkoutHighlights}
-                      />
-                    </label>
-                  </div>
-                  <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-                    <p className="text-sm font-medium text-zinc-500">Preview do checkout</p>
-                    <div className="mt-4 overflow-hidden rounded-[20px] border border-zinc-200 bg-white">
-                      <div className="p-5" style={{ backgroundColor: `${checkoutDraft.checkoutColor}12` }}>
-                        <div className="h-2 w-24 rounded-full" style={{ backgroundColor: checkoutDraft.checkoutColor }} />
-                        <h4 className="mt-4 text-2xl font-semibold text-zinc-950">
-                          {checkoutDraft.checkoutHeadline || "Headline principal do checkout"}
-                        </h4>
-                        <p className="mt-2 text-sm leading-6 text-zinc-600">
-                          {checkoutDraft.checkoutSubheadline || "Subheadline do checkout para contexto e conversão."}
-                        </p>
-                      </div>
-                      <div className="grid gap-5 p-5 lg:grid-cols-[1fr_280px]">
-                        <ul className="space-y-3 text-sm text-zinc-700">
-                          {(checkoutDraft.checkoutHighlights || "Benefício 1\nBenefício 2\nBenefício 3")
-                            .split("\n")
-                            .filter(Boolean)
-                            .map((item) => (
-                              <li className="flex items-start gap-3" key={item}>
-                                <span className="mt-1 h-2 w-2 rounded-full" style={{ backgroundColor: checkoutDraft.checkoutColor }} />
-                                <span>{item}</span>
-                              </li>
-                            ))}
-                        </ul>
-                        <div className="rounded-2xl border border-zinc-200 p-4">
-                          <p className="text-sm text-zinc-500">Valor</p>
-                          <p className="mt-2 text-3xl font-semibold text-zinc-950">R$ {product.price.toFixed(2)}</p>
-                          <button
-                            className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-semibold text-white"
-                            style={{ backgroundColor: checkoutDraft.checkoutColor }}
-                            type="button"
-                          >
-                            {checkoutDraft.checkoutCtaLabel || "Comprar agora"}
-                          </button>
-                          <p className="mt-3 text-sm leading-6 text-zinc-600">
-                            {checkoutDraft.checkoutGuaranteeText || "Texto de garantia"}
-                          </p>
-                          <p className="mt-2 text-sm leading-6 text-zinc-500">
-                            {checkoutDraft.checkoutSupportText || "Texto de suporte"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex justify-end">
-                    <button
-                      className="inline-flex h-11 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-semibold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)]"
-                      onClick={saveCheckout}
-                      type="button"
-                    >
-                      Salvar checkout
-                    </button>
-                  </div>
                 </div>
               ) : null}
               {activeTab === "Cupons" ? (
@@ -378,28 +246,56 @@ export function ProductDetail({ product }: { product: ProductRecord }) {
           </div>
         </SectionCard>
 
-        <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
-          <SectionCard subtitle="Cada afiliado aprovado recebe o próprio link e gera resultados independentes neste produto." title="Afiliados ativos">
-            <AfiliadosAtivos productId={product.id} />
-          </SectionCard>
+        <div className="grid gap-6 md:grid-cols-3">
+          <div className="md:col-span-2">
+            <SectionCard subtitle="Cada afiliado aprovado recebe o próprio link e gera resultados independentes neste produto." title="Afiliados ativos">
+              <AfiliadosAtivos productId={product.id} />
+            </SectionCard>
+          </div>
 
-          <SectionCard subtitle="Apenas as duas ações principais do produto." title="Ações">
-            <div className="space-y-3">
-              <Link className="block rounded-2xl border border-zinc-200 px-4 py-4 text-sm font-semibold text-zinc-700" href={`/mundo-mapping/afiliados/produtos/${product.slug}/editar`}>
-                Editar dados do produto
-              </Link>
-              <button
-                className="block w-full rounded-2xl border border-zinc-200 px-4 py-4 text-left text-sm font-semibold text-zinc-700"
-                onClick={() => {
-                  setProductStatus(product.slug, product.status === "published" ? "paused" : "published");
-                  router.refresh();
-                }}
-                type="button"
-              >
-                {product.status === "published" ? "Pausar produto" : "Publicar produto"}
-              </button>
-            </div>
-          </SectionCard>
+          <div className="space-y-6">
+            <SectionCard subtitle="Personalização visual da página de compra." title="Checkout">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-lg border border-zinc-200" style={{ backgroundColor: product.checkoutColor }} title="Cor principal" />
+                    <div className="h-8 w-8 rounded-lg border border-zinc-200" style={{ backgroundColor: product.checkoutBgColor }} title="Cor de fundo" />
+                  </div>
+                  <StatusBadge label={isCheckoutDefault ? "Padrão" : "Personalizado"} tone={isCheckoutDefault ? "neutral" : "success"} />
+                </div>
+                <div className="rounded-xl border border-zinc-100 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
+                  <p>CTA: <span className="font-medium text-zinc-800">{product.checkoutCtaLabel || "Comprar agora"}</span></p>
+                  {product.checkoutHeadline && (
+                    <p className="mt-1 truncate">Headline: <span className="font-medium text-zinc-800">{product.checkoutHeadline}</span></p>
+                  )}
+                </div>
+                <Link
+                  className="inline-flex h-10 w-full items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-semibold text-white shadow-[0_8px_24px_-10px_rgba(220,38,38,0.7)] transition hover:bg-red-700"
+                  href={`/mundo-mapping/afiliados/produtos/${product.slug}/checkout`}
+                >
+                  Editar checkout
+                </Link>
+              </div>
+            </SectionCard>
+
+            <SectionCard subtitle="Ações rápidas do produto." title="Ações">
+              <div className="space-y-3">
+                <Link className="block rounded-2xl border border-zinc-200 px-4 py-4 text-sm font-semibold text-zinc-700" href={`/mundo-mapping/afiliados/produtos/${product.slug}/editar`}>
+                  Editar dados do produto
+                </Link>
+                <button
+                  className="block w-full rounded-2xl border border-zinc-200 px-4 py-4 text-left text-sm font-semibold text-zinc-700"
+                  onClick={() => {
+                    setProductStatus(product.slug, product.status === "published" ? "paused" : "published");
+                    router.refresh();
+                  }}
+                  type="button"
+                >
+                  {product.status === "published" ? "Pausar produto" : "Publicar produto"}
+                </button>
+              </div>
+            </SectionCard>
+          </div>
         </div>
       </div>
 

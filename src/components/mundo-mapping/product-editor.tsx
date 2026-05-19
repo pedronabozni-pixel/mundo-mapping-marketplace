@@ -20,7 +20,7 @@ const steps = [
   "Precificação e comissão",
   "Segmentação de afiliados",
   "Materiais de divulgação",
-  "Checkout e branding",
+  "Link e distribuição",
   "Regras operacionais",
   "Revisão e publicação"
 ];
@@ -253,9 +253,9 @@ export function ProductEditor({
       { label: "Comissão definida", done: form.commissionValue > 0 },
       { label: "Janela de garantia válida", done: form.guaranteeDays >= 7 },
       { label: "Regras de atribuição definidas", done: Boolean(form.attributionModel) && form.attributionWindowDays > 0 },
-      { label: "Critérios de creator definidos", done: form.minimumCreatorScore > 0 && form.minimumFollowers >= 0 },
+      { label: "Critérios de creator definidos", done: form.minimumFollowers >= 2000 },
       { label: "Materiais ou capa informados", done: Boolean(form.materialsSummary.trim() || form.coverAssetUrl || form.coverAssetName) },
-      { label: "Checkout configurado", done: Boolean(form.checkoutHeadline.trim() && form.checkoutCtaLabel.trim()) }
+      { label: "URL do produto informada", done: Boolean(form.checkoutUrl.trim()) }
     ],
     [form]
   );
@@ -446,9 +446,6 @@ export function ProductEditor({
                   value={form.category}
                 />
               </Field>
-              <Field label="Email de suporte">
-                <Input onChange={(value) => patch("supportEmail", value)} placeholder="seu@email.com" type="email" value={form.supportEmail} />
-              </Field>
               <div className="md:col-span-2">
               <Field helper="Texto principal usado no detalhe do produto e no shopping." label="Descrição">
                 <Textarea onChange={(value) => patch("description", value)} rows={6} value={form.description} />
@@ -547,34 +544,11 @@ export function ProductEditor({
                   value={form.approvalMode}
                 />
               </Field>
-              <Field helper="Nota mínima do creator dentro da base validada da plataforma." label="Score mínimo do creator">
-                <Input onChange={(value) => patch("minimumCreatorScore", Number(value) || 0)} type="number" value={form.minimumCreatorScore} />
-              </Field>
-              <Field label="Seguidores mínimos">
-                <Input onChange={(value) => patch("minimumFollowers", Number(value) || 0)} type="number" value={form.minimumFollowers} />
+              <Field helper="Mínimo 2.000 seguidores — critério base da plataforma." label="Seguidores mínimos">
+                <Input min={2000} onChange={(value) => patch("minimumFollowers", Math.max(2000, Number(value) || 2000))} type="number" value={form.minimumFollowers} />
               </Field>
               <Field helper="Separar por país, estado, cidade ou regra comercial." label="Regiões elegíveis">
                 <Input onChange={(value) => patch("allowedRegions", value)} value={form.allowedRegions} />
-              </Field>
-              <Field label="Whitelist de creators">
-                <Select
-                  onChange={(value) => patch("whitelistOnly", value === "true")}
-                  options={[
-                    { label: "Aberto para a base elegível", value: "false" },
-                    { label: "Somente whitelist", value: "true" }
-                  ]}
-                  value={String(form.whitelistOnly)}
-                />
-              </Field>
-              <Field label="Exigir histórico validado">
-                <Select
-                  onChange={(value) => patch("requireSocialProof", value === "true")}
-                  options={[
-                    { label: "Não", value: "false" },
-                    { label: "Sim", value: "true" }
-                  ]}
-                  value={String(form.requireSocialProof)}
-                />
               </Field>
             </div>
           ) : null}
@@ -635,28 +609,6 @@ export function ProductEditor({
                     value={form.tipoEntregavel}
                   />
                 </Field>
-                <Field label="Cor principal do checkout">
-                  <div className="flex items-center gap-3">
-                    <input
-                      className="h-10 w-12 cursor-pointer rounded-lg border border-zinc-200 p-1"
-                      onChange={(e) => patch("checkoutColor", e.target.value)}
-                      type="color"
-                      value={form.checkoutColor}
-                    />
-                    <Input onChange={(value) => patch("checkoutColor", value)} value={form.checkoutColor} />
-                  </div>
-                </Field>
-                <Field label="Cor de fundo do checkout">
-                  <div className="flex items-center gap-3">
-                    <input
-                      className="h-10 w-12 cursor-pointer rounded-lg border border-zinc-200 p-1"
-                      onChange={(e) => patch("checkoutBgColor", e.target.value)}
-                      type="color"
-                      value={form.checkoutBgColor}
-                    />
-                    <Input onChange={(value) => patch("checkoutBgColor", value)} value={form.checkoutBgColor} />
-                  </div>
-                </Field>
                 <Field label="Mostrar no shopping de afiliados">
                   <Select
                     onChange={(value) => patch("visibleInShopping", value === "true")}
@@ -667,65 +619,10 @@ export function ProductEditor({
                     value={String(form.visibleInShopping)}
                   />
                 </Field>
-                <Field helper="Título principal da área hero do checkout." label="Headline">
-                  <Input onChange={(value) => patch("checkoutHeadline", value)} value={form.checkoutHeadline} />
-                </Field>
-                <Field helper="Texto de apoio abaixo da headline." label="Subheadline">
-                  <Input onChange={(value) => patch("checkoutSubheadline", value)} value={form.checkoutSubheadline} />
-                </Field>
-                <Field label="Texto do CTA principal">
-                  <Input onChange={(value) => patch("checkoutCtaLabel", value)} value={form.checkoutCtaLabel} />
-                </Field>
-                <Field label="Texto de garantia">
-                  <Input onChange={(value) => patch("checkoutGuaranteeText", value)} value={form.checkoutGuaranteeText} />
-                </Field>
-                <div className="md:col-span-2">
-                  <Field helper="Benefícios do checkout, um item por linha." label="Highlights do checkout">
-                    <Textarea onChange={(value) => patch("checkoutHighlights", value)} rows={5} value={form.checkoutHighlights} />
-                  </Field>
-                </div>
-                <div className="md:col-span-2">
-                  <Field helper="Texto exibido abaixo do CTA com suporte ou instruções finais." label="Texto de suporte">
-                    <Textarea onChange={(value) => patch("checkoutSupportText", value)} rows={4} value={form.checkoutSupportText} />
-                  </Field>
-                </div>
-                <div className="md:col-span-2">
-                  <Field helper="Mensagem exibida na página de obrigado após a compra." label="Mensagem pós-compra">
-                    <Textarea onChange={(value) => patch("checkoutThankyouMessage", value)} placeholder="Ex: Verifique seu e-mail para acessar o produto. Bem-vindo!" rows={3} value={form.checkoutThankyouMessage} />
-                  </Field>
-                </div>
-                <div className="md:col-span-2">
-                  <Field
-                    helper='Depoimentos em formato JSON. Ex: [{"name":"João","role":"Cliente","text":"Adorei!"}]'
-                    label="Depoimentos (JSON)"
-                  >
-                    <Textarea
-                      onChange={(value) => {
-                        try {
-                          const parsed = JSON.parse(value);
-                          patch("checkoutTestimonials", parsed);
-                        } catch {
-                          // allow invalid JSON while typing
-                        }
-                      }}
-                      placeholder='[{"name":"Nome","role":"Cargo ou cidade","text":"Depoimento aqui..."}]'
-                      rows={4}
-                      value={form.checkoutTestimonials.length > 0 ? JSON.stringify(form.checkoutTestimonials, null, 2) : ""}
-                    />
-                  </Field>
-                </div>
-                <div className="md:col-span-2">
-                  <AssetField
-                    fileName={form.checkoutBannerName}
-                    helper="Banner do checkout. Pode ser um link hospedado externamente ou um arquivo local."
-                    label="Banner do checkout"
-                    mode={form.checkoutBannerMode}
-                    onFileChange={(value) => patch("checkoutBannerName", value)}
-                    onModeChange={(value) => patch("checkoutBannerMode", value)}
-                    onUrlChange={(value) => patch("checkoutBannerUrl", value)}
-                    url={form.checkoutBannerUrl}
-                  />
-                </div>
+              </div>
+
+              <div className="rounded-2xl border border-zinc-100 bg-zinc-50 px-4 py-3 text-sm text-zinc-500">
+                A personalização visual do checkout (cores, headline, CTA, benefícios, depoimentos) é feita no <strong className="text-zinc-700">Hub do produto → Editar checkout</strong>.
               </div>
 
               {/* ── Order Bump ── */}
@@ -820,61 +717,6 @@ export function ProductEditor({
                 )}
               </div>
 
-              {/* ── Preview ── */}
-              <div className="rounded-[24px] border border-zinc-200 bg-zinc-50 p-5">
-                <div className="mb-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-zinc-900">Preview do checkout</p>
-                    <p className="mt-1 text-sm text-zinc-500">Edição completa com resposta visual imediata.</p>
-                  </div>
-                  <StatusBadge label="Preview" tone="neutral" />
-                </div>
-                <div className="overflow-hidden rounded-[24px] border border-zinc-200 bg-white">
-                  <div className="p-6" style={{ backgroundColor: `${form.checkoutColor}12` }}>
-                    <div className="h-2 w-28 rounded-full" style={{ backgroundColor: form.checkoutColor }} />
-                    <h3 className="mt-5 text-2xl font-semibold tracking-tight text-zinc-950">
-                      {form.checkoutHeadline || "Headline principal do checkout"}
-                    </h3>
-                    <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-600">
-                      {form.checkoutSubheadline || "Subheadline do checkout para reforcar seguranca, proposta de valor e conversao."}
-                      
-                    </p>
-                  </div>
-                  <div className="grid gap-6 p-6 lg:grid-cols-[1fr_320px]">
-                    <div className="rounded-2xl border border-zinc-200 p-5">
-                      <p className="text-sm font-semibold text-zinc-900">O que o comprador recebe</p>
-                      <ul className="mt-4 space-y-3 text-sm text-zinc-700">
-                        {(form.checkoutHighlights || "Acesso imediato\nAmbiente profissional\nGarantia e suporte")
-                          .split("\n")
-                          .filter(Boolean)
-                          .map((item) => (
-                            <li className="flex items-start gap-3" key={item}>
-                              <span className="mt-1 h-2 w-2 rounded-full" style={{ backgroundColor: form.checkoutColor }} />
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                      </ul>
-                    </div>
-                    <div className="rounded-2xl border border-zinc-200 p-5">
-                      <p className="text-sm text-zinc-500">Investimento</p>
-                      <p className="mt-2 text-3xl font-semibold text-zinc-950">R$ {form.price.toFixed(2)}</p>
-                      <button
-                        className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-xl px-4 text-sm font-semibold text-white"
-                        style={{ backgroundColor: form.checkoutColor }}
-                        type="button"
-                      >
-                        {form.checkoutCtaLabel || "Comprar agora"}
-                      </button>
-                      <p className="mt-4 text-sm leading-6 text-zinc-600">
-                        {form.checkoutGuaranteeText || "Texto de garantia ainda não informado."}
-                      </p>
-                      <p className="mt-3 text-sm leading-6 text-zinc-500">
-                        {form.checkoutSupportText || "Texto de suporte e instruções do checkout."}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           ) : null}
 
@@ -981,8 +823,7 @@ export function ProductEditor({
               <div className="rounded-2xl border border-zinc-200 p-4 text-sm leading-6 text-zinc-600">
                 <p><strong className="text-zinc-900">Descrição:</strong> {form.description || "Sem descrição informada."}</p>
                 <p className="mt-3"><strong className="text-zinc-900">Público:</strong> {form.audience || "Sem segmentação informada."}</p>
-                <p className="mt-3"><strong className="text-zinc-900">Score mínimo:</strong> {form.minimumCreatorScore}</p>
-                <p className="mt-3"><strong className="text-zinc-900">Seguidores mínimos:</strong> {form.minimumFollowers}</p>
+                <p className="mt-3"><strong className="text-zinc-900">Seguidores mínimos:</strong> {form.minimumFollowers.toLocaleString("pt-BR")}</p>
                 <p className="mt-3"><strong className="text-zinc-900">Modelo de atribuição:</strong> {form.attributionModel}</p>
                 <p className="mt-3"><strong className="text-zinc-900">Janela de atribuição:</strong> {form.attributionWindowDays} dias</p>
                 <p className="mt-3"><strong className="text-zinc-900">Base da comissão:</strong> {form.commissionBase}</p>
@@ -990,8 +831,7 @@ export function ProductEditor({
                 <p className="mt-3"><strong className="text-zinc-900">Materiais:</strong> {form.materialsSummary || "Sem materiais informados."}</p>
                 <p className="mt-3"><strong className="text-zinc-900">Capa:</strong> {form.coverAssetMode === "link" ? form.coverAssetUrl || "Sem link informado." : form.coverAssetName || "Sem arquivo informado."}</p>
                 <p className="mt-3"><strong className="text-zinc-900">Materiais promocionais:</strong> {form.promoAssetMode === "link" ? form.promoAssetUrl || "Sem link informado." : form.promoAssetName || "Sem arquivo informado."}</p>
-                <p className="mt-3"><strong className="text-zinc-900">Banner do checkout:</strong> {form.checkoutBannerMode === "link" ? form.checkoutBannerUrl || "Sem link informado." : form.checkoutBannerName || "Sem arquivo informado."}</p>
-                <p className="mt-3"><strong className="text-zinc-900">Headline checkout:</strong> {form.checkoutHeadline || "Sem headline configurada."}</p>
+                <p className="mt-3"><strong className="text-zinc-900">URL do produto:</strong> {form.checkoutUrl || "Não informada."}</p>
               </div>
               <div className="rounded-2xl border border-zinc-200 p-4">
                 <p className="text-sm font-semibold text-zinc-900">Checklist de prontidão</p>
