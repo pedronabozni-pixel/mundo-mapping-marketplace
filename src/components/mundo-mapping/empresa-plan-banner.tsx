@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useProductStore } from "@/components/mundo-mapping/product-store";
 import { createClient } from "@/lib/supabase/client";
 
@@ -69,8 +70,6 @@ export function UpgradeModal({
   currentPlan: Plan;
   onClose: () => void;
 }) {
-  const [info, setInfo] = useState<string | null>(null);
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/50 px-4 py-8"
@@ -91,12 +90,6 @@ export function UpgradeModal({
             ✕
           </button>
         </div>
-
-        {info && (
-          <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-            {info}
-          </div>
-        )}
 
         <div className="grid gap-4 lg:grid-cols-3">
           {plans.map((plan) => {
@@ -133,16 +126,14 @@ export function UpgradeModal({
                     </li>
                   ))}
                 </ul>
-                {!isCurrent && (
-                  <button
-                    className="mt-6 block w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 text-sm font-bold text-zinc-700 transition hover:bg-zinc-100"
-                    onClick={() =>
-                      setInfo("Em breve — entre em contato pelo WhatsApp para fazer upgrade.")
-                    }
-                    type="button"
+                {!isCurrent && plan.id !== "associate" && (
+                  <Link
+                    className="mt-6 block w-full rounded-xl bg-red-600 py-2.5 text-center text-sm font-bold text-white shadow-[0_8px_24px_-10px_rgba(220,38,38,0.7)] transition hover:bg-red-700"
+                    href={`/assinar/${plan.id}`}
+                    onClick={onClose}
                   >
-                    Fazer upgrade
-                  </button>
+                    Assinar agora
+                  </Link>
                 )}
               </div>
             );

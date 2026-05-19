@@ -82,6 +82,8 @@ export default function EmpresaPerfilPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -89,6 +91,9 @@ export default function EmpresaPerfilPage() {
   const [email, setEmail] = useState("");
   const [plan, setPlan] = useState<Plan>("associate");
   const [planStart, setPlanStart] = useState<string | null>(null);
+  const [planValidoAte, setPlanValidoAte] = useState<string | null>(null);
+  const [planStatus, setPlanStatus] = useState<string>("ativo");
+  const [hasSubscription, setHasSubscription] = useState(false);
   const [productCount, setProductCount] = useState(0);
   const [logoUrl, setLogoUrl] = useState("");
   const [form, setForm] = useState({
@@ -116,6 +121,9 @@ export default function EmpresaPerfilPage() {
       if (profile) {
         setPlan((profile.plano as Plan) ?? "associate");
         setPlanStart(profile.created_at ?? null);
+        setPlanValidoAte(profile.plano_valido_ate ?? null);
+        setPlanStatus(profile.plano_status ?? "ativo");
+        setHasSubscription(!!profile.asaas_subscription_id);
         setLogoUrl(profile.logo_url ?? "");
         setForm({
           company_name: profile.company_name ?? "",
@@ -172,6 +180,29 @@ export default function EmpresaPerfilPage() {
       setError(e instanceof Error ? e.message : "Erro no upload.");
     } finally {
       setUploadingLogo(false);
+    }
+  }
+
+  async function handleCancelSubscription() {
+    setCancelling(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/checkout/subscription/cancel", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setError(data.error ?? "Erro ao cancelar assinatura.");
+      } else {
+        setPlan("associate");
+        setHasSubscription(false);
+        setPlanValidoAte(null);
+        setPlanStatus("ativo");
+        setInfo("Assinatura cancelada. Seu plano foi revertido para Associate.");
+      }
+    } catch {
+      setError("Erro de conexão. Tente novamente.");
+    } finally {
+      setCancelling(false);
+      setConfirmCancel(false);
     }
   }
 
@@ -291,15 +322,28 @@ export default function EmpresaPerfilPage() {
         <SectionCard title="Plano atual" subtitle="Detalhes do seu plano e limites.">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="space-y-3">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <span className="inline-flex items-center rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-700 ring-1 ring-zinc-200">
                   Plano {PLAN_LABEL[plan]}
                 </span>
+                {planStatus === "inadimplente" && (
+                  <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700 ring-1 ring-red-200">
+                    Inadimplente
+                  </span>
+                )}
               </div>
               <p className="text-sm text-zinc-500">{PLAN_DESC[plan]}</p>
               <p className="text-sm text-zinc-500">
                 Ativo desde: <span className="font-medium text-zinc-700">{planStartFormatted}</span>
               </p>
+              {planValidoAte && (
+                <p className="text-sm text-zinc-500">
+                  Próxima cobrança:{" "}
+                  <span className="font-medium text-zinc-700">
+                    {new Date(planValidoAte).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
+                  </span>
+                </p>
+              )}
               <p className="text-sm text-zinc-500">
                 Produtos:{" "}
                 <span className="font-medium text-zinc-700">
@@ -309,17 +353,59 @@ export default function EmpresaPerfilPage() {
                 </span>
               </p>
             </div>
-            {plan !== "elite" && (
-              <button
-                className="inline-flex h-9 items-center justify-center rounded-xl bg-red-600 px-4 text-xs font-bold text-white shadow-[0_8px_24px_-10px_rgba(220,38,38,0.7)] transition hover:bg-red-700"
-                onClick={() => setModalOpen(true)}
-                type="button"
-              >
-                Fazer upgrade
-              </button>
-            )}
+            <div className="flex flex-wrap gap-2">
+              {plan !== "elite" && (
+                <button
+                  className="inline-flex h-9 items-center justify-center rounded-xl bg-red-600 px-4 text-xs font-bold text-white shadow-[0_8px_24px_-10px_rgba(220,38,38,0.7)] transition hover:bg-red-700"
+                  onClick={() => setModalOpen(true)}
+                  type="button"
+                >
+                  Fazer upgrade
+                </button>
+              )}
+              {hasSubscription && (
+                <button
+                  className="inline-flex h-9 items-center justify-center rounded-xl border border-red-200 px-4 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                  onClick={() => setConfirmCancel(true)}
+                  type="button"
+                >
+                  Cancelar assinatura
+                </button>
+              )}
+            </div>
           </div>
         </SectionCard>
+
+        {/* Cancel subscription confirm dialog */}
+        {confirmCancel && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/50 px-4">
+            <div className="w-full max-w-md rounded-[20px] border border-zinc-200 bg-white p-7 shadow-[0_40px_120px_-80px_rgba(15,23,42,0.4)]">
+              <h3 className="text-base font-semibold text-zinc-950">Cancelar assinatura</h3>
+              <p className="mt-2 text-sm text-zinc-600">
+                Tem certeza que deseja cancelar sua assinatura? Seu plano será revertido para{" "}
+                <strong>Associate (grátis)</strong> imediatamente.
+              </p>
+              <div className="mt-6 flex gap-3">
+                <button
+                  className="flex-1 rounded-xl border border-zinc-200 bg-white py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
+                  disabled={cancelling}
+                  onClick={() => setConfirmCancel(false)}
+                  type="button"
+                >
+                  Manter assinatura
+                </button>
+                <button
+                  className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-bold text-white transition hover:bg-red-700 disabled:opacity-60"
+                  disabled={cancelling}
+                  onClick={handleCancelSubscription}
+                  type="button"
+                >
+                  {cancelling ? "Cancelando…" : "Sim, cancelar"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Histórico de pagamentos */}
         <SectionCard title="Histórico de pagamentos" subtitle="Suas cobranças e faturas.">

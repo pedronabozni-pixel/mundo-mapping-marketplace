@@ -775,6 +775,7 @@ type Plan = {
   fee: string;
   highlight: boolean;
   cta: string;
+  href: string;
   features: PlanFeature[];
 };
 
@@ -838,7 +839,7 @@ function PlanCard({ plan, index }: { plan: Plan; index: number }) {
           ? "bg-red-600 text-white hover:bg-red-500 shadow-[0_0_30px_rgba(220,38,38,0.3)]"
           : "border border-white/[0.1] bg-white/[0.04] text-white/70 hover:border-white/20 hover:text-white"
         }`}
-        href="/mundo-mapping/empresa/login"
+        href={plan.href}
       >
         {plan.cta}
       </Link>
@@ -857,6 +858,7 @@ function Plans() {
       fee: "Taxa por venda: Asaas + 2%",
       highlight: false,
       cta: "Começar grátis",
+      href: "/mundo-mapping/empresa/login",
       features: [
         { text: "1 produto no marketplace", included: true },
         { text: "Acesso à base de +16k creators", included: true },
@@ -874,6 +876,7 @@ function Plans() {
       fee: "Taxa por venda: Asaas + R$0,99",
       highlight: true,
       cta: "Assinar agora",
+      href: "/assinar/partner",
       features: [
         { text: "Até 10 produtos no marketplace", included: true },
         { text: "Dashboard de performance completo", included: true },
@@ -891,6 +894,7 @@ function Plans() {
       fee: "Taxa por venda: Asaas + R$0,49",
       highlight: false,
       cta: "Assinar agora",
+      href: "/assinar/elite",
       features: [
         { text: "Tudo do Partner", included: true },
         { text: "Produtos ilimitados", included: true },

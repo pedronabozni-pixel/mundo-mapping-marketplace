@@ -251,3 +251,107 @@ export async function getPixQrCode(paymentId: string): Promise<AsaasPixQrCode> {
 export async function getPaymentStatus(paymentId: string): Promise<AsaasPayment> {
   return asaasReq<AsaasPayment>(`/payments/${encodeURIComponent(paymentId)}`);
 }
+
+// ─── Subscriptions ────────────────────────────────────────────────────────────
+
+export interface AsaasSubscription {
+  id: string;
+  customer: string;
+  billingType: string;
+  cycle: string;
+  value: number;
+  nextDueDate: string;
+  status: string;
+}
+
+/** Creates a monthly CREDIT_CARD subscription. */
+export async function createCardSubscription(data: {
+  customerId: string;
+  value: number;
+  nextDueDate: string;
+  description?: string;
+  creditCard: {
+    holderName: string;
+    number: string;
+    expiryMonth: string;
+    expiryYear: string;
+    ccv: string;
+  };
+  holderInfo: {
+    name: string;
+    email: string;
+    cpfCnpj: string;
+    mobilePhone?: string;
+    postalCode?: string;
+    addressNumber?: string;
+  };
+  remoteIp?: string;
+}): Promise<AsaasSubscription> {
+  return asaasReq<AsaasSubscription>("/subscriptions", {
+    method: "POST",
+    body: JSON.stringify({
+      customer: data.customerId,
+      billingType: "CREDIT_CARD",
+      cycle: "MONTHLY",
+      value: data.value,
+      nextDueDate: data.nextDueDate,
+      description: data.description ?? "Assinatura Mapping Partners",
+      ...(data.remoteIp ? { remoteIp: data.remoteIp } : {}),
+      creditCard: {
+        holderName: data.creditCard.holderName,
+        number: digitsOnly(data.creditCard.number),
+        expiryMonth: data.creditCard.expiryMonth,
+        expiryYear: data.creditCard.expiryYear,
+        ccv: data.creditCard.ccv,
+      },
+      creditCardHolderInfo: {
+        name: data.holderInfo.name,
+        email: data.holderInfo.email,
+        cpfCnpj: digitsOnly(data.holderInfo.cpfCnpj),
+        ...(data.holderInfo.mobilePhone ? { mobilePhone: digitsOnly(data.holderInfo.mobilePhone) } : {}),
+        ...(data.holderInfo.postalCode ? { postalCode: digitsOnly(data.holderInfo.postalCode) } : {}),
+        ...(data.holderInfo.addressNumber ? { addressNumber: data.holderInfo.addressNumber } : {}),
+      },
+    }),
+  });
+}
+
+/** Creates a monthly PIX subscription. */
+export async function createPixSubscription(data: {
+  customerId: string;
+  value: number;
+  nextDueDate: string;
+  description?: string;
+}): Promise<AsaasSubscription> {
+  return asaasReq<AsaasSubscription>("/subscriptions", {
+    method: "POST",
+    body: JSON.stringify({
+      customer: data.customerId,
+      billingType: "PIX",
+      cycle: "MONTHLY",
+      value: data.value,
+      nextDueDate: data.nextDueDate,
+      description: data.description ?? "Assinatura Mapping Partners",
+    }),
+  });
+}
+
+/** Returns the list of payments for a subscription. */
+export async function getSubscriptionPayments(subscriptionId: string): Promise<{ data: AsaasPayment[] }> {
+  return asaasReq<{ data: AsaasPayment[] }>(
+    `/subscriptions/${encodeURIComponent(subscriptionId)}/payments`
+  );
+}
+
+/** Returns a subscription by ID. */
+export async function getSubscription(subscriptionId: string): Promise<AsaasSubscription> {
+  return asaasReq<AsaasSubscription>(`/subscriptions/${encodeURIComponent(subscriptionId)}`);
+}
+
+/** Cancels (deletes) a subscription. */
+export async function cancelSubscription(subscriptionId: string): Promise<{ deleted: boolean }> {
+  return asaasReq<{ deleted: boolean }>(
+    `/subscriptions/${encodeURIComponent(subscriptionId)}`,
+    { method: "DELETE" }
+  );
+}

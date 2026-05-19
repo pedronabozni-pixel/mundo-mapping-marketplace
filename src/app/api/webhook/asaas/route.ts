@@ -11,6 +11,7 @@ type AsaasPayment = {
   netValue?: number;
   status: string;
   billingType: string;
+  subscription?: string;
 };
 
 type AsaasWebhookBody = {
@@ -38,6 +39,27 @@ export async function POST(req: Request) {
   console.log(`[webhook/asaas] ${event} — payment: ${payment?.id}`);
 
   try {
+    // Subscription payment events
+    if (payment?.subscription) {
+      switch (event) {
+        case "PAYMENT_CONFIRMED":
+        case "PAYMENT_RECEIVED":
+          await handleSubscriptionRenewed(payment);
+          break;
+        case "PAYMENT_OVERDUE":
+          await handleSubscriptionOverdue(payment);
+          break;
+        case "PAYMENT_DELETED":
+        case "PAYMENT_REFUNDED":
+          await handleSubscriptionCancelled(payment);
+          break;
+        default:
+          console.log(`[webhook/asaas] subscription event ignorado: ${event}`);
+      }
+      return Response.json({ received: true });
+    }
+
+    // One-off payment events
     switch (event) {
       case "PAYMENT_CONFIRMED":
       case "PAYMENT_RECEIVED":
@@ -173,6 +195,70 @@ async function grantDigitalAccess(supabase: any, pedido: { produto_id: string; e
       { onConflict: "produto_id,comprador_email" }
     );
   }
+}
+
+// ─── Subscription handlers ────────────────────────────────────────────────────
+
+async function handleSubscriptionRenewed(payment: AsaasPayment) {
+  const supabase = createAdminClient();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, plano")
+    .eq("asaas_subscription_id", payment.subscription)
+    .maybeSingle();
+
+  if (!profile) {
+    console.warn(`[webhook/asaas] profile não encontrado para subscription: ${payment.subscription}`);
+    return;
+  }
+
+  const validoAte = new Date();
+  validoAte.setMonth(validoAte.getMonth() + 1);
+
+  await supabase.from("profiles").update({
+    plano_valido_ate: validoAte.toISOString(),
+    plano_status: "ativo",
+  }).eq("id", profile.id);
+
+  console.log(`[webhook/asaas] assinatura renovada para profile ${profile.id}`);
+}
+
+async function handleSubscriptionOverdue(payment: AsaasPayment) {
+  const supabase = createAdminClient();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("asaas_subscription_id", payment.subscription)
+    .maybeSingle();
+
+  if (!profile) return;
+
+  await supabase.from("profiles").update({ plano_status: "inadimplente" }).eq("id", profile.id);
+
+  console.log(`[webhook/asaas] assinatura inadimplente para profile ${profile.id}`);
+}
+
+async function handleSubscriptionCancelled(payment: AsaasPayment) {
+  const supabase = createAdminClient();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("asaas_subscription_id", payment.subscription)
+    .maybeSingle();
+
+  if (!profile) return;
+
+  await supabase.from("profiles").update({
+    plano: "associate",
+    asaas_subscription_id: null,
+    plano_valido_ate: null,
+    plano_status: "ativo",
+  }).eq("id", profile.id);
+
+  console.log(`[webhook/asaas] assinatura cancelada para profile ${profile.id}`);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
