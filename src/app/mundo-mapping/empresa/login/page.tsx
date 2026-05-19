@@ -119,6 +119,7 @@ export default function EmpresaLoginPage() {
         options: {
           data: {
             user_type: "empresa",
+            full_name: fd.get("company_name") as string,
             company_name: fd.get("company_name") as string,
             cpf_cnpj: cpfCnpj,
           },
