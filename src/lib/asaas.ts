@@ -1,9 +1,13 @@
-const BASE_URL =
-  process.env.ASAAS_ENVIRONMENT === "production"
-    ? "https://api.asaas.com/api/v3"
-    : "https://sandbox.asaas.com/api/v3";
-
-const API_KEY = process.env.ASAAS_API_KEY ?? "";
+// Read at call time, not at module load — avoids stale values in serverless/cold-start environments.
+function getAsaasConfig() {
+  return {
+    apiKey: process.env.ASAAS_API_KEY ?? "",
+    baseUrl:
+      process.env.ASAAS_ENVIRONMENT === "production"
+        ? "https://api.asaas.com/api/v3"
+        : "https://sandbox.asaas.com/api/v3",
+  };
+}
 
 // ─── Error class ──────────────────────────────────────────────────────────────
 
@@ -46,19 +50,46 @@ export interface AsaasPixQrCode {
 // ─── Internal request helper ──────────────────────────────────────────────────
 
 async function asaasReq<T>(path: string, options: RequestInit = {}): Promise<T> {
-  if (!API_KEY) {
-    throw new AsaasError("ASAAS_API_KEY não configurada no servidor.", "missing_api_key", 500);
-  }
-  const res = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      access_token: API_KEY,
-      ...(options.headers ?? {}),
-    },
-  });
+  const { apiKey, baseUrl } = getAsaasConfig();
 
-  const data = (await res.json()) as T & { errors?: Array<{ code: string; description: string }> };
+  if (!apiKey) {
+    throw new AsaasError(
+      "Chave da API de pagamento não configurada no servidor. Contate o suporte.",
+      "missing_api_key",
+      500,
+    );
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(`${baseUrl}${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        access_token: apiKey,
+        ...(options.headers ?? {}),
+      },
+    });
+  } catch (networkErr) {
+    const msg =
+      networkErr instanceof Error ? networkErr.message : String(networkErr);
+    throw new AsaasError(
+      `Não foi possível conectar ao gateway de pagamento: ${msg}`,
+      "network_error",
+      503,
+    );
+  }
+
+  let data: T & { errors?: Array<{ code: string; description: string }> };
+  try {
+    data = (await res.json()) as typeof data;
+  } catch {
+    throw new AsaasError(
+      `Resposta inválida do gateway de pagamento (HTTP ${res.status}).`,
+      "invalid_response",
+      502,
+    );
+  }
 
   if (!res.ok) {
     const firstErr = data.errors?.[0];

@@ -278,6 +278,8 @@ export default function AssinarPage() {
   }
 
   async function handlePayment() {
+    // Guard: should never be reachable outside the pagamento step
+    if (step !== "pagamento") return;
     setError(null);
     setSubmitting(true);
 

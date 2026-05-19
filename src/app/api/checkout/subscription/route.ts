@@ -57,6 +57,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Nome, e-mail e CPF/CNPJ são obrigatórios." }, { status: 400 });
   }
 
+  // Fail fast if the payment gateway key is not configured, before touching the DB
+  if (!process.env.ASAAS_API_KEY) {
+    console.error("[subscription] ASAAS_API_KEY não está configurada no ambiente");
+    return NextResponse.json(
+      { error: "Gateway de pagamento não configurado. Contate o suporte." },
+      { status: 500 }
+    );
+  }
+
   // Detect logged-in user via session cookie
   const cookieStore = await cookies();
   const supabaseSession = createServerClient(
@@ -100,13 +109,17 @@ export async function POST(req: NextRequest) {
     }, { onConflict: "id" });
   }
 
-  // Find or create Asaas customer
+  // Find or create Asaas customer — only runs here, never before payment submit
   let customer;
   try {
     customer = await findOrCreateCustomer({ name: nome, email, cpfCnpj });
   } catch (e) {
-    const msg = e instanceof AsaasError ? e.message : "Erro ao criar cliente no gateway de pagamento.";
-    return NextResponse.json({ error: msg }, { status: 400 });
+    console.error("[subscription] erro ao criar cliente Asaas:", e);
+    const msg = e instanceof AsaasError
+      ? e.message
+      : "Erro inesperado ao conectar com o gateway de pagamento.";
+    const status = e instanceof AsaasError && e.httpStatus >= 500 ? 502 : 400;
+    return NextResponse.json({ error: msg }, { status });
   }
 
   const remoteIp =
@@ -130,10 +143,10 @@ export async function POST(req: NextRequest) {
         remoteIp,
       });
     } catch (e) {
-      if (e instanceof AsaasError) {
-        return NextResponse.json({ error: e.message, code: e.code }, { status: 400 });
-      }
-      return NextResponse.json({ error: "Erro ao processar cartão." }, { status: 400 });
+      console.error("[subscription] erro ao criar assinatura cartão:", e);
+      const msg = e instanceof AsaasError ? e.message : "Erro ao processar cartão.";
+      const code = e instanceof AsaasError ? e.code : undefined;
+      return NextResponse.json({ error: msg, ...(code ? { code } : {}) }, { status: 400 });
     }
 
     const validoAte = new Date();
@@ -160,10 +173,9 @@ export async function POST(req: NextRequest) {
       description: PLAN_NAMES[plano],
     });
   } catch (e) {
-    if (e instanceof AsaasError) {
-      return NextResponse.json({ error: e.message }, { status: 400 });
-    }
-    return NextResponse.json({ error: "Erro ao criar cobrança PIX." }, { status: 400 });
+    console.error("[subscription] erro ao criar assinatura PIX:", e);
+    const msg = e instanceof AsaasError ? e.message : "Erro ao criar cobrança PIX.";
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
 
   // Save pending subscription
