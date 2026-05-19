@@ -12,7 +12,6 @@ export const affiliateNavLinks: NavLink[] = [
   { href: "/mundo-mapping/afiliados/produtos/novo", label: "Novo produto" },
   { href: "/mundo-mapping/afiliados/produtos", label: "Meus produtos" },
   { href: "/mundo-mapping/afiliados/solicitacoes", label: "Solicitações" },
-  { href: "/mundo-mapping/afiliados/shopping", label: "Shopping" },
   { href: "/mundo-mapping/afiliados/creators", label: "Creators" },
   { href: "/mundo-mapping/afiliados/financeiro", label: "Financeiro" },
   { href: "/mundo-mapping/afiliados/relatorio", label: "Relatório" },
