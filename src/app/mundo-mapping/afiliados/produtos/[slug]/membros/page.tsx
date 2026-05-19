@@ -13,7 +13,7 @@ export default async function ProdutoMembrosPage({ params }: Props) {
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/mundo-mapping/login");
+  if (!user) redirect("/mundo-mapping/empresa/login");
 
   const { data: produto } = await supabase
     .from("produtos")

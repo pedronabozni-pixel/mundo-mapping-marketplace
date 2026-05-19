@@ -156,22 +156,27 @@ export default function RelatorioPage() {
     const supabase = createClient();
     const from = since();
 
-    const [{ data: clicks }, { data: vendas }] = await Promise.all([
-      supabase.from("clicks").select("*").eq("empresa_id", uid).gte("criado_em", from),
+    // clicks come from links_afiliados.cliques (aggregate totals, no per-event table)
+    const [{ data: links }, { data: vendas }] = await Promise.all([
+      supabase.from("links_afiliados").select("id, creator_id, produto_id, produto_nome, cliques").eq("empresa_id", uid).eq("ativo", true),
       supabase.from("vendas").select("*").eq("empresa_id", uid).gte("criado_em", from),
     ]);
 
-    const c = clicks ?? [];
+    const l = links ?? [];
     const v = vendas ?? [];
 
-    const totalClicks = c.length;
+    const totalClicks = l.reduce((s, r) => s + ((r.cliques as number) ?? 0), 0);
     const totalVendas = v.length;
     const totalComissao = v.reduce((s: number, r: Record<string, number>) => s + (r.comissao_creator ?? 0), 0);
-    const activeCreators = new Set([...c.map((r: Record<string, string>) => r.creator_id), ...v.map((r: Record<string, string>) => r.creator_id)].filter(Boolean)).size;
+    const creatorIds = new Set([
+      ...l.map((r) => r.creator_id as string),
+      ...v.map((r: Record<string, string>) => r.creator_id),
+    ].filter(Boolean));
+    const activeCreators = creatorIds.size;
 
     setMetrics({ totalClicks, totalVendas, totalComissao, activeCreators });
 
-    // Build timeline grouped by day
+    // Timeline grouped by day — vendas have timestamps; clicks are aggregate totals only
     const days = parseInt(period);
     const pointMap: Record<string, TimelinePoint> = {};
     for (let i = days; i >= 0; i--) {
@@ -179,49 +184,57 @@ export default function RelatorioPage() {
       const key = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
       pointMap[key] = { date: key, clicks: 0, vendas: 0 };
     }
-    c.forEach((r: Record<string, string>) => {
-      const key = new Date(r.criado_em).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
-      if (pointMap[key]) pointMap[key].clicks++;
-    });
     v.forEach((r: Record<string, string>) => {
       const key = new Date(r.criado_em).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
       if (pointMap[key]) pointMap[key].vendas++;
     });
     setTimeline(Object.values(pointMap));
 
-    // Creators table
+    // Creators table — clicks from links_afiliados, sales from vendas
     const creatorMap: Record<string, CreatorRow> = {};
-    c.forEach((r: Record<string, string>) => {
-      if (!r.creator_id) return;
-      if (!creatorMap[r.creator_id]) creatorMap[r.creator_id] = { creator_id: r.creator_id, name: r.creator_id.slice(0, 8), produto: r.produto_id ?? "—", clicks: 0, vendas: 0, comissao: 0, ativo: true };
-      creatorMap[r.creator_id].clicks++;
+    l.forEach((r) => {
+      const cid = r.creator_id as string;
+      if (!cid) return;
+      if (!creatorMap[cid]) {
+        creatorMap[cid] = { creator_id: cid, name: cid.slice(0, 8), produto: (r.produto_nome as string) ?? (r.produto_id as string) ?? "—", clicks: 0, vendas: 0, comissao: 0, ativo: true };
+      }
+      creatorMap[cid].clicks += (r.cliques as number) ?? 0;
     });
     v.forEach((r: Record<string, string | number>) => {
-      if (!r.creator_id) return;
-      if (!creatorMap[r.creator_id as string]) creatorMap[r.creator_id as string] = { creator_id: r.creator_id as string, name: (r.creator_id as string).slice(0, 8), produto: r.produto_id as string ?? "—", clicks: 0, vendas: 0, comissao: 0, ativo: true };
-      creatorMap[r.creator_id as string].vendas++;
-      creatorMap[r.creator_id as string].comissao += (r.comissao_creator as number) ?? 0;
+      const cid = r.creator_id as string;
+      if (!cid) return;
+      if (!creatorMap[cid]) creatorMap[cid] = { creator_id: cid, name: cid.slice(0, 8), produto: (r.produto_id as string) ?? "—", clicks: 0, vendas: 0, comissao: 0, ativo: true };
+      creatorMap[cid].vendas++;
+      creatorMap[cid].comissao += (r.comissao_creator as number) ?? 0;
     });
     setCreators(Object.values(creatorMap));
 
-    // Products table
+    // Products table — clicks from links_afiliados, sales from vendas
     const prodMap: Record<string, ProductRow> = {};
-    c.forEach((r: Record<string, string>) => {
-      const k = r.produto_id ?? "sem-produto";
-      if (!prodMap[k]) prodMap[k] = { produto_id: k, nome: k, creators: 0, clicks: 0, vendas: 0, gmv: 0, comissao: 0 };
-      prodMap[k].clicks++;
+    const prodCreators: Record<string, Set<string>> = {};
+    l.forEach((r) => {
+      const k = (r.produto_id as string) ?? "sem-produto";
+      if (!prodMap[k]) prodMap[k] = { produto_id: k, nome: (r.produto_nome as string) ?? k, creators: 0, clicks: 0, vendas: 0, gmv: 0, comissao: 0 };
+      prodMap[k].clicks += (r.cliques as number) ?? 0;
+      if (r.creator_id) {
+        if (!prodCreators[k]) prodCreators[k] = new Set();
+        prodCreators[k].add(r.creator_id as string);
+      }
+    });
+    Object.entries(prodCreators).forEach(([pid, set]) => {
+      if (prodMap[pid]) prodMap[pid].creators = set.size;
     });
     v.forEach((r: Record<string, string | number>) => {
       const k = (r.produto_id as string) ?? "sem-produto";
       if (!prodMap[k]) prodMap[k] = { produto_id: k, nome: k, creators: 0, clicks: 0, vendas: 0, gmv: 0, comissao: 0 };
       prodMap[k].vendas++;
-      prodMap[k].gmv += (r.valor_venda as number) ?? 0;
+      prodMap[k].gmv += (r.valor as number) ?? 0;
       prodMap[k].comissao += (r.comissao_creator as number) ?? 0;
     });
     setProducts(Object.values(prodMap));
 
     setDataLoading(false);
-  }, [since]);
+  }, [since, period]);
 
   useEffect(() => {
     async function init() {
@@ -230,7 +243,7 @@ export default function RelatorioPage() {
       if (!user) { window.location.href = "/mundo-mapping/empresa/login"; return; }
       setUserId(user.id);
 
-      const { data: profile } = await supabase.from("profiles").select("plano").eq("id", user.id).single();
+      const { data: profile } = await supabase.from("profiles").select("plano").eq("id", user.id).maybeSingle();
       const p = (profile?.plano ?? "associate") as Plan;
       setPlan(p);
       setPageLoading(false);
@@ -238,10 +251,8 @@ export default function RelatorioPage() {
       if (p !== "associate") {
         await fetchData(user.id);
 
-        // Realtime subscription
+        // Realtime subscription for new vendas
         const channel = supabase.channel("relatorio-rt")
-          .on("postgres_changes", { event: "INSERT", schema: "public", table: "clicks", filter: `empresa_id=eq.${user.id}` },
-            () => fetchData(user.id))
           .on("postgres_changes", { event: "INSERT", schema: "public", table: "vendas", filter: `empresa_id=eq.${user.id}` },
             () => fetchData(user.id))
           .subscribe();

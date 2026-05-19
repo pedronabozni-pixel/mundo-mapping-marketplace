@@ -12,8 +12,6 @@ export default async function AffiliateRedirectPage({
 }) {
   const { codigo } = await params;
 
-  console.log("[/r] codigo:", codigo);
-
   const supabase = await createClient();
 
   // Call RPC (SECURITY DEFINER — increments cliques and returns url_produto)
@@ -21,10 +19,7 @@ export default async function AffiliateRedirectPage({
     p_codigo: codigo,
   });
 
-  console.log("[/r] rpc result:", { rpcUrl, rpcError });
-
   if (!rpcError && rpcUrl) {
-    console.log("[/r] redirecting to:", rpcUrl);
     redirect(rpcUrl as string);
   }
 
@@ -37,13 +32,9 @@ export default async function AffiliateRedirectPage({
     .eq("ativo", true)
     .maybeSingle();
 
-  console.log("[/r] direct select fallback:", { link, selectError });
-
   if (!selectError && link?.url_produto) {
-    console.log("[/r] redirecting via direct select to:", link.url_produto);
     redirect(link.url_produto as string);
   }
 
-  console.log("[/r] fallback LP");
   redirect(FALLBACK);
 }

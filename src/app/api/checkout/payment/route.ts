@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
 
     const taxa_mapping = Math.round((Number(valor) * 2) / 100 * 100) / 100;
 
-    // ── upsell_1click (no tokenization — keep as simulado) ────────────────────
+    // ── upsell_1click (aceite pós-checkout, sem nova cobrança separada) ─────────
     if (forma_pagamento === "upsell_1click") {
       const { data: pedido, error } = await supabase
         .from("pedidos")
@@ -67,8 +67,9 @@ export async function POST(req: NextRequest) {
           cliente_cpf: cliente.cpf, cliente_telefone: cliente.telefone ?? null,
           cliente_endereco: cliente.endereco ?? null,
           valor: Number(valor), comissao_creator, taxa_mapping: 0,
-          parcelas: 1, forma_pagamento, status: "simulado",
+          parcelas: 1, forma_pagamento, status: "aprovado",
           order_bump_aceito: false, order_bump_produto_id: null, order_bump_valor: 0,
+          upsell_aceito: true, upsell_produto_id: produto_id, upsell_valor: Number(valor),
           cupom_codigo: null, cupom_desconto: 0,
         })
         .select("id")
@@ -152,6 +153,7 @@ export async function POST(req: NextRequest) {
           order_bump_aceito: order_bump_aceito ?? false,
           order_bump_produto_id: order_bump_aceito ? (order_bump_produto_id ?? null) : null,
           order_bump_valor: order_bump_aceito ? Number(order_bump_valor ?? 0) : 0,
+          upsell_aceito: false, upsell_produto_id: null, upsell_valor: 0,
           cupom_codigo: cupom_codigo ?? null,
           cupom_desconto: Number(cupom_desconto ?? 0),
         })
@@ -199,6 +201,7 @@ export async function POST(req: NextRequest) {
           order_bump_aceito: order_bump_aceito ?? false,
           order_bump_produto_id: order_bump_aceito ? (order_bump_produto_id ?? null) : null,
           order_bump_valor: order_bump_aceito ? Number(order_bump_valor ?? 0) : 0,
+          upsell_aceito: false, upsell_produto_id: null, upsell_valor: 0,
           cupom_codigo: cupom_codigo ?? null,
           cupom_desconto: Number(cupom_desconto ?? 0),
         })

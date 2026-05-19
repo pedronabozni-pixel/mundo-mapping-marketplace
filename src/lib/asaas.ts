@@ -46,6 +46,9 @@ export interface AsaasPixQrCode {
 // ─── Internal request helper ──────────────────────────────────────────────────
 
 async function asaasReq<T>(path: string, options: RequestInit = {}): Promise<T> {
+  if (!API_KEY) {
+    throw new AsaasError("ASAAS_API_KEY não configurada no servidor.", "missing_api_key", 500);
+  }
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers: {
