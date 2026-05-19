@@ -25,6 +25,21 @@ const PLAN_DESC: Record<Plan, string> = {
   elite: "R$197/mês · Taxa por venda: Asaas + R$0,49",
 };
 
+function formatCpfCnpj(value: string): string {
+  const d = value.replace(/\D/g, "").slice(0, 14);
+  if (d.length <= 11) {
+    return d
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  }
+  return d
+    .replace(/(\d{2})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1/$2")
+    .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+}
+
 function Field({
   label,
   name,
@@ -78,7 +93,7 @@ export default function EmpresaPerfilPage() {
   const [logoUrl, setLogoUrl] = useState("");
   const [form, setForm] = useState({
     company_name: "",
-    cnpj: "",
+    cpf_cnpj: "",
     phone: "",
     website: "",
   });
@@ -104,7 +119,7 @@ export default function EmpresaPerfilPage() {
         setLogoUrl(profile.logo_url ?? "");
         setForm({
           company_name: profile.company_name ?? "",
-          cnpj: profile.cnpj ?? "",
+          cpf_cnpj: profile.cpf_cnpj ?? "",
           phone: profile.phone ?? "",
           website: profile.website ?? "",
         });
@@ -177,8 +192,8 @@ export default function EmpresaPerfilPage() {
     <>
       <PageHeader
         eyebrow="Configurações"
-        title="Perfil da empresa"
-        description="Gerencie as informações da sua empresa e seu plano."
+        title="Perfil da empresa ou produtor"
+        description="Gerencie as informações da sua conta e seu plano."
       />
 
       <div className="space-y-6 p-6">
@@ -194,21 +209,21 @@ export default function EmpresaPerfilPage() {
         )}
 
         {/* Dados básicos */}
-        <SectionCard title="Dados básicos" subtitle="Informações da sua empresa no marketplace.">
+        <SectionCard title="Dados básicos" subtitle="Informações da sua conta no marketplace.">
           <div className="grid gap-5 sm:grid-cols-2">
             <Field
-              label="Nome da empresa"
+              label="Nome / Razão social"
               name="company_name"
               onChange={(v) => setForm((f) => ({ ...f, company_name: v }))}
-              placeholder="Empresa Ltda."
+              placeholder="Empresa Ltda. ou seu nome"
               value={form.company_name}
             />
             <Field
-              label="CNPJ"
-              name="cnpj"
-              onChange={(v) => setForm((f) => ({ ...f, cnpj: v }))}
-              placeholder="00.000.000/0001-00"
-              value={form.cnpj}
+              label="CPF/CNPJ"
+              name="cpf_cnpj"
+              onChange={(v) => setForm((f) => ({ ...f, cpf_cnpj: formatCpfCnpj(v) }))}
+              placeholder="000.000.000-00 ou 00.000.000/0000-00"
+              value={form.cpf_cnpj}
             />
             <Field label="E-mail" name="email" readOnly value={email} />
             <Field
@@ -228,7 +243,7 @@ export default function EmpresaPerfilPage() {
 
             {/* Logo upload */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-zinc-700">Logo da empresa</label>
+              <label className="mb-1.5 block text-sm font-medium text-zinc-700">Logo</label>
               <div className="flex items-center gap-4">
                 {logoUrl ? (
                   <img

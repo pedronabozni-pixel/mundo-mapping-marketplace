@@ -9,8 +9,23 @@ import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners
 
 type Tab = "entrar" | "cadastrar";
 
+function formatCpfCnpj(value: string): string {
+  const d = value.replace(/\D/g, "").slice(0, 14);
+  if (d.length <= 11) {
+    return d
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  }
+  return d
+    .replace(/(\d{2})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1/$2")
+    .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+}
+
 function Logo() {
-  return <MappingPartnersLogo size="lg" subtitle="Área da Empresa" variant="stacked" />;
+  return <MappingPartnersLogo size="lg" subtitle="Área da Empresa ou Produtor" variant="stacked" />;
 }
 
 function Field({
@@ -19,12 +34,16 @@ function Field({
   type = "text",
   placeholder,
   required = true,
+  value,
+  onChange,
 }: {
   label: string;
   name: string;
   type?: string;
   placeholder?: string;
   required?: boolean;
+  value?: string;
+  onChange?: (v: string) => void;
 }) {
   return (
     <div>
@@ -32,9 +51,11 @@ function Field({
       <input
         className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none placeholder:text-zinc-400 transition focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
         name={name}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
         placeholder={placeholder}
         required={required}
         type={type}
+        {...(value !== undefined ? { value } : {})}
       />
     </div>
   );
@@ -46,6 +67,7 @@ export default function EmpresaLoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [forgot, setForgot] = useState(false);
+  const [cpfCnpj, setCpfCnpj] = useState("");
 
   function reset() {
     setError(null);
@@ -98,7 +120,7 @@ export default function EmpresaLoginPage() {
           data: {
             user_type: "empresa",
             company_name: fd.get("company_name") as string,
-            cnpj: fd.get("cnpj") as string,
+            cpf_cnpj: cpfCnpj,
           },
           emailRedirectTo: `${window.location.origin}/mundo-mapping/empresa/dashboard`,
         },
@@ -112,6 +134,7 @@ export default function EmpresaLoginPage() {
           user_type: "empresa",
           full_name: fd.get("company_name") as string,
           company_name: fd.get("company_name") as string,
+          cpf_cnpj: cpfCnpj || null,
         }, { onConflict: "id" });
         window.location.href = "/mundo-mapping/afiliados";
       } else {
@@ -221,8 +244,15 @@ export default function EmpresaLoginPage() {
 
           {tab === "cadastrar" && (
             <form className="space-y-4" onSubmit={handleSignUp}>
-              <Field label="Nome da empresa" name="company_name" placeholder="Empresa Ltda." />
-              <Field label="CNPJ" name="cnpj" placeholder="00.000.000/0001-00" />
+              <Field label="Nome / Razão social" name="company_name" placeholder="Empresa Ltda. ou seu nome" />
+              <Field
+                label="CPF/CNPJ"
+                name="cpf_cnpj"
+                onChange={(v) => setCpfCnpj(formatCpfCnpj(v))}
+                placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                required={false}
+                value={cpfCnpj}
+              />
               <Field label="E-mail" name="email" placeholder="empresa@email.com" type="email" />
               <Field label="Senha" name="password" placeholder="••••••••" type="password" />
               <Field label="Confirmar senha" name="confirm" placeholder="••••••••" type="password" />
