@@ -249,7 +249,6 @@ export function ProductEditor({
       { label: "Descrição comercial", done: Boolean(form.description.trim()) },
       { label: "Comissão definida", done: form.commissionValue > 0 },
       { label: "Janela de garantia válida", done: form.guaranteeDays >= 7 },
-      { label: "Prazo de liberação definido", done: form.releaseDays >= 7 },
       { label: "Regras de atribuição definidas", done: Boolean(form.attributionModel) && form.attributionWindowDays > 0 },
       { label: "Critérios de creator definidos", done: form.minimumCreatorScore > 0 && form.minimumFollowers >= 0 },
       { label: "Materiais ou capa informados", done: Boolean(form.materialsSummary.trim() || form.coverAssetUrl || form.coverAssetName) },
@@ -282,13 +281,15 @@ export function ProductEditor({
       return;
     }
 
+    const guaranteeDays = Math.max(7, form.guaranteeDays || 0);
     const normalized: ProductInput = {
       ...form,
       name: form.name.trim(),
       description: form.description.trim(),
       audience: form.audience.trim(),
       materialsSummary: form.materialsSummary.trim(),
-      guaranteeDays: Math.max(7, form.guaranteeDays || 0),
+      guaranteeDays,
+      releaseDays: guaranteeDays,
       status: publish ? "published" : "draft"
     };
 
@@ -474,8 +475,10 @@ export function ProductEditor({
               <Field helper="Mínimo obrigatório de 7 dias." label="Janela de garantia (dias)">
                 <Input min={7} onChange={(value) => patch("guaranteeDays", Math.max(7, Number(value) || 0))} type="number" value={form.guaranteeDays} />
               </Field>
-              <Field helper="Prazo entre venda válida e saldo elegível para saque." label="Liberação da comissão (dias)">
-                <Input min={7} onChange={(value) => patch("releaseDays", Math.max(7, Number(value) || 0))} type="number" value={form.releaseDays} />
+              <Field label="Liberação da comissão">
+                <div className="rounded-xl border border-zinc-100 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-500">
+                  A comissão é liberada após o período de garantia ({form.guaranteeDays} dias)
+                </div>
               </Field>
               <Field label="Base de cálculo da comissão">
                 <Select
@@ -980,7 +983,7 @@ export function ProductEditor({
                 <p className="mt-3"><strong className="text-zinc-900">Modelo de atribuição:</strong> {form.attributionModel}</p>
                 <p className="mt-3"><strong className="text-zinc-900">Janela de atribuição:</strong> {form.attributionWindowDays} dias</p>
                 <p className="mt-3"><strong className="text-zinc-900">Base da comissão:</strong> {form.commissionBase}</p>
-                <p className="mt-3"><strong className="text-zinc-900">Liberação da comissão:</strong> {form.releaseDays} dias</p>
+                <p className="mt-3"><strong className="text-zinc-900">Liberação da comissão:</strong> após garantia ({form.guaranteeDays} dias)</p>
                 <p className="mt-3"><strong className="text-zinc-900">Materiais:</strong> {form.materialsSummary || "Sem materiais informados."}</p>
                 <p className="mt-3"><strong className="text-zinc-900">Capa:</strong> {form.coverAssetMode === "link" ? form.coverAssetUrl || "Sem link informado." : form.coverAssetName || "Sem arquivo informado."}</p>
                 <p className="mt-3"><strong className="text-zinc-900">Materiais promocionais:</strong> {form.promoAssetMode === "link" ? form.promoAssetUrl || "Sem link informado." : form.promoAssetName || "Sem arquivo informado."}</p>
