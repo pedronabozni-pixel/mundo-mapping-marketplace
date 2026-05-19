@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import UpsellSection from "./upsell-section";
+import PixelPurchaseTracker from "@/components/pixel-purchase-tracker";
 
 export const dynamic = "force-dynamic";
 
@@ -238,6 +239,15 @@ export default async function ObrigadoPage({ params, searchParams }: Props) {
           Voltar para a área de parceiros
         </Link>
       </div>
+
+      {/* Pixel purchase tracking */}
+      {valor && produtoNome && (
+        <PixelPurchaseTracker
+          pedidoId={pedidoId}
+          produtoNome={produtoNome}
+          valor={valor}
+        />
+      )}
 
       {/* Upsell section */}
       {upsellProduto && upsellPreco > 0 && nome && email && (
