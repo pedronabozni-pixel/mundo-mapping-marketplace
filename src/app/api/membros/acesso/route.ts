@@ -42,13 +42,11 @@ export async function POST(req: NextRequest) {
       );
 
     if (error) {
-      console.error("[acesso/POST]", error);
       return NextResponse.json({ ok: false, error: "Erro ao conceder acesso." }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("[acesso/POST]", err);
     return NextResponse.json({ ok: false, error: "Erro interno." }, { status: 500 });
   }
 }
@@ -73,13 +71,11 @@ export async function DELETE(req: NextRequest) {
       .eq("comprador_email", comprador_email.toLowerCase().trim());
 
     if (error) {
-      console.error("[acesso/DELETE]", error);
       return NextResponse.json({ ok: false, error: "Erro ao revogar acesso." }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("[acesso/DELETE]", err);
     return NextResponse.json({ ok: false, error: "Erro interno." }, { status: 500 });
   }
 }

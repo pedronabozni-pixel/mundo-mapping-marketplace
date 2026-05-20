@@ -24,7 +24,6 @@ type AsaasWebhookBody = {
 export async function POST(req: Request) {
   const token = req.headers.get("asaas-access-token");
   if (token !== process.env.ASAAS_WEBHOOK_TOKEN) {
-    console.warn("[webhook/asaas] token inválido recebido");
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -36,7 +35,6 @@ export async function POST(req: Request) {
   }
 
   const { event, payment } = body;
-  console.log(`[webhook/asaas] ${event} — payment: ${payment?.id}`);
 
   try {
     // Subscription payment events
@@ -54,7 +52,6 @@ export async function POST(req: Request) {
           await handleSubscriptionCancelled(payment);
           break;
         default:
-          console.log(`[webhook/asaas] subscription event ignorado: ${event}`);
       }
       return Response.json({ received: true });
     }
@@ -77,11 +74,9 @@ export async function POST(req: Request) {
         await handlePaymentOverdue(payment);
         break;
       default:
-        console.log(`[webhook/asaas] evento ignorado: ${event}`);
     }
   } catch (err) {
     // Always return 200 to Asaas — retries on non-2xx cause duplicate processing
-    console.error(`[webhook/asaas] erro ao processar ${event}:`, err);
   }
 
   return Response.json({ received: true });
@@ -99,12 +94,10 @@ async function handlePaymentApproved(payment: AsaasPayment) {
     .maybeSingle();
 
   if (!pedido) {
-    console.warn(`[webhook/asaas] pedido não encontrado para payment_id: ${payment.id}`);
     return;
   }
 
   if (pedido.status === "aprovado") {
-    console.log(`[webhook/asaas] pedido ${pedido.id} já aprovado, ignorando`);
     return;
   }
 
@@ -119,7 +112,6 @@ async function handlePaymentApproved(payment: AsaasPayment) {
     await registerAffiliateCommission(supabase, pedido);
   }
 
-  console.log(`[webhook/asaas] pedido ${pedido.id} aprovado`);
 }
 
 async function handlePaymentRefused(payment: AsaasPayment) {
@@ -131,7 +123,6 @@ async function handlePaymentRefused(payment: AsaasPayment) {
     .eq("asaas_payment_id", payment.id)
     .neq("status", "aprovado");
 
-  console.log(`[webhook/asaas] payment ${payment.id} recusado`);
 }
 
 async function handlePaymentRefunded(payment: AsaasPayment) {
@@ -157,7 +148,6 @@ async function handlePaymentRefunded(payment: AsaasPayment) {
     .eq("produto_id", pedido.produto_id)
     .eq("comprador_email", pedido.cliente_email.toLowerCase().trim());
 
-  console.log(`[webhook/asaas] pedido ${pedido.id} estornado`);
 }
 
 async function handlePaymentOverdue(payment: AsaasPayment) {
@@ -169,7 +159,6 @@ async function handlePaymentOverdue(payment: AsaasPayment) {
     .eq("asaas_payment_id", payment.id)
     .eq("status", "pendente");
 
-  console.log(`[webhook/asaas] payment ${payment.id} vencido`);
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -209,7 +198,6 @@ async function handleSubscriptionRenewed(payment: AsaasPayment) {
     .maybeSingle();
 
   if (!profile) {
-    console.warn(`[webhook/asaas] profile não encontrado para subscription: ${payment.subscription}`);
     return;
   }
 
@@ -221,7 +209,6 @@ async function handleSubscriptionRenewed(payment: AsaasPayment) {
     plano_status: "ativo",
   }).eq("id", profile.id);
 
-  console.log(`[webhook/asaas] assinatura renovada para profile ${profile.id}`);
 }
 
 async function handleSubscriptionOverdue(payment: AsaasPayment) {
@@ -237,7 +224,6 @@ async function handleSubscriptionOverdue(payment: AsaasPayment) {
 
   await supabase.from("profiles").update({ plano_status: "inadimplente" }).eq("id", profile.id);
 
-  console.log(`[webhook/asaas] assinatura inadimplente para profile ${profile.id}`);
 }
 
 async function handleSubscriptionCancelled(payment: AsaasPayment) {
@@ -258,7 +244,6 @@ async function handleSubscriptionCancelled(payment: AsaasPayment) {
     plano_status: "ativo",
   }).eq("id", profile.id);
 
-  console.log(`[webhook/asaas] assinatura cancelada para profile ${profile.id}`);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

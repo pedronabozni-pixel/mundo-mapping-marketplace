@@ -90,7 +90,6 @@ export async function POST(req: NextRequest) {
       });
       asaasCustomerId = customer.id;
     } catch (err) {
-      console.error("[payment] customer:", err instanceof AsaasError ? `${err.code}: ${err.message}` : err);
       return NextResponse.json({ ok: false, error: "Não foi possível processar o cliente." }, { status: 502 });
     }
 
@@ -161,7 +160,6 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (error || !pedido) {
-        console.error("[payment] insert cartao:", error);
         return NextResponse.json({ ok: false, error: "Erro ao salvar pedido." }, { status: 500 });
       }
 
@@ -183,7 +181,6 @@ export async function POST(req: NextRequest) {
         });
         qrCode = await getPixQrCode(asaasPayment.id);
       } catch (err) {
-        console.error("[payment] pix:", err instanceof AsaasError ? `${err.code}: ${err.message}` : err);
         return NextResponse.json({ ok: false, error: "Não foi possível gerar o PIX. Tente novamente." }, { status: 502 });
       }
 
@@ -209,7 +206,6 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (error || !pedido) {
-        console.error("[payment] insert pix:", error);
         return NextResponse.json({ ok: false, error: "Erro ao salvar pedido." }, { status: 500 });
       }
 
@@ -227,7 +223,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Forma de pagamento inválida." }, { status: 400 });
 
   } catch (err) {
-    console.error("[checkout/payment]", err);
     return NextResponse.json({ ok: false, error: "Erro interno." }, { status: 500 });
   }
 }

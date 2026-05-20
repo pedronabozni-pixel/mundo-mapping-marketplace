@@ -59,7 +59,6 @@ export async function POST(req: NextRequest) {
 
   // Fail fast if the payment gateway key is not configured, before touching the DB
   if (!process.env.ASAAS_API_KEY) {
-    console.error("[subscription] ASAAS_API_KEY não está configurada no ambiente");
     return NextResponse.json(
       { error: "Gateway de pagamento não configurado. Contate o suporte." },
       { status: 500 }
@@ -114,7 +113,6 @@ export async function POST(req: NextRequest) {
   try {
     customer = await findOrCreateCustomer({ name: nome, email, cpfCnpj });
   } catch (e) {
-    console.error("[subscription] erro ao criar cliente Asaas:", e);
     const msg = e instanceof AsaasError
       ? e.message
       : "Erro inesperado ao conectar com o gateway de pagamento.";
@@ -143,7 +141,6 @@ export async function POST(req: NextRequest) {
         remoteIp,
       });
     } catch (e) {
-      console.error("[subscription] erro ao criar assinatura cartão:", e);
       const msg = e instanceof AsaasError ? e.message : "Erro ao processar cartão.";
       const code = e instanceof AsaasError ? e.code : undefined;
       return NextResponse.json({ error: msg, ...(code ? { code } : {}) }, { status: 400 });
@@ -173,7 +170,6 @@ export async function POST(req: NextRequest) {
       description: PLAN_NAMES[plano],
     });
   } catch (e) {
-    console.error("[subscription] erro ao criar assinatura PIX:", e);
     const msg = e instanceof AsaasError ? e.message : "Erro ao criar cobrança PIX.";
     return NextResponse.json({ error: msg }, { status: 400 });
   }
@@ -200,11 +196,9 @@ export async function POST(req: NextRequest) {
       const paymentsRes = await getSubscriptionPayments(subscription.id);
       const firstPayment = paymentsRes.data?.[0];
       if (!firstPayment) {
-        console.log(`[subscription] pagamento PIX ainda não gerado (tentativa ${attempt + 1}/4)`);
         continue;
       }
       paymentId = firstPayment.id;
-      console.log(`[subscription] pagamento PIX encontrado: ${paymentId} (tentativa ${attempt + 1})`);
 
       const qr = await getPixQrCode(firstPayment.id);
       pixPayload = qr.payload;
@@ -212,12 +206,10 @@ export async function POST(req: NextRequest) {
       pixExpirationDate = qr.expirationDate;
       break;
     } catch (e) {
-      console.error(`[subscription] erro ao buscar QR PIX (tentativa ${attempt + 1}/4):`, e);
     }
   }
 
   if (!pixQrCode) {
-    console.warn(`[subscription] QR Code PIX não obtido após 4 tentativas para subscription ${subscription.id}`);
   }
 
   return NextResponse.json({

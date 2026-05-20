@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -35,31 +35,27 @@ export default function MeusLinksPage() {
   const router = useRouter();
   const [links, setLinks] = useState<LinkAfiliado[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function load() {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        router.replace("/mundo-mapping/influenciador/login");
-        return;
-      }
-
-      const { data } = await supabase
-        .from("links_afiliados")
-        .select("*")
-        .eq("creator_id", user.id)
-        .order("criado_em", { ascending: false });
-
-      setLinks((data ?? []) as LinkAfiliado[]);
-      setLoading(false);
-    }
-    load();
+  const load = useCallback(async () => {
+    setLoading(true);
+    setLoadError(false);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { router.replace("/mundo-mapping/influenciador/login"); return; }
+    const { data, error } = await supabase
+      .from("links_afiliados")
+      .select("*")
+      .eq("creator_id", user.id)
+      .order("criado_em", { ascending: false });
+    if (error) { setLoadError(true); setLoading(false); return; }
+    setLinks((data ?? []) as LinkAfiliado[]);
+    setLoading(false);
   }, [router]);
+
+  useEffect(() => { load(); }, [load]);
 
   function getLinkUrl(codigo: string) {
     return `${window.location.origin}/r/${codigo}`;
@@ -92,6 +88,21 @@ export default function MeusLinksPage() {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-red-600 border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 p-6">
+        <p className="text-sm text-zinc-500">Erro ao carregar dados.</p>
+        <button
+          className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
+          onClick={load}
+          type="button"
+        >
+          Tentar novamente
+        </button>
       </div>
     );
   }

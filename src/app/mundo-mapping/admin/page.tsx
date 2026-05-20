@@ -53,27 +53,43 @@ export default function AdminDashboard() {
   const [recentProfiles, setRecentProfiles] = useState<RecentProfile[]>([]);
   const [recentVendas, setRecentVendas] = useState<RecentVenda[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     const res = await fetch("/api/mundo-mapping/admin/stats");
+    if (!res.ok) { setLoadError(true); setLoading(false); return; }
     const json = await res.json();
-    if (res.ok) {
-      setStats({
-        totalEmpresas: json.totalEmpresas,
-        totalInfluenciadores: json.totalInfluenciadores,
-        totalLinksAtivos: json.totalLinksAtivos,
-        totalCliques: json.totalCliques,
-        totalVendas: json.totalVendas,
-        totalComissao: json.totalComissao,
-      });
-      setRecentProfiles(json.recentProfiles as RecentProfile[]);
-      setRecentVendas(json.recentVendas as RecentVenda[]);
-    }
+    setStats({
+      totalEmpresas: json.totalEmpresas,
+      totalInfluenciadores: json.totalInfluenciadores,
+      totalLinksAtivos: json.totalLinksAtivos,
+      totalCliques: json.totalCliques,
+      totalVendas: json.totalVendas,
+      totalComissao: json.totalComissao,
+    });
+    setRecentProfiles(json.recentProfiles as RecentProfile[]);
+    setRecentVendas(json.recentVendas as RecentVenda[]);
     setLoading(false);
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  if (loadError) {
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 p-7">
+        <p className="text-sm text-zinc-500">Erro ao carregar dados.</p>
+        <button
+          className="rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-semibold text-zinc-300 transition hover:bg-zinc-700"
+          onClick={load}
+          type="button"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-7">

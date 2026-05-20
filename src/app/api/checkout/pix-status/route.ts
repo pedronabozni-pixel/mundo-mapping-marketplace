@@ -40,7 +40,6 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ pago: true });
   } catch (err) {
-    console.error("[pix-status]", err instanceof AsaasError ? `${err.code}: ${err.message}` : err);
     return NextResponse.json({ pago: false, error: "Erro ao verificar pagamento." }, { status: 502 });
   }
 }

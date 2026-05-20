@@ -28,13 +28,11 @@ export async function POST(req: NextRequest) {
       );
 
     if (error) {
-      console.error("[progresso]", error);
       return NextResponse.json({ ok: false, error: "Erro ao salvar progresso." }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("[progresso]", err);
     return NextResponse.json({ ok: false, error: "Erro interno." }, { status: 500 });
   }
 }

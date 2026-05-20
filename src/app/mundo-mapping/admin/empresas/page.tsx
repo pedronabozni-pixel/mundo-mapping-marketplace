@@ -21,6 +21,7 @@ const PAGE_SIZE = 20;
 export default function AdminEmpresasPage() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [filterPlano, setFilterPlano] = useState("todos");
@@ -30,9 +31,11 @@ export default function AdminEmpresasPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     const res = await fetch("/api/mundo-mapping/admin/empresas");
+    if (!res.ok) { setLoadError(true); setLoading(false); return; }
     const data = await res.json();
-    setEmpresas(res.ok ? (data as Empresa[]) : []);
+    setEmpresas(data as Empresa[]);
     setLoading(false);
   }, []);
 
@@ -128,7 +131,18 @@ export default function AdminEmpresasPage() {
         subtitle={`${filtered.length} conta${filtered.length !== 1 ? "s" : ""} encontrada${filtered.length !== 1 ? "s" : ""}`}
         title="Empresas e Produtores"
       >
-        {loading ? (
+        {loadError ? (
+          <div className="flex flex-col items-center gap-3 py-10">
+            <p className="text-sm text-zinc-500">Erro ao carregar dados.</p>
+            <button
+              className="rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-semibold text-zinc-300 transition hover:bg-zinc-700"
+              onClick={load}
+              type="button"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        ) : loading ? (
           <div className="space-y-3">
             {[...Array(6)].map((_, i) => <Skeleton className="h-12" key={i} />)}
           </div>

@@ -4,15 +4,16 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners-logo";
 
-async function checkAdminRole(access_token: string, user_id: string): Promise<boolean> {
-  const res = await fetch("/api/mundo-mapping/admin/verify", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ access_token, user_id }),
-  });
-  if (!res.ok) return false;
-  const json = await res.json();
-  return json.isAdmin === true;
+async function checkAdminRole(): Promise<boolean> {
+  const supabase = createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return false;
+  const { data } = await supabase
+    .from("profiles")
+    .select("user_type")
+    .eq("id", session.user.id)
+    .single();
+  return data?.user_type === "admin";
 }
 
 export default function AdminLoginPage() {
@@ -22,10 +23,7 @@ export default function AdminLoginPage() {
 
   // If already logged in as admin, redirect straight to panel
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) return;
-      const isAdmin = await checkAdminRole(session.access_token, session.user.id);
+    checkAdminRole().then((isAdmin) => {
       if (isAdmin) window.location.href = "/mundo-mapping/admin";
     });
   }, []);
@@ -49,7 +47,7 @@ export default function AdminLoginPage() {
       return;
     }
 
-    const isAdmin = await checkAdminRole(data.session.access_token, data.session.user.id);
+    const isAdmin = await checkAdminRole();
 
     if (!isAdmin) {
       setUnauthorized(true);
