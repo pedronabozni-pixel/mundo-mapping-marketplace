@@ -136,6 +136,20 @@ export default function InfluenciadorLoginPage() {
           niche: str("niche"),
           ...(rawWalletId ? { wallet_id: rawWalletId } : {}),
         }, { onConflict: "id" });
+
+        // Se não informou wallet_id manualmente, cria automaticamente no Asaas
+        if (!rawWalletId) {
+          try {
+            await fetch("/api/mundo-mapping/influenciadores/create-wallet", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ access_token: data.session.access_token }),
+            });
+          } catch {
+            // Falha silenciosa — influenciador pode adicionar wallet_id manualmente no perfil
+          }
+        }
+
         window.location.href = "/mundo-mapping/influenciadores";
       } else {
         setInfo("Conta criada! Verifique seu e-mail para confirmar antes de entrar.");
