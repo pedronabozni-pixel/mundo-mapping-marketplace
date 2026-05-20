@@ -201,7 +201,6 @@ export default function InfluenciadorPerfilPage() {
           youtube_subscribers: form.youtube_subscribers ? parseInt(form.youtube_subscribers) : null,
           twitter_handle: form.twitter_handle,
           twitter_followers: form.twitter_followers ? parseInt(form.twitter_followers) : null,
-          engagement_rate: form.engagement_rate ? parseFloat(form.engagement_rate) : null,
           niche: form.niche,
           wallet_id: form.wallet_id.trim() || null,
         },
@@ -386,14 +385,12 @@ export default function InfluenciadorPerfilPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-zinc-700">Taxa de engajamento média (%)</label>
-              <input
-                className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
-                onChange={(e) => setField("engagement_rate", e.target.value)}
-                placeholder="0.0"
-                step="0.1"
-                type="number"
-                value={form.engagement_rate}
-              />
+              <div className="flex items-center rounded-xl border border-zinc-100 bg-zinc-50 px-4 py-2.5 cursor-default">
+                <span className={`text-sm ${form.engagement_rate ? "text-zinc-700" : "text-zinc-400 italic"}`}>
+                  {form.engagement_rate ? `${form.engagement_rate}%` : "Aguardando análise"}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-zinc-400">Calculada pela equipe Mapping Partners.</p>
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-zinc-700">Nicho principal</label>

@@ -9,6 +9,11 @@ import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners
 
 type Tab = "entrar" | "cadastrar";
 
+const NICHO_OPTIONS = [
+  "Moda", "Gastronomia", "Turismo", "Beleza", "Tecnologia",
+  "Finanças", "Fitness", "Entretenimento", "Outros",
+];
+
 function Logo() {
   return <MappingPartnersLogo size="lg" subtitle="Área do Creator" variant="stacked" />;
 }
@@ -99,7 +104,6 @@ export default function InfluenciadorLoginPage() {
           data: {
             user_type: "influenciador",
             full_name: fd.get("full_name") as string,
-            instagram: fd.get("instagram") as string,
           },
           emailRedirectTo: `${window.location.origin}/mundo-mapping/influenciador/dashboard`,
         },
@@ -114,12 +118,22 @@ export default function InfluenciadorLoginPage() {
         setError("__duplicate_email__");
       } else if (data.session) {
         const rawWalletId = (fd.get("wallet_id") as string | null)?.trim() || null;
+        const num = (name: string) => { const v = parseInt(fd.get(name) as string); return isNaN(v) ? null : v; };
+        const str = (name: string) => (fd.get(name) as string | null)?.trim() || null;
         await supabase.from("profiles").upsert({
           id: data.session.user.id,
           email: fd.get("email") as string,
           user_type: "influenciador",
-          full_name: fd.get("full_name") as string,
-          instagram_handle: fd.get("instagram") as string,
+          full_name: str("full_name"),
+          instagram_handle: str("instagram_handle"),
+          instagram_followers: num("instagram_followers"),
+          tiktok_handle: str("tiktok_handle"),
+          tiktok_followers: num("tiktok_followers"),
+          youtube_handle: str("youtube_handle"),
+          youtube_subscribers: num("youtube_subscribers"),
+          twitter_handle: str("twitter_handle"),
+          twitter_followers: num("twitter_followers"),
+          niche: str("niche"),
           ...(rawWalletId ? { wallet_id: rawWalletId } : {}),
         }, { onConflict: "id" });
         window.location.href = "/mundo-mapping/influenciadores";
@@ -241,10 +255,42 @@ export default function InfluenciadorLoginPage() {
           {tab === "cadastrar" && (
             <form className="space-y-4" onSubmit={handleSignUp}>
               <Field label="Nome completo" name="full_name" placeholder="Seu nome" />
-              <Field label="Instagram" name="instagram" placeholder="@seuhandle" />
               <Field label="E-mail" name="email" placeholder="seu@email.com" type="email" />
               <Field label="Senha" name="password" placeholder="••••••••" type="password" />
               <Field label="Confirmar senha" name="confirm" placeholder="••••••••" type="password" />
+
+              <div className="rounded-xl border border-zinc-100 bg-zinc-50 p-4 space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Redes sociais (opcional)</p>
+                {(
+                  [
+                    { platform: "Instagram", handleName: "instagram_handle", followersName: "instagram_followers", followerLabel: "Seguidores" },
+                    { platform: "TikTok", handleName: "tiktok_handle", followersName: "tiktok_followers", followerLabel: "Seguidores" },
+                    { platform: "YouTube", handleName: "youtube_handle", followersName: "youtube_subscribers", followerLabel: "Inscritos" },
+                    { platform: "Twitter / X", handleName: "twitter_handle", followersName: "twitter_followers", followerLabel: "Seguidores" },
+                  ] as const
+                ).map(({ platform, handleName, followersName, followerLabel }) => (
+                  <div className="grid grid-cols-[1fr_108px] gap-2" key={platform}>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-zinc-600">{platform}</label>
+                      <div className="flex overflow-hidden rounded-xl border border-zinc-200 bg-white focus-within:border-zinc-400 focus-within:ring-2 focus-within:ring-zinc-100">
+                        <span className="flex items-center bg-zinc-50 px-3 text-xs text-zinc-400 border-r border-zinc-200">@</span>
+                        <input className="flex-1 px-3 py-2 text-sm text-zinc-950 outline-none bg-transparent" name={handleName} placeholder="seuhandle" type="text" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-zinc-600">{followerLabel}</label>
+                      <input className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-950 outline-none placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100" min="0" name={followersName} placeholder="0" type="number" />
+                    </div>
+                  </div>
+                ))}
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-zinc-600">Nicho principal</label>
+                  <select className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-950 outline-none focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100" name="niche">
+                    <option value="">Selecione…</option>
+                    {NICHO_OPTIONS.map((n) => <option key={n} value={n}>{n}</option>)}
+                  </select>
+                </div>
+              </div>
 
               <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 space-y-3">
                 <label className="flex items-center gap-3 cursor-pointer">
