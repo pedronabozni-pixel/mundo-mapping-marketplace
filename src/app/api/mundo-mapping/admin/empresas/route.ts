@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireAdmin } from "@/lib/admin-auth";
+import { getAdminSession } from "@/lib/admin-auth";
 
 export async function GET() {
-  const adminId = await requireAdmin();
-  if (!adminId) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  const adminSession = await getAdminSession();
+  if (!adminSession) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
-  const admin = createAdminClient();
+  const admin = createAdminClient(adminSession.accessToken);
   const { data, error } = await admin
     .from("profiles")
     .select("id, full_name, company_name, email, plano, status, created_at")
