@@ -46,6 +46,7 @@ export default function InfluenciadorLoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [forgot, setForgot] = useState(false);
+  const [hasAsaasAccount, setHasAsaasAccount] = useState(false);
 
   function reset() {
     setError(null);
@@ -112,12 +113,14 @@ export default function InfluenciadorLoginPage() {
       } else if (data.user && (data.user.identities?.length ?? 1) === 0) {
         setError("__duplicate_email__");
       } else if (data.session) {
+        const rawWalletId = (fd.get("wallet_id") as string | null)?.trim() || null;
         await supabase.from("profiles").upsert({
           id: data.session.user.id,
           email: fd.get("email") as string,
           user_type: "influenciador",
           full_name: fd.get("full_name") as string,
           instagram_handle: fd.get("instagram") as string,
+          ...(rawWalletId ? { wallet_id: rawWalletId } : {}),
         }, { onConflict: "id" });
         window.location.href = "/mundo-mapping/influenciadores";
       } else {
@@ -242,6 +245,32 @@ export default function InfluenciadorLoginPage() {
               <Field label="E-mail" name="email" placeholder="seu@email.com" type="email" />
               <Field label="Senha" name="password" placeholder="••••••••" type="password" />
               <Field label="Confirmar senha" name="confirm" placeholder="••••••••" type="password" />
+
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 space-y-3">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    checked={hasAsaasAccount}
+                    className="h-4 w-4 rounded border-zinc-300 accent-red-600"
+                    onChange={(e) => setHasAsaasAccount(e.target.checked)}
+                    type="checkbox"
+                  />
+                  <span className="text-sm font-medium text-zinc-700">Já tenho conta Asaas</span>
+                </label>
+                {hasAsaasAccount && (
+                  <div>
+                    <input
+                      className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
+                      name="wallet_id"
+                      placeholder="ex: wal_xxxxxxxxxxxxxxxx"
+                      type="text"
+                    />
+                    <p className="mt-1.5 text-xs leading-5 text-zinc-400">
+                      Cole aqui o ID da sua carteira Asaas para receber comissões automaticamente.
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <button
                 className="w-full rounded-xl bg-red-600 py-3 text-sm font-bold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)] transition hover:bg-red-700 disabled:opacity-60"
                 disabled={loading}

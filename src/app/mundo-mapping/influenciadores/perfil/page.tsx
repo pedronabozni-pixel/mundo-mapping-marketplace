@@ -119,6 +119,7 @@ export default function InfluenciadorPerfilPage() {
     twitter_followers: "",
     engagement_rate: "",
     niche: "",
+    wallet_id: "",
   });
 
   function setField(key: keyof typeof form, value: string) {
@@ -159,6 +160,7 @@ export default function InfluenciadorPerfilPage() {
           twitter_followers: profile.twitter_followers?.toString() ?? "",
           engagement_rate: profile.engagement_rate?.toString() ?? "",
           niche: profile.niche ?? "",
+          wallet_id: profile.wallet_id ?? "",
         };
         setForm(next);
         setBioLen(next.bio.length);
@@ -201,6 +203,7 @@ export default function InfluenciadorPerfilPage() {
           twitter_followers: form.twitter_followers ? parseInt(form.twitter_followers) : null,
           engagement_rate: form.engagement_rate ? parseFloat(form.engagement_rate) : null,
           niche: form.niche,
+          wallet_id: form.wallet_id.trim() || null,
         },
         { onConflict: "id" }
       );
@@ -406,6 +409,26 @@ export default function InfluenciadorPerfilPage() {
               </select>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Pagamentos */}
+      <section className="rounded-[24px] border border-zinc-200 bg-white p-6 shadow-[0_24px_80px_-54px_rgba(24,24,27,0.35)]">
+        <h3 className="text-lg font-semibold tracking-tight text-zinc-950">Pagamentos</h3>
+        <p className="mt-1 text-sm text-zinc-500">Configurações para recebimento de comissões via Asaas.</p>
+
+        <div className="mt-5">
+          <label className="mb-1.5 block text-sm font-medium text-zinc-700">Wallet ID Asaas</label>
+          <input
+            className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
+            onChange={(e) => setField("wallet_id", e.target.value)}
+            placeholder="ex: wal_xxxxxxxxxxxxxxxx"
+            type="text"
+            value={form.wallet_id}
+          />
+          <p className="mt-1.5 text-xs leading-5 text-zinc-400">
+            Cole aqui o ID da sua carteira Asaas. Se não tiver, deixe vazio que criaremos automaticamente.
+          </p>
         </div>
       </section>
 
