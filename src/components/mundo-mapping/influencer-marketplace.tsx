@@ -169,7 +169,7 @@ export function InfluencerMarketplace() {
                           ? "Solicitação enviada"
                           : "Solicitar afiliação"}
                     </button>
-                    <Link className="inline-flex h-11 items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-700" href="/mundo-mapping/influenciadores/links">
+                    <Link className="inline-flex h-11 items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-700" href="/mundo-mapping/influenciadores/meus-links">
                       Ver meus links
                     </Link>
                   </div>
