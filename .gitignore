@@ -3,7 +3,9 @@ node_modules
 .next_stale_*
 .env
 .env.local
-prisma/dev.db
+prisma/
+.prisma/
+**/.prisma/
 *.log
 tsconfig.tsbuildinfo
 public/uploads/store/
