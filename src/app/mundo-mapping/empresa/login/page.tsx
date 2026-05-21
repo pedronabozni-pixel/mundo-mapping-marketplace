@@ -146,19 +146,27 @@ export default function EmpresaLoginPage() {
         }
       } else if (data.user && (data.user.identities?.length ?? 1) === 0) {
         setError("__duplicate_email__");
-      } else if (data.session) {
-        await supabase.from("profiles").upsert({
-          id: data.session.user.id,
-          email: fd.get("email") as string,
-          user_type: "empresa",
-          full_name: fd.get("company_name") as string,
-          company_name: fd.get("company_name") as string,
-          cpf_cnpj: cpfCnpj || null,
-        }, { onConflict: "id" });
-        window.location.href = "/mundo-mapping/afiliados";
-      } else {
-        setInfo("Conta criada! Verifique seu e-mail para confirmar antes de entrar.");
-        setTab("entrar");
+      } else if (data.user) {
+        await fetch("/api/mundo-mapping/save-profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: data.user.id,
+            profile: {
+              email: fd.get("email") as string,
+              user_type: "empresa",
+              full_name: fd.get("company_name") as string,
+              company_name: fd.get("company_name") as string,
+              cpf_cnpj: cpfCnpj || null,
+            },
+          }),
+        });
+        if (data.session) {
+          window.location.href = "/mundo-mapping/afiliados";
+        } else {
+          setInfo("Conta criada! Verifique seu e-mail para confirmar antes de entrar.");
+          setTab("entrar");
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado. Tente novamente.");

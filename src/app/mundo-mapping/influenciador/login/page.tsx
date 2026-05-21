@@ -116,46 +116,53 @@ export default function InfluenciadorLoginPage() {
         }
       } else if (data.user && (data.user.identities?.length ?? 1) === 0) {
         setError("__duplicate_email__");
-      } else if (data.session) {
+      } else if (data.user) {
         const rawWalletId = (fd.get("wallet_id") as string | null)?.trim() || null;
         const num = (name: string) => { const v = parseInt(fd.get(name) as string); return isNaN(v) ? null : v; };
         const str = (name: string) => (fd.get(name) as string | null)?.trim() || null;
-        await supabase.from("profiles").upsert({
-          id: data.session.user.id,
-          email: fd.get("email") as string,
-          user_type: "influenciador",
-          full_name: str("full_name"),
-          cpf_cnpj: str("cpf_cnpj"),
-          phone: str("phone"),
-          instagram_handle: str("instagram_handle"),
-          instagram_followers: num("instagram_followers"),
-          tiktok_handle: str("tiktok_handle"),
-          tiktok_followers: num("tiktok_followers"),
-          youtube_handle: str("youtube_handle"),
-          youtube_subscribers: num("youtube_subscribers"),
-          twitter_handle: str("twitter_handle"),
-          twitter_followers: num("twitter_followers"),
-          niche: str("niche"),
-          ...(rawWalletId ? { wallet_id: rawWalletId } : {}),
-        }, { onConflict: "id" });
+        await fetch("/api/mundo-mapping/save-profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: data.user.id,
+            profile: {
+              email: fd.get("email") as string,
+              user_type: "influenciador",
+              full_name: str("full_name"),
+              cpf_cnpj: str("cpf_cnpj"),
+              phone: str("phone"),
+              instagram_handle: str("instagram_handle"),
+              instagram_followers: num("instagram_followers"),
+              tiktok_handle: str("tiktok_handle"),
+              tiktok_followers: num("tiktok_followers"),
+              youtube_handle: str("youtube_handle"),
+              youtube_subscribers: num("youtube_subscribers"),
+              twitter_handle: str("twitter_handle"),
+              twitter_followers: num("twitter_followers"),
+              niche: str("niche"),
+              ...(rawWalletId ? { wallet_id: rawWalletId } : {}),
+            },
+          }),
+        });
 
-        // Se não informou wallet_id manualmente, cria automaticamente no Asaas
-        if (!rawWalletId) {
-          try {
-            await fetch("/api/mundo-mapping/influenciadores/create-wallet", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ access_token: data.session.access_token }),
-            });
-          } catch {
-            // Falha silenciosa — influenciador pode adicionar wallet_id manualmente no perfil
+        if (data.session) {
+          // Cria wallet Asaas automaticamente se não informou manualmente
+          if (!rawWalletId) {
+            try {
+              await fetch("/api/mundo-mapping/influenciadores/create-wallet", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ access_token: data.session.access_token }),
+              });
+            } catch {
+              // Falha silenciosa
+            }
           }
+          window.location.href = "/mundo-mapping/influenciadores";
+        } else {
+          setInfo("Conta criada! Verifique seu e-mail para confirmar antes de entrar.");
+          setTab("entrar");
         }
-
-        window.location.href = "/mundo-mapping/influenciadores";
-      } else {
-        setInfo("Conta criada! Verifique seu e-mail para confirmar antes de entrar.");
-        setTab("entrar");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado. Tente novamente.");
