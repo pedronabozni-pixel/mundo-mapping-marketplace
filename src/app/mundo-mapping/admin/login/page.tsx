@@ -4,18 +4,6 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners-logo";
 
-async function checkAdminRole(): Promise<boolean> {
-  const supabase = createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return false;
-  const { data } = await supabase
-    .from("profiles")
-    .select("user_type")
-    .eq("id", session.user.id)
-    .single();
-  return data?.user_type === "admin";
-}
-
 export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,8 +11,15 @@ export default function AdminLoginPage() {
 
   // If already logged in as admin, redirect straight to panel
   useEffect(() => {
-    checkAdminRole().then((isAdmin) => {
-      if (isAdmin) window.location.href = "/mundo-mapping/admin";
+    const supabase = createClient();
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("user_type")
+        .eq("id", session.user.id)
+        .single();
+      if (data?.user_type === "admin") window.location.href = "/mundo-mapping/admin";
     });
   }, []);
 
@@ -38,6 +33,8 @@ export default function AdminLoginPage() {
     const email = fd.get("email") as string;
     const password = fd.get("password") as string;
 
+    // Use a single client instance throughout — a new instance won't share
+    // in-memory session state with the one that just signed in.
     const supabase = createClient();
     const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
@@ -47,9 +44,14 @@ export default function AdminLoginPage() {
       return;
     }
 
-    const isAdmin = await checkAdminRole();
+    // Query profile using the same client instance that has the fresh session
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("user_type")
+      .eq("id", data.session.user.id)
+      .single();
 
-    if (!isAdmin) {
+    if (profile?.user_type !== "admin") {
       setUnauthorized(true);
       await supabase.auth.signOut();
       setLoading(false);
