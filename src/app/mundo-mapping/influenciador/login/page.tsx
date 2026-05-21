@@ -125,6 +125,8 @@ export default function InfluenciadorLoginPage() {
           email: fd.get("email") as string,
           user_type: "influenciador",
           full_name: str("full_name"),
+          cpf_cnpj: str("cpf_cnpj"),
+          phone: str("phone"),
           instagram_handle: str("instagram_handle"),
           instagram_followers: num("instagram_followers"),
           tiktok_handle: str("tiktok_handle"),
@@ -272,6 +274,11 @@ export default function InfluenciadorLoginPage() {
               <Field label="E-mail" name="email" placeholder="seu@email.com" type="email" />
               <Field label="Senha" name="password" placeholder="••••••••" type="password" />
               <Field label="Confirmar senha" name="confirm" placeholder="••••••••" type="password" />
+
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="CPF / CNPJ" name="cpf_cnpj" placeholder="000.000.000-00" required={false} />
+                <Field label="Celular" name="phone" placeholder="(11) 99999-9999" required={false} />
+              </div>
 
               <div className="rounded-xl border border-zinc-100 bg-zinc-50 p-4 space-y-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Redes sociais (opcional)</p>
