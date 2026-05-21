@@ -20,8 +20,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   if (!session) redirect("/mundo-mapping/admin/login");
 
-  // Use admin client (service role if available, else user token) to bypass RLS on profiles
-  const adminSupabase = createAdminClient(session.access_token);
+  const adminSupabase = createAdminClient();
   const { data: profile } = await adminSupabase
     .from("profiles")
     .select("user_type, full_name, email")
