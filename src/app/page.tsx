@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function Page() {
-  redirect("/mundo-mapping/afiliados");
+  redirect("/mundo-mapping/partners");
 }
