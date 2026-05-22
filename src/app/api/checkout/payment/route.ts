@@ -57,6 +57,23 @@ export async function POST(req: NextRequest) {
 
     const taxa_mapping = Math.round((Number(valor) * 2) / 100 * 100) / 100;
 
+    // ── Re-validate cupom server-side — client value is untrusted ─────────────
+    let validatedCupomDesconto = 0;
+    if (cupom_codigo) {
+      const { data: cupom } = await supabase
+        .from("cupons")
+        .select("valor, limit_usos, usos_realizados, validade, produto_id")
+        .eq("produto_id", produto_id)
+        .ilike("codigo", cupom_codigo)
+        .eq("ativo", true)
+        .maybeSingle();
+      const notExpired = !cupom?.validade || new Date(cupom.validade) > new Date();
+      const notExhausted = !cupom?.limit_usos || (cupom.usos_realizados ?? 0) < cupom.limit_usos;
+      if (cupom && notExpired && notExhausted) {
+        validatedCupomDesconto = Math.round((Number(valor) * Number(cupom.valor)) / 100 * 100) / 100;
+      }
+    }
+
     // ── upsell_1click (aceite pós-checkout, sem nova cobrança separada) ─────────
     if (forma_pagamento === "upsell_1click") {
       const { data: pedido, error } = await supabase
@@ -154,7 +171,7 @@ export async function POST(req: NextRequest) {
           order_bump_valor: order_bump_aceito ? Number(order_bump_valor ?? 0) : 0,
           upsell_aceito: false, upsell_produto_id: null, upsell_valor: 0,
           cupom_codigo: cupom_codigo ?? null,
-          cupom_desconto: Number(cupom_desconto ?? 0),
+          cupom_desconto: validatedCupomDesconto,
         })
         .select("id")
         .single();
@@ -200,7 +217,7 @@ export async function POST(req: NextRequest) {
           order_bump_valor: order_bump_aceito ? Number(order_bump_valor ?? 0) : 0,
           upsell_aceito: false, upsell_produto_id: null, upsell_valor: 0,
           cupom_codigo: cupom_codigo ?? null,
-          cupom_desconto: Number(cupom_desconto ?? 0),
+          cupom_desconto: validatedCupomDesconto,
         })
         .select("id")
         .single();
