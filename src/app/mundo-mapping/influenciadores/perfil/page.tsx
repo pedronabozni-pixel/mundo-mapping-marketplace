@@ -4,8 +4,23 @@ import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 const NICHO_OPTIONS = [
-  "Moda", "Gastronomia", "Turismo", "Beleza", "Tecnologia",
-  "Finanças", "Fitness", "Entretenimento", "Outros",
+  "60+", "Afro", "Agronegócio", "Animais De Estimação", "Arquitetura",
+  "Arte E Cultura", "Artesanato", "Atletas", "Autismo", "Automóveis",
+  "Bebidas", "Beleza", "Cabelo", "Carreira", "Cartão De Milhas",
+  "Casa", "Casamento", "Causas E ONGs", "Construção", "Crianças",
+  "Cripto", "Cultura Geek", "Cyber Atletas", "Dança", "Decoração",
+  "Direito", "Economia", "Educação", "Empreendedorismo", "Entretenimento",
+  "Espiritualidade", "Esportes", "ESG", "Estética", "Estilo De Vida",
+  "Família", "Filmes E Séries", "Finanças", "Finanças Pessoais", "Fitness",
+  "Fotografia", "Futebol", "Games", "Gastronomia", "Gravidez",
+  "Humor", "Imóveis", "Industrial", "Inteligência Artificial", "Jogos",
+  "LGBTQI+", "Livros", "Luxo", "Manicure", "Maquiagem",
+  "Marketing", "Marketing Pessoal", "Maternidade", "Médico", "Moda",
+  "Motivacional", "Música", "Negócios Empresariais", "Nutrição", "Paternidade",
+  "Política", "Psicologia", "Saúde", "Seguro/Seguradora", "Sexualidade",
+  "Síndrome De Down", "Startup", "Streamer", "Sustentabilidade", "Tatuagem",
+  "TDAH", "Tecnologia", "Vegano", "Vendas", "Vestibular",
+  "Viagens", "Vida Saudável", "Vinhos",
 ];
 
 function Field({
