@@ -431,27 +431,6 @@ function Hero() {
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#080808] to-transparent" />
       </motion.div>
 
-      {/* Top eyebrow — outer wraps scroll-fade, inner handles mount-fade */}
-      <motion.div
-        suppressHydrationWarning
-        style={{ opacity }}
-        className="absolute left-1/2 top-24 z-10 -translate-x-1/2 sm:top-28"
-      >
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-        >
-          <span className="mp-mono inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1.5 text-[10px] uppercase tracking-[0.25em] text-white/60 backdrop-blur-md">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--mp-accent)] opacity-70" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--mp-accent)]" />
-            </span>
-            v.2026 · Premium Creator Network
-          </span>
-        </motion.div>
-      </motion.div>
-
       {/* Headline */}
       <motion.div
         suppressHydrationWarning
