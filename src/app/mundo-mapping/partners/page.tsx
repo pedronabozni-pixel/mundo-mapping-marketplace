@@ -1,49 +1,165 @@
 "use client";
 
-import { motion, useInView, AnimatePresence } from "framer-motion";
-import { useRef, useState, useEffect, useCallback } from "react";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+  useMotionValue,
+  useSpring,
+} from "framer-motion";
+import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners-logo";
 
-// ─── Animation helpers ────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+//  Tokens & helpers
+// ════════════════════════════════════════════════════════════════════════════
 
-const ease = [0.21, 0.47, 0.32, 0.98] as const;
+const ease = [0.22, 1, 0.36, 1] as const;
+const COPYRIGHT_YEAR = 2026;
 
-function FadeUp({
+const globalStyles = `
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+    .mp-marquee, .mp-blob { animation: none !important; }
+  }
+  .mp-root {
+    font-family: var(--font-inter), Inter, system-ui, -apple-system, sans-serif;
+    font-feature-settings: "ss01", "cv11";
+    --mp-accent: #ef0f1a;
+    --mp-accent-soft: #b80009;
+  }
+  .mp-mono { font-family: var(--font-dm-mono), ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  @keyframes mp-marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .mp-marquee { animation: mp-marquee 40s linear infinite; }
+
+  @keyframes mp-blob {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(60px,-40px) scale(1.05); }
+    66% { transform: translate(-40px,30px) scale(0.97); }
+  }
+  .mp-blob { animation: mp-blob 18s ease-in-out infinite; }
+
+  .mp-noise {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/></svg>");
+  }
+
+  .mp-grid {
+    background-image:
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 80px 80px;
+  }
+
+  .mp-hero-h1 {
+    font-weight: 800;
+    letter-spacing: -0.045em;
+    line-height: 0.92;
+  }
+  @media (max-width: 640px) {
+    .mp-hero-h1 { letter-spacing: -0.03em; line-height: 0.95; }
+  }
+
+  .mp-display {
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+  }
+
+  /* Magnetic button glow */
+  .mp-magnet { transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
+  .mp-magnet:hover { transform: translate3d(0, -2px, 0); }
+
+  /* Cursor */
+  .mp-cursor-hidden, .mp-cursor-hidden * { cursor: none !important; }
+  @media (hover: none) { .mp-cursor-hidden, .mp-cursor-hidden * { cursor: auto !important; } }
+`;
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Reusable animation primitives
+// ════════════════════════════════════════════════════════════════════════════
+
+function Reveal({
   children,
   delay = 0,
   className = "",
+  y = 32,
 }: {
   children: React.ReactNode;
   delay?: number;
   className?: string;
+  y?: number;
 }) {
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y: 32 }}
+      initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.65, delay, ease }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.8, delay, ease }}
     >
       {children}
     </motion.div>
   );
 }
 
-// ─── Animated counter ─────────────────────────────────────────────────────────
+function SplitWords({
+  text,
+  className = "",
+  delay = 0,
+  stagger = 0.07,
+}: {
+  text: string;
+  className?: string;
+  delay?: number;
+  stagger?: number;
+}) {
+  const words = text.split(" ");
+  return (
+    <span className={className} aria-label={text}>
+      {words.map((w, i) => (
+        <span key={i} className="inline-block overflow-hidden align-bottom">
+          <motion.span
+            className="inline-block"
+            initial={{ y: "110%" }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.85, delay: delay + i * stagger, ease }}
+          >
+            {w}
+            {i < words.length - 1 ? " " : ""}
+          </motion.span>
+        </span>
+      ))}
+    </span>
+  );
+}
 
-function useCounter(target: number, duration = 2.2) {
+function Counter({
+  value,
+  format = (n: number) => n.toLocaleString("pt-BR"),
+  duration = 2.4,
+}: {
+  value: number;
+  format?: (n: number) => string;
+  duration?: number;
+}) {
   const [count, setCount] = useState(0);
   const [started, setStarted] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(
       ([e]) => { if (e.isIntersecting) setStarted(true); },
-      { threshold: 0.6 }
+      { threshold: 0.5 }
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -51,212 +167,233 @@ function useCounter(target: number, duration = 2.2) {
 
   useEffect(() => {
     if (!started) return;
-    const startMs = Date.now();
-    const tick = () => {
-      const p = Math.min((Date.now() - startMs) / (duration * 1000), 1);
-      const eased = 1 - Math.pow(1 - p, 3);
-      setCount(Math.round(eased * target));
+    const t0 = performance.now();
+    const tick = (t: number) => {
+      const p = Math.min((t - t0) / (duration * 1000), 1);
+      const eased = 1 - Math.pow(1 - p, 4);
+      setCount(Math.round(eased * value));
       if (p < 1) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
-  }, [started, target, duration]);
+  }, [started, value, duration]);
 
-  return { count, ref };
+  return <span ref={ref}>{format(count)}</span>;
 }
 
-// ─── 3D tilt hook ─────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+//  Custom cursor (desktop only, hover-capable devices)
+// ════════════════════════════════════════════════════════════════════════════
 
-function useTilt() {
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const onMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientY - rect.top) / rect.height - 0.5) * 12;
-    const y = -((e.clientX - rect.left) / rect.width - 0.5) * 12;
-    setTilt({ x, y });
-  }, []);
-  const onLeave = useCallback(() => setTilt({ x: 0, y: 0 }), []);
-  const style = {
-    transform: `perspective(800px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-    transition: "transform 0.1s ease",
-  };
-  return { onMove, onLeave, style };
-}
+function CustomCursor() {
+  const mx = useMotionValue(-100);
+  const my = useMotionValue(-100);
+  const sx = useSpring(mx, { stiffness: 400, damping: 30, mass: 0.4 });
+  const sy = useSpring(my, { stiffness: 400, damping: 30, mass: 0.4 });
+  const [hover, setHover] = useState(false);
+  const [enabled, setEnabled] = useState(false);
 
-// ─── Icons ────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    if (!canHover) return;
+    setEnabled(true);
+    document.documentElement.classList.add("mp-cursor-hidden");
 
-function IconCheck() {
+    const onMove = (e: MouseEvent) => {
+      mx.set(e.clientX);
+      my.set(e.clientY);
+      const target = e.target as HTMLElement | null;
+      setHover(!!target?.closest("a, button, [data-hover]"));
+    };
+    window.addEventListener("mousemove", onMove);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      document.documentElement.classList.remove("mp-cursor-hidden");
+    };
+  }, [mx, my]);
+
+  if (!enabled) return null;
+
   return (
-    <svg fill="none" height="13" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" width="13">
+    <>
+      <motion.div
+        className="pointer-events-none fixed left-0 top-0 z-[100] mix-blend-difference"
+        style={{ x: sx, y: sy, translateX: "-50%", translateY: "-50%" }}
+      >
+        <motion.div
+          className="rounded-full bg-white"
+          animate={{ width: hover ? 56 : 10, height: hover ? 56 : 10, opacity: hover ? 0.9 : 1 }}
+          transition={{ duration: 0.25, ease }}
+        />
+      </motion.div>
+      <motion.div
+        className="pointer-events-none fixed left-0 top-0 z-[100]"
+        style={{ x: mx, y: my, translateX: "-50%", translateY: "-50%" }}
+      >
+        <div className="h-1 w-1 rounded-full bg-white" />
+      </motion.div>
+    </>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Magnetic button (hover-driven micro-displacement)
+// ════════════════════════════════════════════════════════════════════════════
+
+function Magnetic({ children, strength = 18 }: { children: React.ReactNode; strength?: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const sx = useSpring(x, { stiffness: 250, damping: 18, mass: 0.4 });
+  const sy = useSpring(y, { stiffness: 250, damping: 18, mass: 0.4 });
+
+  return (
+    <motion.div
+      ref={ref}
+      style={{ x: sx, y: sy, display: "inline-block" }}
+      onMouseMove={(e) => {
+        const el = ref.current;
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        x.set(((e.clientX - cx) / rect.width) * strength);
+        y.set(((e.clientY - cy) / rect.height) * strength);
+      }}
+      onMouseLeave={() => { x.set(0); y.set(0); }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Icons (inline SVG, lucide-style)
+// ════════════════════════════════════════════════════════════════════════════
+
+const Icon = {
+  Arrow: () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+    </svg>
+  ),
+  ArrowDown: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19" /><polyline points="19 12 12 19 5 12" />
+    </svg>
+  ),
+  Check: () => (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="20 6 9 17 4 12" />
     </svg>
-  );
-}
-function IconShield() {
-  return (
-    <svg fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" viewBox="0 0 24 24" width="24">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+  ),
+  Plus: () => (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+      <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
     </svg>
-  );
-}
-function IconZap() {
-  return (
-    <svg fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" viewBox="0 0 24 24" width="24">
-      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-    </svg>
-  );
-}
-function IconStar() {
-  return (
-    <svg fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" viewBox="0 0 24 24" width="24">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-    </svg>
-  );
-}
-function IconBuilding() {
-  return (
-    <svg fill="none" height="22" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" viewBox="0 0 24 24" width="22">
-      <rect height="18" rx="2" width="16" x="4" y="2" /><line x1="9" x2="9" y1="22" y2="12" /><line x1="15" x2="15" y1="22" y2="12" /><line x1="4" x2="20" y1="12" y2="12" />
-    </svg>
-  );
-}
-function IconUsers() {
-  return (
-    <svg fill="none" height="22" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" viewBox="0 0 24 24" width="22">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-}
+  ),
+};
 
-// ─── Eyebrow label ────────────────────────────────────────────────────────────
-
-function Eyebrow({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="inline-flex items-center gap-2">
-      <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-      <span className="text-xs font-semibold uppercase tracking-[0.22em] text-red-500/80">
-        {children}
-      </span>
-    </div>
-  );
-}
-
-// ─── Global styles (shimmer, grid, gradient animation) ────────────────────────
-
-const globalStyles = `
-  @keyframes shimmer {
-    0%   { transform: translateX(-100%) skewX(-15deg); }
-    100% { transform: translateX(250%) skewX(-15deg); }
-  }
-  @keyframes float {
-    0%, 100% { transform: translateY(0px) scale(1); }
-    50%       { transform: translateY(-20px) scale(1.02); }
-  }
-  @keyframes blob-1 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33%       { transform: translate(40px, -30px) scale(1.08); }
-    66%       { transform: translate(-20px, 20px) scale(0.95); }
-  }
-  @keyframes blob-2 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33%       { transform: translate(-50px, 20px) scale(1.05); }
-    66%       { transform: translate(30px, -40px) scale(0.92); }
-  }
-  .btn-shimmer { position: relative; overflow: hidden; }
-  .btn-shimmer::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -60%;
-    width: 40%;
-    height: 200%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
-    opacity: 0;
-    pointer-events: none;
-  }
-  .btn-shimmer:hover::after {
-    opacity: 1;
-    animation: shimmer 0.55s ease forwards;
-  }
-  .dot-grid {
-    background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
-    background-size: 32px 32px;
-  }
-  .line-gradient {
-    background: linear-gradient(90deg, transparent, #dc2626, transparent);
-    height: 1px;
-  }
-`;
-
-// ─── 1. NAVBAR ────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+//  1. NAVBAR
+// ════════════════════════════════════════════════════════════════════════════
 
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const links = [
+    { href: "#manifesto", label: "Manifesto" },
+    { href: "#funciona", label: "Como funciona" },
+    { href: "#planos", label: "Planos" },
+  ];
+
   return (
     <header
-      className="fixed left-0 right-0 top-0 z-50 transition-all duration-500"
+      className="fixed inset-x-0 top-0 z-50 transition-all duration-500"
       style={{
-        background: scrolled ? "rgba(10,10,10,0.85)" : "transparent",
-        backdropFilter: scrolled ? "blur(20px)" : "none",
+        background: scrolled ? "rgba(8,8,8,0.7)" : "transparent",
+        backdropFilter: scrolled ? "blur(24px) saturate(180%)" : "none",
         borderBottom: scrolled ? "1px solid rgba(255,255,255,0.06)" : "1px solid transparent",
       }}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        <MappingPartnersLogo onDark size="md" subtitle="Mundo Mapping" />
+      <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-5 lg:px-10">
+        <Link href="/mundo-mapping/partners" data-hover aria-label="Mapping Partners — voltar para o topo">
+          <MappingPartnersLogo onDark size="md" subtitle="Mapping Partners" />
+        </Link>
 
-        {/* Desktop nav */}
-        <div className="hidden items-center gap-3 sm:flex">
+        <nav className="mp-mono hidden items-center gap-1 text-[11px] uppercase tracking-[0.18em] text-white/55 md:flex">
+          {links.map((l) => (
+            <a key={l.href} href={l.href} className="px-4 py-2 transition hover:text-white" data-hover>
+              {l.label}
+            </a>
+          ))}
+        </nav>
+
+        <div className="hidden items-center gap-3 md:flex">
           <Link
-            className="inline-flex h-9 items-center rounded-xl px-4 text-sm font-medium text-white/60 transition hover:text-white"
             href="/mundo-mapping/empresa/login"
+            data-hover
+            className="mp-mono text-[11px] uppercase tracking-[0.18em] text-white/55 transition hover:text-white"
           >
             Entrar
           </Link>
-          <Link
-            className="btn-shimmer inline-flex h-9 items-center justify-center rounded-xl bg-red-600 px-5 text-sm font-semibold text-white transition hover:bg-red-500"
-            href="/mundo-mapping/afiliados"
-          >
-            Cadastrar produto
-          </Link>
+          <Magnetic strength={10}>
+            <Link
+              href="/mundo-mapping/empresa/login"
+              data-hover
+              className="mp-magnet group inline-flex h-10 items-center gap-2 rounded-full bg-white px-5 text-[13px] font-semibold tracking-tight text-black transition hover:bg-white/90"
+            >
+              Começar agora
+              <span className="transition-transform group-hover:translate-x-0.5"><Icon.Arrow /></span>
+            </Link>
+          </Magnetic>
         </div>
 
-        {/* Mobile hamburger */}
         <button
-          className="flex h-9 w-9 flex-col items-center justify-center gap-1.5 sm:hidden"
+          className="flex h-9 w-9 flex-col items-center justify-center gap-1.5 md:hidden"
           onClick={() => setMobileOpen((v) => !v)}
           type="button"
+          aria-label="Menu"
         >
-          <span className={`block h-0.5 w-5 bg-white/80 transition-transform origin-center ${mobileOpen ? "rotate-45 translate-y-2" : ""}`} />
-          <span className={`block h-0.5 w-5 bg-white/80 transition-opacity ${mobileOpen ? "opacity-0" : ""}`} />
-          <span className={`block h-0.5 w-5 bg-white/80 transition-transform origin-center ${mobileOpen ? "-rotate-45 -translate-y-2" : ""}`} />
+          <span className={`block h-px w-6 bg-white transition-transform ${mobileOpen ? "translate-y-[6px] rotate-45" : ""}`} />
+          <span className={`block h-px w-6 bg-white transition-opacity ${mobileOpen ? "opacity-0" : ""}`} />
+          <span className={`block h-px w-6 bg-white transition-transform ${mobileOpen ? "-translate-y-[6px] -rotate-45" : ""}`} />
         </button>
       </div>
 
-      {/* Mobile menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden border-t border-white/[0.06] bg-[#0a0a0a]/95 backdrop-blur-xl sm:hidden"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden border-t border-white/[0.06] bg-black/95 backdrop-blur-xl md:hidden"
           >
-            <div className="flex flex-col gap-1 px-6 py-4">
-              <Link className="rounded-xl px-3 py-3 text-sm font-medium text-white/60 transition hover:bg-white/5 hover:text-white" href="/mundo-mapping/empresa/login">
-                Entrar como empresa
+            <div className="flex flex-col gap-1 px-6 py-5">
+              {links.map((l) => (
+                <a
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="mp-mono py-3 text-[11px] uppercase tracking-[0.2em] text-white/70 hover:text-white"
+                >
+                  {l.label}
+                </a>
+              ))}
+              <Link href="/mundo-mapping/empresa/login" className="mp-mono py-3 text-[11px] uppercase tracking-[0.2em] text-white/70">
+                Entrar
               </Link>
-              <Link className="rounded-xl px-3 py-3 text-sm font-medium text-white/60 transition hover:bg-white/5 hover:text-white" href="/mundo-mapping/influenciadores">
-                Sou influenciador
-              </Link>
-              <Link className="mt-2 rounded-xl bg-red-600 px-3 py-3 text-center text-sm font-bold text-white" href="/mundo-mapping/afiliados">
-                Cadastrar meu produto
+              <Link
+                href="/mundo-mapping/empresa/login"
+                className="mt-3 inline-flex h-11 items-center justify-center rounded-full bg-white text-sm font-semibold text-black"
+              >
+                Começar agora
               </Link>
             </div>
           </motion.div>
@@ -266,364 +403,260 @@ function Navbar() {
   );
 }
 
-// ─── 2. HERO ──────────────────────────────────────────────────────────────────
-
-const heroWords = "Venda mais com creators que têm audiência real".split(" ");
-
-const creatorAvatars = [
-  { initials: "AM", color: "#7c3aed" },
-  { initials: "LF", color: "#0891b2" },
-  { initials: "CS", color: "#059669" },
-  { initials: "RB", color: "#d97706" },
-  { initials: "JP", color: "#db2777" },
-  { initials: "TN", color: "#4f46e5" },
-];
+// ════════════════════════════════════════════════════════════════════════════
+//  2. HERO
+// ════════════════════════════════════════════════════════════════════════════
 
 function Hero() {
-  return (
-    <section className="relative overflow-hidden bg-[#0a0a0a]">
-      {/* Animated gradient blobs */}
-      <div
-        className="pointer-events-none absolute -right-60 -top-60 h-[700px] w-[700px] rounded-full opacity-25"
-        style={{ background: "radial-gradient(circle, #dc2626 0%, transparent 70%)", animation: "blob-1 12s ease-in-out infinite" }}
-      />
-      <div
-        className="pointer-events-none absolute -bottom-40 -left-60 h-[600px] w-[600px] rounded-full opacity-15"
-        style={{ background: "radial-gradient(circle, #991b1b 0%, transparent 70%)", animation: "blob-2 15s ease-in-out infinite" }}
-      />
-      {/* Dot grid */}
-      <div className="dot-grid pointer-events-none absolute inset-0 opacity-60" />
-      {/* Bottom fade */}
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#0a0a0a] to-transparent" />
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
+  const yBg = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const yTitle = useTransform(scrollYProgress, [0, 1], ["0%", "-15%"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
 
-      <div className="relative mx-auto flex max-w-5xl flex-col items-center px-6 pb-16 pt-32 text-center lg:pt-40">
-        {/* Badge */}
+  return (
+    <section ref={ref} className="relative isolate min-h-[100svh] overflow-hidden bg-[#080808]">
+      {/* Background layers */}
+      <motion.div suppressHydrationWarning style={{ y: yBg }} className="absolute inset-0 -z-10">
+        <div className="mp-grid absolute inset-0 opacity-50" />
+        <div
+          className="mp-blob absolute -right-40 top-0 h-[700px] w-[700px] rounded-full opacity-[0.18]"
+          style={{ background: "radial-gradient(circle, var(--mp-accent) 0%, transparent 70%)" }}
+        />
+        <div
+          className="mp-blob absolute -left-40 bottom-20 h-[600px] w-[600px] rounded-full opacity-[0.12]"
+          style={{ background: "radial-gradient(circle, #6b0007 0%, transparent 70%)", animationDelay: "-6s" }}
+        />
+        <div className="mp-noise absolute inset-0 opacity-[0.05] mix-blend-overlay" />
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#080808] to-transparent" />
+      </motion.div>
+
+      {/* Top eyebrow — outer wraps scroll-fade, inner handles mount-fade */}
+      <motion.div
+        suppressHydrationWarning
+        style={{ opacity }}
+        className="absolute left-1/2 top-24 z-10 -translate-x-1/2 sm:top-28"
+      >
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, ease }}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2 }}
         >
-          <span className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/[0.08] px-4 py-1.5 text-xs font-semibold text-red-400">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+          <span className="mp-mono inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1.5 text-[10px] uppercase tracking-[0.25em] text-white/60 backdrop-blur-md">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--mp-accent)] opacity-70" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--mp-accent)]" />
             </span>
-            Plataforma de afiliados com creators validados
+            v.2026 · Premium Creator Network
           </span>
         </motion.div>
+      </motion.div>
 
-        {/* Title — word by word */}
-        <h1 className="mx-auto mt-8 max-w-3xl text-5xl font-bold leading-[1.08] tracking-tight text-white sm:text-6xl lg:text-7xl">
-          {heroWords.map((word, i) => (
-            <span key={i} className="inline-block">
-              <motion.span
-                className="inline-block"
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, delay: 0.25 + i * 0.07, ease }}
-              >
-                {word === "creators" || word === "audiência" ? (
-                  <span className="bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
-                    {word}
-                  </span>
-                ) : word}
-              </motion.span>
-              {i < heroWords.length - 1 && " "}
-            </span>
-          ))}
+      {/* Headline */}
+      <motion.div
+        suppressHydrationWarning
+        style={{ y: yTitle, opacity }}
+        className="relative z-10 mx-auto flex min-h-[100svh] max-w-[1400px] flex-col justify-center px-6 pt-28 lg:px-10"
+      >
+        <h1 className="mp-hero-h1 text-white text-[40px] sm:text-[64px] md:text-[88px] lg:text-[120px] xl:text-[140px]">
+          <span className="block">
+            <SplitWords text="A maior rede" delay={0.1} />
+          </span>
+          <span className="block">
+            <SplitWords text="de creators" delay={0.35} />
+          </span>
+          <span className="block">
+            <SplitWords text="do Brasil." delay={0.6} className="text-[var(--mp-accent)]" />
+          </span>
         </h1>
 
-        {/* Subtitle */}
-        <motion.p
-          className="mx-auto mt-6 max-w-xl text-base leading-8 text-white/55 sm:text-lg"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.85, ease }}
-        >
-          O Mapping Partners conecta sua marca a mais de 16.000 influenciadores validados, prontos para divulgar e vender por comissão.
-        </motion.p>
-
-        {/* CTAs */}
-        <motion.div
-          className="mt-10 flex flex-col items-center gap-3 sm:flex-row"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 1.05, ease }}
-        >
-          <Link
-            className="btn-shimmer inline-flex h-12 items-center justify-center rounded-2xl bg-red-600 px-8 text-[15px] font-bold text-white shadow-[0_0_40px_rgba(220,38,38,0.35)] transition hover:bg-red-500 hover:shadow-[0_0_60px_rgba(220,38,38,0.5)]"
-            href="/mundo-mapping/afiliados"
+        <div className="mt-10 flex flex-col items-start gap-8 sm:mt-14 md:flex-row md:items-end md:justify-between">
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.05 }}
+            className="max-w-md text-[15px] leading-[1.7] text-white/55 md:text-[17px]"
           >
-            Cadastrar meu produto
-          </Link>
-          <Link
-            className="inline-flex h-12 items-center justify-center rounded-2xl border border-white/[0.1] bg-white/[0.04] px-8 text-[15px] font-semibold text-white/80 backdrop-blur-sm transition hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
-            href="/mundo-mapping/influenciadores"
-          >
-            Sou influenciador →
-          </Link>
-        </motion.div>
+            16.000 creators validados. 80+ nichos. 1.950 cidades.
+            A plataforma de afiliados de performance da Mundo Mapping.
+          </motion.p>
 
-        {/* Creator avatars */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.2 }}
+            className="flex flex-col gap-3 sm:flex-row sm:items-center"
+          >
+            <Magnetic>
+              <Link
+                href="/mundo-mapping/empresa/login"
+                data-hover
+                className="mp-magnet group inline-flex h-14 items-center gap-3 rounded-full bg-[var(--mp-accent)] px-7 text-[15px] font-semibold tracking-tight text-white shadow-[0_30px_60px_-20px_rgba(239,15,26,0.45)] transition hover:bg-[#ff2e3a]"
+              >
+                Comece agora
+                <span className="transition-transform group-hover:translate-x-1"><Icon.Arrow /></span>
+              </Link>
+            </Magnetic>
+            <Link
+              href="/mundo-mapping/influenciador/login"
+              data-hover
+              className="mp-mono text-[11px] uppercase tracking-[0.2em] text-white/60 transition hover:text-white"
+            >
+              Sou creator →
+            </Link>
+          </motion.div>
+        </div>
+      </motion.div>
+
+      {/* Scroll indicator — outer scroll-fade, inner mount-fade */}
+      <motion.div
+        suppressHydrationWarning
+        style={{ opacity }}
+        className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2"
+      >
         <motion.div
-          className="mt-12 flex flex-col items-center gap-3"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 1.3 }}
+          transition={{ delay: 1.5, duration: 0.6 }}
+          className="flex flex-col items-center gap-3"
         >
-          <div className="flex items-center -space-x-2">
-            {creatorAvatars.map((a, i) => (
-              <div
-                key={a.initials}
-                className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#0a0a0a] text-xs font-bold text-white"
-                style={{ backgroundColor: a.color, zIndex: creatorAvatars.length - i }}
-              >
-                {a.initials}
-              </div>
-            ))}
-            <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#0a0a0a] bg-zinc-800 text-xs font-bold text-white/60" style={{ zIndex: 0 }}>
-              +16k
-            </div>
-          </div>
-          <p className="text-xs text-white/35">16.000+ creators validados prontos para vender</p>
+          <span className="mp-mono text-[10px] uppercase tracking-[0.25em] text-white/40">Scroll</span>
+          <motion.div
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            className="text-white/40"
+          >
+            <Icon.ArrowDown />
+          </motion.div>
         </motion.div>
+      </motion.div>
+    </section>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  3. MARQUEE (números rolando)
+// ════════════════════════════════════════════════════════════════════════════
+
+function Marquee() {
+  const items = [
+    "16.000+ creators validados",
+    "80+ nichos",
+    "1.950 cidades",
+    "R$ 8M+ em vendas",
+    "+650 marcas ativas",
+    "20% de taxa de reprovação",
+  ];
+  const doubled = [...items, ...items];
+
+  return (
+    <section className="relative overflow-hidden border-y border-white/[0.06] bg-[#080808] py-7">
+      <div className="mp-marquee flex w-max items-center gap-12 whitespace-nowrap">
+        {doubled.map((item, i) => (
+          <div key={i} className="flex items-center gap-12">
+            <span className="mp-display text-[40px] text-white/70 sm:text-[56px]">{item}</span>
+            <span className="text-[var(--mp-accent)]" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6" /></svg>
+            </span>
+          </div>
+        ))}
       </div>
     </section>
   );
 }
 
-// ─── 3. METRICS ───────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+//  4. MANIFESTO
+// ════════════════════════════════════════════════════════════════════════════
 
-type Stat = { prefix: string; value: number; suffix: string; label: string; format: (n: number) => string };
-
-function MetricCard({ stat }: { stat: Stat }) {
-  const { count, ref } = useCounter(stat.value);
+function Manifesto() {
   return (
-    <motion.div
-      ref={ref}
-      className="flex flex-col items-center rounded-2xl border border-white/[0.07] bg-white/[0.03] p-7 text-center backdrop-blur-sm"
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.5, ease }}
-    >
-      <span className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
-        {stat.prefix}{stat.format(count)}{stat.suffix}
-      </span>
-      <span className="mt-3 text-sm text-white/45">{stat.label}</span>
-    </motion.div>
-  );
-}
-
-function Metrics() {
-  const stats: Stat[] = [
-    { prefix: "+", value: 16000, suffix: "", label: "creators validados", format: (n) => n.toLocaleString("pt-BR") },
-    { prefix: "+", value: 80, suffix: "", label: "nichos cobertos", format: (n) => String(n) },
-    { prefix: "", value: 1950, suffix: "", label: "cidades no Brasil", format: (n) => n.toLocaleString("pt-BR") },
-    { prefix: "R$", value: 8, suffix: "mi+", label: "em vendas geradas", format: (n) => String(n) },
-  ];
-
-  return (
-    <section className="bg-[#0a0a0a] px-6 pt-20 pb-10">
-      <div className="mx-auto max-w-6xl">
-        <div className="line-gradient mb-12" />
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {stats.map((stat) => <MetricCard key={stat.label} stat={stat} />)}
-        </div>
-        <div className="line-gradient mt-12" />
-      </div>
-    </section>
-  );
-}
-
-// ─── 4. HOW IT WORKS ──────────────────────────────────────────────────────────
-
-function HowItWorks() {
-  const empresaSteps = [
-    { icon: "📦", text: "Cadastre seu produto com preço e comissão" },
-    { icon: "🎯", text: "Defina critérios de elegibilidade por nicho e score" },
-    { icon: "📣", text: "Receba divulgação de creators qualificados" },
-    { icon: "💰", text: "Pague somente pelo resultado gerado" },
-  ];
-  const influenciadorSteps = [
-    { icon: "🛍️", text: "Acesse o Marketplace de produtos disponíveis" },
-    { icon: "✅", text: "Escolha produtos alinhados ao seu nicho" },
-    { icon: "🔗", text: "Receba seu link exclusivo de afiliado" },
-    { icon: "🏆", text: "Divulgue e receba comissão por cada venda" },
-  ];
-
-  return (
-    <section className="bg-[#0d0d0d] px-6 pt-10 pb-24">
-      <div className="mx-auto max-w-6xl">
-        <FadeUp className="text-center">
-          <Eyebrow>Como funciona</Eyebrow>
-          <h2 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
-            Simples para todos os lados
-          </h2>
-          <p className="mx-auto mt-4 max-w-lg text-base leading-7 text-white/45">
-            Seja empresa ou influenciador, o processo é direto e orientado a resultado.
+    <section id="manifesto" className="relative bg-[#080808] px-6 py-32 lg:px-10 lg:py-40">
+      <div className="mx-auto grid max-w-[1400px] gap-16 lg:grid-cols-[1fr_1.4fr] lg:gap-24">
+        <Reveal className="lg:sticky lg:top-32 lg:self-start">
+          <span className="mp-mono text-[10px] uppercase tracking-[0.25em] text-[var(--mp-accent)]">
+            (01) Manifesto
+          </span>
+          <p className="mp-mono mt-8 max-w-xs text-[13px] leading-[1.7] text-white/45">
+            Construímos a infraestrutura para a próxima geração de marketing de performance brasileira.
           </p>
-        </FadeUp>
+        </Reveal>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-2">
-          {/* Empresa */}
-          <FadeUp delay={0.1}>
-            <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-7">
-              <div className="mb-6 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-600/10 text-red-400">
-                  <IconBuilding />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-widest text-red-500/60">Para empresas e produtores</p>
-                  <p className="font-semibold text-white">Anuncie no modelo de performance</p>
-                </div>
-              </div>
-              <div className="space-y-0">
-                {empresaSteps.map((step, i) => (
-                  <motion.div
-                    key={step.text}
-                    className="flex gap-4"
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.15 + i * 0.1, duration: 0.5, ease }}
-                  >
-                    <div className="flex flex-col items-center">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-red-500/20 bg-red-600/[0.08] text-sm font-bold text-red-400">
-                        {String(i + 1).padStart(2, "0")}
-                      </div>
-                      {i < empresaSteps.length - 1 && (
-                        <motion.div
-                          className="my-1 w-px flex-1 bg-gradient-to-b from-red-600/20 to-transparent"
-                          style={{ minHeight: "28px" }}
-                          initial={{ scaleY: 0, originY: 0 }}
-                          whileInView={{ scaleY: 1 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: 0.3 + i * 0.1, duration: 0.4 }}
-                        />
-                      )}
-                    </div>
-                    <div className={`pb-6 pt-1.5 ${i === empresaSteps.length - 1 ? "pb-0" : ""}`}>
-                      <span className="text-sm leading-6 text-white/65">{step.text}</span>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-              <Link
-                className="btn-shimmer mt-6 inline-flex h-10 items-center justify-center rounded-xl bg-red-600/90 px-5 text-sm font-semibold text-white transition hover:bg-red-600"
-                href="/mundo-mapping/afiliados"
-              >
-                Cadastrar produto →
-              </Link>
-            </div>
-          </FadeUp>
-
-          {/* Influenciador */}
-          <FadeUp delay={0.2}>
-            <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-7">
-              <div className="mb-6 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.06] text-white/60">
-                  <IconUsers />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-widest text-white/30">Para influenciador</p>
-                  <p className="font-semibold text-white">Monetize sua audiência</p>
-                </div>
-              </div>
-              <div className="space-y-0">
-                {influenciadorSteps.map((step, i) => (
-                  <motion.div
-                    key={step.text}
-                    className="flex gap-4"
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.2 + i * 0.1, duration: 0.5, ease }}
-                  >
-                    <div className="flex flex-col items-center">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04] text-sm font-bold text-white/50">
-                        {String(i + 1).padStart(2, "0")}
-                      </div>
-                      {i < influenciadorSteps.length - 1 && (
-                        <motion.div
-                          className="my-1 w-px flex-1 bg-gradient-to-b from-white/10 to-transparent"
-                          style={{ minHeight: "28px" }}
-                          initial={{ scaleY: 0, originY: 0 }}
-                          whileInView={{ scaleY: 1 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: 0.35 + i * 0.1, duration: 0.4 }}
-                        />
-                      )}
-                    </div>
-                    <div className={`pb-6 pt-1.5 ${i === influenciadorSteps.length - 1 ? "pb-0" : ""}`}>
-                      <span className="text-sm leading-6 text-white/65">{step.text}</span>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-              <Link
-                className="mt-6 inline-flex h-10 items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.04] px-5 text-sm font-semibold text-white/70 transition hover:border-white/20 hover:text-white"
-                href="/mundo-mapping/influenciadores"
-              >
-                Acessar área do influenciador →
-              </Link>
-            </div>
-          </FadeUp>
-        </div>
+        <Reveal delay={0.15}>
+          <h2 className="mp-display text-white text-[44px] sm:text-[64px] md:text-[84px]">
+            Built for{" "}
+            <span className="italic font-light text-white/40">performance.</span>
+            <br />
+            Designed for{" "}
+            <span className="text-[var(--mp-accent)]">trust.</span>
+          </h2>
+          <div className="mt-12 grid gap-8 sm:grid-cols-2">
+            <p className="text-[15px] leading-[1.8] text-white/60">
+              O Mapping Partners não é mais uma plataforma de creators. É a infraestrutura por trás dos
+              afiliados das maiores marcas do Brasil — com curadoria humana, validação técnica e wallet
+              automático via Asaas.
+            </p>
+            <p className="text-[15px] leading-[1.8] text-white/60">
+              Cada creator passa por uma análise rigorosa de audiência, engajamento e adequação ao nicho.
+              20% dos perfis são reprovados. Quem entra, vende.
+            </p>
+          </div>
+        </Reveal>
       </div>
     </section>
   );
 }
 
-// ─── 5. DIFFERENTIALS ─────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+//  5. MÉTRICAS
+// ════════════════════════════════════════════════════════════════════════════
 
-function Differentials() {
-  const cards = [
-    {
-      icon: <IconStar />,
-      title: "Só creators aprovados",
-      desc: "Curadoria humana com 20% de reprovação. Apenas influenciadores com audiência real e engajamento genuíno passam para a plataforma.",
-    },
-    {
-      icon: <IconShield />,
-      title: "Contrato automático",
-      desc: "Validade jurídica sem burocracia. O contrato é gerado e assinado digitalmente no momento do cadastro.",
-    },
-    {
-      icon: <IconZap />,
-      title: "Pague por resultado",
-      desc: "Comissão somente sobre vendas geradas. Risco zero para a empresa no modelo puro de performance.",
-    },
+function Metricas() {
+  const stats = [
+    { value: 16000, prefix: "+", suffix: "", label: "Creators validados", format: (n: number) => n.toLocaleString("pt-BR") },
+    { value: 80, prefix: "+", suffix: "", label: "Nichos cobertos", format: (n: number) => String(n) },
+    { value: 1950, prefix: "", suffix: "", label: "Cidades atendidas", format: (n: number) => n.toLocaleString("pt-BR") },
+    { value: 8, prefix: "R$", suffix: "M+", label: "Em vendas geradas", format: (n: number) => String(n) },
   ];
 
   return (
-    <section className="bg-[#0a0a0a] px-6 py-24">
-      <div className="mx-auto max-w-6xl">
-        <FadeUp className="text-center">
-          <Eyebrow>Diferenciais</Eyebrow>
-          <h2 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
-            Por que o Mapping Partners?
-          </h2>
-        </FadeUp>
+    <section className="relative bg-[#0a0a0a] px-6 py-28 lg:px-10 lg:py-36">
+      <div className="mx-auto max-w-[1400px]">
+        <Reveal>
+          <div className="flex items-end justify-between gap-8">
+            <div>
+              <span className="mp-mono text-[10px] uppercase tracking-[0.25em] text-[var(--mp-accent)]">
+                (02) Números
+              </span>
+              <h2 className="mp-display mt-6 text-white text-[36px] sm:text-[52px] md:text-[64px]">
+                Escala que comprova.
+              </h2>
+            </div>
+            <p className="mp-mono hidden max-w-[200px] text-right text-[11px] leading-[1.7] text-white/40 md:block">
+              Dados atualizados em<br/>Mai/2026
+            </p>
+          </div>
+        </Reveal>
 
-        <div className="mt-14 grid gap-5 lg:grid-cols-3">
-          {cards.map((card, i) => (
+        <div className="mt-20 grid gap-px overflow-hidden rounded-[2px] border border-white/[0.06] bg-white/[0.05] sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map((stat, i) => (
             <motion.div
-              key={card.title}
-              className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.03] p-7 backdrop-blur-sm transition-colors duration-300 hover:border-red-500/30 hover:bg-white/[0.05]"
-              initial={{ opacity: 0, y: 36 }}
+              key={stat.label}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.55, delay: i * 0.1, ease }}
+              transition={{ duration: 0.7, delay: i * 0.08, ease }}
+              className="group relative flex flex-col justify-between gap-10 overflow-visible bg-[#0a0a0a] p-8 transition-colors hover:bg-[#0e0e0e] lg:p-10"
             >
-              {/* Glow on hover */}
-              <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-red-600/0 blur-3xl transition-all duration-500 group-hover:bg-red-600/10" />
-
-              <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.04] text-white/70 transition-colors group-hover:border-red-500/20 group-hover:text-red-400">
-                {card.icon}
+              <span className="mp-mono text-[11px] uppercase tracking-[0.22em] text-white/35 group-hover:text-[var(--mp-accent)] transition-colors">
+                0{i + 1}
+              </span>
+              <div>
+                <p className="mp-display whitespace-nowrap text-white text-[40px] tabular-nums sm:text-[48px] md:text-[52px] lg:text-[56px] xl:text-[64px]">
+                  {stat.prefix}<Counter value={stat.value} format={stat.format} />{stat.suffix}
+                </p>
+                <p className="mt-3 text-[14px] text-white/45">{stat.label}</p>
               </div>
-              <h3 className="relative mt-5 text-lg font-semibold text-white">{card.title}</h3>
-              <p className="relative mt-3 text-sm leading-7 text-white/50">{card.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -632,379 +665,466 @@ function Differentials() {
   );
 }
 
-// ─── 6. FOR WHOM ──────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+//  6. COMO FUNCIONA (assimétrico, alternando lados)
+// ════════════════════════════════════════════════════════════════════════════
 
-function ForWhom() {
-  const empresas = ["E-commerces", "Infoprodutores", "Marcas físicas", "Turismo e hotelaria", "PMEs"];
-  const influenciadores = ["Nano e micro creators", "Qualquer nicho", "De qualquer cidade do Brasil", "Com ou sem CNPJ", "Comece sem custo"];
-
-  return (
-    <section className="bg-[#0d0d0d] px-6 py-24">
-      <div className="mx-auto max-w-6xl">
-        <FadeUp className="text-center">
-          <Eyebrow>Para quem é</Eyebrow>
-          <h2 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
-            Feito para quem quer resultado
-          </h2>
-        </FadeUp>
-
-        <div className="mt-14 grid gap-5 lg:grid-cols-2">
-          {/* Empresas */}
-          <FadeUp delay={0.1}>
-            <div className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.03] p-8">
-              <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 rounded-full bg-red-600/5 blur-3xl" />
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-500/60">Empresas e Produtores</p>
-              <h3 className="mt-2 text-xl font-semibold text-white">Qualquer negócio que vende online</h3>
-              <p className="mt-2 text-sm leading-6 text-white/45">
-                Ideal para quem quer escalar vendas com marketing de performance puro.
-              </p>
-              <ul className="mt-6 space-y-3">
-                {empresas.map((item, i) => (
-                  <motion.li
-                    key={item}
-                    className="flex items-center gap-3 text-sm text-white/65"
-                    initial={{ opacity: 0, x: -12 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.1 + i * 0.07, duration: 0.4 }}
-                  >
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-600/10 text-red-400">
-                      <IconCheck />
-                    </span>
-                    {item}
-                  </motion.li>
-                ))}
-              </ul>
-              <Link
-                className="btn-shimmer mt-8 inline-flex h-10 items-center rounded-xl bg-red-600/90 px-5 text-sm font-semibold text-white transition hover:bg-red-600"
-                href="/mundo-mapping/empresa/login"
-              >
-                Cadastrar →
-              </Link>
-            </div>
-          </FadeUp>
-
-          {/* Influenciadores */}
-          <FadeUp delay={0.2}>
-            <div className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.03] p-8">
-              <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 rounded-full bg-white/[0.02] blur-3xl" />
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/30">Influenciadores</p>
-              <h3 className="mt-2 text-xl font-semibold text-white">Creators que querem monetizar</h3>
-              <p className="mt-2 text-sm leading-6 text-white/45">
-                Sem precisar de milhões de seguidores — audiência engajada já é suficiente.
-              </p>
-              <ul className="mt-6 space-y-3">
-                {influenciadores.map((item, i) => (
-                  <motion.li
-                    key={item}
-                    className="flex items-center gap-3 text-sm text-white/65"
-                    initial={{ opacity: 0, x: -12 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.15 + i * 0.07, duration: 0.4 }}
-                  >
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.07] text-white/50">
-                      <IconCheck />
-                    </span>
-                    {item}
-                  </motion.li>
-                ))}
-              </ul>
-              <Link
-                className="mt-8 inline-flex h-10 items-center rounded-xl border border-white/[0.1] bg-white/[0.04] px-5 text-sm font-semibold text-white/70 transition hover:border-white/20 hover:text-white"
-                href="/mundo-mapping/influenciadores"
-              >
-                Acessar área →
-              </Link>
-            </div>
-          </FadeUp>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── 7. TAX MODEL ─────────────────────────────────────────────────────────────
-
-function TaxModel() {
-  return (
-    <section className="bg-[#0a0a0a] px-6 py-20">
-      <div className="mx-auto max-w-3xl">
-        <FadeUp>
-          <div className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.03] p-8 md:p-10">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 rounded-full bg-red-600/8 blur-3xl" />
-            <Eyebrow>Modelo de receita</Eyebrow>
-            <h2 className="mt-4 text-2xl font-bold tracking-tight text-white md:text-3xl">
-              Como funciona a nossa taxa
-            </h2>
-            <p className="mt-4 text-[15px] leading-7 text-white/50">
-              Você só paga quando vende. O Mapping Partners cobra uma taxa adicional sobre as taxas do Asaas — não sobre o valor total da venda. Risco zero para entrar, crescimento compartilhado.
-            </p>
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              {[
-                { plan: "Associate", fee: "Asaas + 2%", price: "Grátis", highlight: false },
-                { plan: "Partner", fee: "Asaas + R$0,99", price: "R$117/mês", highlight: true },
-                { plan: "Elite", fee: "Asaas + R$0,49", price: "R$197/mês", highlight: false },
-              ].map((item) => (
-                <div
-                  key={item.plan}
-                  className={`rounded-xl px-4 py-3 text-center text-sm transition ${item.highlight ? "border border-red-500/30 bg-red-600/10 text-red-300" : "border border-white/[0.06] bg-white/[0.03] text-white/50"}`}
-                >
-                  <p className={`font-bold ${item.highlight ? "text-white" : ""}`}>{item.plan}</p>
-                  <p className={`mt-0.5 text-base font-bold ${item.highlight ? "text-white" : "text-white/70"}`}>{item.price}</p>
-                  <p className="mt-1 text-xs opacity-70">{item.fee}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </FadeUp>
-      </div>
-    </section>
-  );
-}
-
-// ─── 8. PLANS ─────────────────────────────────────────────────────────────────
-
-type PlanFeature = { text: string; included: boolean };
-type Plan = {
-  name: string;
-  price: string;
-  period: string;
-  badge: string | null;
-  badgeSub: string | null;
-  fee: string;
-  highlight: boolean;
-  cta: string;
-  href: string;
-  features: PlanFeature[];
-};
-
-function PlanCard({ plan, index }: { plan: Plan; index: number }) {
-  const { onMove, onLeave, style } = useTilt();
-
-  return (
-    <motion.div
-      className={`relative flex flex-col rounded-2xl p-7 ${plan.highlight
-        ? "border border-red-500/30 bg-gradient-to-b from-red-950/30 to-[#0a0a0a] shadow-[0_0_80px_rgba(220,38,38,0.12)]"
-        : "border border-white/[0.07] bg-white/[0.03]"
-      }`}
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.55, delay: index * 0.1, ease }}
-      onMouseMove={onMove}
-      onMouseLeave={onLeave}
-      style={style}
-    >
-      {plan.badge && (
-        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-          <span className="whitespace-nowrap rounded-full border border-red-500/30 bg-red-600/80 px-4 py-1 text-xs font-bold text-white backdrop-blur-sm">
-            {plan.badge}
-          </span>
-        </div>
-      )}
-
-      <div>
-        <p className={`text-xs font-bold uppercase tracking-widest ${plan.highlight ? "text-red-400" : "text-white/40"}`}>
-          {plan.name}
-        </p>
-        {plan.badgeSub && (
-          <p className="mt-0.5 text-xs text-white/30">{plan.badgeSub}</p>
-        )}
-      </div>
-
-      <div className="mt-4 flex items-baseline gap-1">
-        <span className="text-3xl font-bold text-white">{plan.price}</span>
-        {plan.period && <span className="text-sm text-white/40">{plan.period}</span>}
-      </div>
-
-      <div className={`mt-3 rounded-xl px-3 py-2 text-xs font-semibold ${plan.highlight ? "bg-red-600/10 text-red-400" : "bg-white/[0.04] text-white/40"}`}>
-        {plan.fee}
-      </div>
-
-      <ul className="mt-6 flex-1 space-y-3">
-        {plan.features.map((feat) => (
-          <li
-            key={feat.text}
-            className={`flex items-center gap-2.5 text-sm ${feat.included ? "text-white/70" : "text-white/25"}`}
-          >
-            <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${feat.included ? (plan.highlight ? "bg-red-400" : "bg-white/40") : "bg-white/15"}`} />
-            {feat.text}
-          </li>
-        ))}
-      </ul>
-
-      <Link
-        className={`btn-shimmer mt-8 block rounded-xl py-3 text-center text-sm font-bold transition ${plan.highlight
-          ? "bg-red-600 text-white hover:bg-red-500 shadow-[0_0_30px_rgba(220,38,38,0.3)]"
-          : "border border-white/[0.1] bg-white/[0.04] text-white/70 hover:border-white/20 hover:text-white"
-        }`}
-        href={plan.href}
-      >
-        {plan.cta}
-      </Link>
-    </motion.div>
-  );
-}
-
-function Plans() {
-  const plans: Plan[] = [
+function ComoFunciona() {
+  const steps = [
     {
-      name: "Associate",
-      price: "Grátis",
-      period: "",
-      badge: null,
-      badgeSub: "Freemium permanente",
-      fee: "Taxa por venda: Asaas + 2%",
-      highlight: false,
-      cta: "Começar grátis",
-      href: "/mundo-mapping/empresa/login",
-      features: [
-        { text: "1 produto no marketplace", included: true },
-        { text: "Acesso à base de +16k creators", included: true },
-        { text: "Link de afiliado básico", included: true },
-        { text: "Dashboard de performance", included: false },
-        { text: "Ver identidade dos creators", included: false },
-      ],
+      n: "01",
+      kicker: "Empresa",
+      title: "Cadastre seu produto",
+      desc: "Defina preço, comissão e nichos elegíveis. Aprovação técnica em até 24h.",
     },
     {
-      name: "Partner",
-      price: "R$117",
-      period: "/mês",
-      badge: "Mais popular",
-      badgeSub: null,
-      fee: "Taxa por venda: Asaas + R$0,99",
-      highlight: true,
-      cta: "Assinar agora",
-      href: "/assinar/partner",
-      features: [
-        { text: "Até 10 produtos no marketplace", included: true },
-        { text: "Dashboard de performance completo", included: true },
-        { text: "Curadoria automática por nicho", included: true },
-        { text: "Vê identidade dos creators afiliados", included: true },
-        { text: "Suporte via chat", included: true },
-      ],
+      n: "02",
+      kicker: "Curadoria",
+      title: "Receba creators validados",
+      desc: "20% dos perfis são reprovados. Quem aparece no seu dashboard tem audiência real, engajamento real e nicho compatível.",
     },
     {
-      name: "Elite",
-      price: "R$197",
-      period: "/mês",
-      badge: null,
-      badgeSub: "Máxima performance",
-      fee: "Taxa por venda: Asaas + R$0,49",
-      highlight: false,
-      cta: "Assinar agora",
-      href: "/assinar/elite",
-      features: [
-        { text: "Tudo do Partner", included: true },
-        { text: "Produtos ilimitados", included: true },
-        { text: "Curadoria humana de creators", included: true },
-        { text: "Materiais de venda personalizados", included: true },
-        { text: "Account manager dedicado", included: true },
-        { text: "Relatórios avançados de GMV", included: true },
-      ],
+      n: "03",
+      kicker: "Performance",
+      title: "Acompanhe em tempo real",
+      desc: "Vendas, cliques, comissões e ROI por creator. Dashboard ao vivo, sem planilha.",
+    },
+    {
+      n: "04",
+      kicker: "Pagamento",
+      title: "Wallet Asaas automático",
+      desc: "Comissão cai direto na conta do creator no momento da venda. Risco zero, sem mensalidade obrigatória.",
     },
   ];
 
   return (
-    <section className="bg-[#0d0d0d] px-6 py-24">
-      <div className="mx-auto max-w-5xl">
-        <FadeUp className="text-center">
-          <Eyebrow>Planos</Eyebrow>
-          <h2 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
-            Entrada gratuita, escala com resultado
+    <section id="funciona" className="relative bg-[#080808] px-6 py-32 lg:px-10 lg:py-40">
+      <div className="mx-auto max-w-[1400px]">
+        <Reveal>
+          <span className="mp-mono text-[10px] uppercase tracking-[0.25em] text-[var(--mp-accent)]">
+            (03) Como funciona
+          </span>
+          <h2 className="mp-display mt-6 max-w-3xl text-white text-[44px] sm:text-[64px] md:text-[80px]">
+            Quatro passos.<br/>
+            <span className="text-white/30">Zero atrito.</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-lg text-base text-white/45">
-            Comece sem custo e pague uma taxa sobre as vendas geradas. Planos pagos reduzem a taxa e liberam funcionalidades premium.
-          </p>
-        </FadeUp>
+        </Reveal>
 
-        <div className="mt-14 grid gap-5 sm:grid-cols-3">
-          {plans.map((plan, i) => <PlanCard index={i} key={plan.name} plan={plan} />)}
+        <div className="mt-24 space-y-24 lg:space-y-32">
+          {steps.map((step, i) => {
+            const reverse = i % 2 === 1;
+            return (
+              <motion.div
+                key={step.n}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.9, ease }}
+                className={`grid items-center gap-10 lg:gap-20 lg:grid-cols-2 ${reverse ? "lg:[&>*:first-child]:order-2" : ""}`}
+              >
+                {/* Visual block */}
+                <div className="relative">
+                  <div className="relative aspect-[5/4] overflow-hidden rounded-[2px] border border-white/[0.06] bg-gradient-to-br from-[#141414] via-[#0c0c0c] to-[#080808]">
+                    <div className="mp-grid absolute inset-0 opacity-40" />
+                    <div
+                      className="absolute -right-20 -top-20 h-72 w-72 rounded-full opacity-30 blur-3xl"
+                      style={{ background: `radial-gradient(circle, ${reverse ? "#3a0103" : "var(--mp-accent)"} 0%, transparent 70%)` }}
+                    />
+                    <div className="absolute inset-0 flex flex-col justify-between p-10">
+                      <span className="mp-mono text-[11px] uppercase tracking-[0.22em] text-white/40">
+                        {step.kicker}
+                      </span>
+                      <p className="mp-display text-[88px] leading-none text-white/95 sm:text-[120px] md:text-[160px] lg:text-[220px]" aria-hidden="true">
+                        {step.n}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Text block */}
+                <div>
+                  <span className="mp-mono text-[10px] uppercase tracking-[0.25em] text-white/30">
+                    Step {step.n}
+                  </span>
+                  <h3 className="mp-display mt-4 text-white text-[32px] sm:text-[44px] md:text-[56px]">
+                    {step.title}
+                  </h3>
+                  <p className="mt-6 max-w-md text-[16px] leading-[1.8] text-white/55">
+                    {step.desc}
+                  </p>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
-
-        <FadeUp delay={0.3}>
-          <p className="mx-auto mt-8 max-w-2xl text-center text-sm leading-7 text-white/30">
-            As taxas do Mapping Partners são cobradas em cima das taxas padrão do Asaas. Quanto maior o plano, menor a taxa adicional — e maior o seu lucro por venda.
-          </p>
-        </FadeUp>
       </div>
     </section>
   );
 }
 
-// ─── 9. FINAL CTA ─────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+//  7. PARA EMPRESAS / PARA CREATORS (duas colunas, hover assimétrico)
+// ════════════════════════════════════════════════════════════════════════════
+
+function DuasFrentes() {
+  const blocks = [
+    {
+      tag: "Para empresas",
+      title: "Anuncie por performance.",
+      desc: "Pague só pelo resultado. Sem cachê fixo, sem risco. Comissão automática sobre cada venda gerada por creators validados do seu nicho.",
+      bullets: ["E-commerces e infoprodutores", "Curadoria humana", "Dashboard de ROI por creator", "Plano grátis disponível"],
+      cta: { label: "Cadastrar produto", href: "/mundo-mapping/empresa/login" },
+      accent: true,
+    },
+    {
+      tag: "Para creators",
+      title: "Monetize sua audiência.",
+      desc: "Escolha produtos alinhados ao seu nicho, gere link de afiliado e receba comissão em wallet Asaas automaticamente — sem precisar de CNPJ.",
+      bullets: ["Marketplace de +650 marcas", "Wallet Asaas criada na hora", "Comissão direta na conta", "Comece sem custo"],
+      cta: { label: "Sou creator", href: "/mundo-mapping/influenciador/login" },
+      accent: false,
+    },
+  ];
+
+  return (
+    <section className="bg-[#0a0a0a] px-6 py-32 lg:px-10 lg:py-40">
+      <div className="mx-auto max-w-[1400px]">
+        <Reveal>
+          <span className="mp-mono text-[10px] uppercase tracking-[0.25em] text-[var(--mp-accent)]">
+            (04) Duas frentes
+          </span>
+          <h2 className="mp-display mt-6 max-w-3xl text-white text-[44px] sm:text-[64px] md:text-[80px]">
+            Marcas <span className="text-white/30">&</span> creators<br/>
+            no mesmo lugar.
+          </h2>
+        </Reveal>
+
+        <div className="mt-20 grid gap-px overflow-hidden rounded-[2px] border border-white/[0.06] bg-white/[0.06] md:grid-cols-2">
+          {blocks.map((b) => (
+            <Reveal key={b.tag} delay={0.1}>
+              <div
+                className={`relative flex h-full flex-col justify-between gap-12 p-10 transition-colors lg:p-14 ${
+                  b.accent
+                    ? "bg-[#0a0a0a] hover:bg-[#120606]"
+                    : "bg-[#0a0a0a] hover:bg-[#0f0f0f]"
+                }`}
+              >
+                <div
+                  className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full opacity-0 blur-3xl transition-opacity duration-700 group-hover:opacity-100"
+                  style={{ background: `radial-gradient(circle, ${b.accent ? "var(--mp-accent)" : "#444"} 0%, transparent 70%)` }}
+                />
+                <div>
+                  <span className={`mp-mono text-[10px] uppercase tracking-[0.25em] ${b.accent ? "text-[var(--mp-accent)]" : "text-white/40"}`}>
+                    {b.tag}
+                  </span>
+                  <h3 className="mp-display mt-5 text-white text-[36px] sm:text-[48px] md:text-[56px]">
+                    {b.title}
+                  </h3>
+                  <p className="mt-6 max-w-md text-[15px] leading-[1.8] text-white/55">
+                    {b.desc}
+                  </p>
+                </div>
+
+                <div>
+                  <ul className="space-y-3 border-t border-white/[0.06] pt-8">
+                    {b.bullets.map((bullet) => (
+                      <li key={bullet} className="flex items-center gap-3 text-[14px] text-white/65">
+                        <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${b.accent ? "bg-[var(--mp-accent)]/15 text-[var(--mp-accent)]" : "bg-white/[0.06] text-white/45"}`}>
+                          <Icon.Check />
+                        </span>
+                        {bullet}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link
+                    href={b.cta.href}
+                    data-hover
+                    className={`mt-10 inline-flex h-12 items-center gap-3 rounded-full px-6 text-[14px] font-semibold tracking-tight transition ${
+                      b.accent
+                        ? "bg-[var(--mp-accent)] text-white shadow-[0_24px_50px_-20px_rgba(239,15,26,0.5)] hover:bg-[#ff2e3a]"
+                        : "border border-white/15 bg-white/[0.04] text-white hover:border-white/30 hover:bg-white/[0.08]"
+                    }`}
+                  >
+                    {b.cta.label}
+                    <Icon.Arrow />
+                  </Link>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  8. PLANOS
+// ════════════════════════════════════════════════════════════════════════════
+
+function Planos() {
+  const plans = [
+    {
+      name: "Associate",
+      price: "Grátis",
+      period: "",
+      sub: "Comece sem custo",
+      fee: "Asaas + 2% por venda",
+      features: ["1 produto no marketplace", "Acesso à base de +16k creators", "Link de afiliado básico"],
+      cta: "Começar grátis",
+      href: "/mundo-mapping/empresa/login",
+      highlight: false,
+    },
+    {
+      name: "Partner",
+      price: "R$ 117",
+      period: "/mês",
+      sub: "Mais popular",
+      fee: "Asaas + R$ 0,99 por venda",
+      features: [
+        "Até 10 produtos",
+        "Dashboard de performance",
+        "Curadoria automática por nicho",
+        "Identidade dos creators",
+        "Suporte via chat",
+      ],
+      cta: "Assinar Partner",
+      href: "/assinar/partner",
+      highlight: true,
+    },
+    {
+      name: "Elite",
+      price: "R$ 197",
+      period: "/mês",
+      sub: "Máxima performance",
+      fee: "Asaas + R$ 0,49 por venda",
+      features: [
+        "Tudo do Partner",
+        "Produtos ilimitados",
+        "Curadoria humana",
+        "Materiais personalizados",
+        "Account manager dedicado",
+      ],
+      cta: "Assinar Elite",
+      href: "/assinar/elite",
+      highlight: false,
+    },
+  ];
+
+  return (
+    <section id="planos" className="bg-[#080808] px-6 py-32 lg:px-10 lg:py-40">
+      <div className="mx-auto max-w-[1400px]">
+        <Reveal>
+          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div>
+              <span className="mp-mono text-[10px] uppercase tracking-[0.25em] text-[var(--mp-accent)]">
+                (05) Planos
+              </span>
+              <h2 className="mp-display mt-6 text-white text-[44px] sm:text-[64px] md:text-[80px]">
+                Entrada grátis.<br/>
+                <span className="text-white/30">Escala com resultado.</span>
+              </h2>
+            </div>
+            <p className="mp-mono max-w-xs text-[13px] leading-[1.7] text-white/45">
+              Taxas adicionais sobre as do Asaas. Quanto maior o plano, menor a taxa por venda — e maior seu lucro.
+            </p>
+          </div>
+        </Reveal>
+
+        <div className="mt-20 grid gap-px overflow-hidden rounded-[2px] border border-white/[0.06] bg-white/[0.06] lg:grid-cols-3">
+          {plans.map((p, i) => (
+            <motion.div
+              key={p.name}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.7, delay: i * 0.1, ease }}
+              className={`relative flex flex-col gap-10 p-10 transition-colors lg:p-12 ${
+                p.highlight
+                  ? "bg-gradient-to-b from-[#160506] to-[#0a0a0a] hover:from-[#1c0608]"
+                  : "bg-[#0a0a0a] hover:bg-[#0e0e0e]"
+              }`}
+            >
+              {p.highlight && (
+                <span className="mp-mono absolute right-6 top-6 rounded-full border border-[var(--mp-accent)]/40 bg-[var(--mp-accent)]/10 px-3 py-1 text-[9px] uppercase tracking-[0.22em] text-[var(--mp-accent)]">
+                  Recomendado
+                </span>
+              )}
+
+              <div>
+                <span className="mp-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
+                  {p.name}
+                </span>
+                <p className="mt-2 text-[11px] text-white/35">{p.sub}</p>
+              </div>
+
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <span className="mp-display text-white text-[56px] sm:text-[72px]">{p.price}</span>
+                  {p.period && <span className="text-[15px] text-white/40">{p.period}</span>}
+                </div>
+                <p className={`mp-mono mt-3 text-[11px] uppercase tracking-[0.2em] ${p.highlight ? "text-[var(--mp-accent)]" : "text-white/40"}`}>
+                  {p.fee}
+                </p>
+              </div>
+
+              <ul className="space-y-3 border-t border-white/[0.06] pt-8">
+                {p.features.map((f) => (
+                  <li key={f} className="flex items-center gap-3 text-[14px] text-white/65">
+                    <span className={`h-1 w-1 rounded-full ${p.highlight ? "bg-[var(--mp-accent)]" : "bg-white/40"}`} />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href={p.href}
+                data-hover
+                className={`mt-auto inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-[14px] font-semibold transition ${
+                  p.highlight
+                    ? "bg-[var(--mp-accent)] text-white shadow-[0_24px_50px_-20px_rgba(239,15,26,0.5)] hover:bg-[#ff2e3a]"
+                    : "border border-white/15 bg-white/[0.04] text-white hover:border-white/30"
+                }`}
+              >
+                {p.cta}
+                <Icon.Arrow />
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  9. CTA FINAL (massivo)
+// ════════════════════════════════════════════════════════════════════════════
 
 function FinalCTA() {
-  return (
-    <section className="relative overflow-hidden bg-[#0a0a0a] px-6 py-28">
-      {/* Red gradient bg */}
-      <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(220,38,38,0.18) 0%, transparent 70%)" }} />
-      <div className="line-gradient absolute top-0 left-0 right-0" />
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const yText = useTransform(scrollYProgress, [0, 1], ["20%", "-20%"]);
 
-      <div className="relative mx-auto max-w-2xl text-center">
-        <FadeUp>
-          <h2 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Pronto para vender com
-            <span className="bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent"> creators reais?</span>
-          </h2>
-          <p className="mx-auto mt-6 max-w-lg text-lg leading-8 text-white/45">
-            Cadastre seu produto agora e comece a receber divulgações de influenciadores validados.
-          </p>
-          <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-            <Link
-              className="btn-shimmer inline-flex h-12 items-center justify-center rounded-2xl bg-red-600 px-10 text-base font-bold text-white shadow-[0_0_60px_rgba(220,38,38,0.4)] transition hover:bg-red-500"
-              href="/mundo-mapping/empresa/login"
-            >
-              Começar agora
-            </Link>
-            <Link
-              className="text-sm font-medium text-white/40 underline-offset-4 transition hover:text-white hover:underline"
-              href="/mundo-mapping/influenciador/login"
-            >
-              Já sou influenciador da Mundo Mapping
-            </Link>
-          </div>
-        </FadeUp>
+  return (
+    <section ref={ref} className="relative isolate overflow-hidden bg-[#080808] px-8 py-40 lg:px-12 lg:py-56">
+      <div className="absolute inset-0 -z-10">
+        <div className="mp-grid absolute inset-0 opacity-40" />
+        <div
+          className="mp-blob absolute left-1/2 top-1/2 h-[900px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-25"
+          style={{ background: "radial-gradient(circle, var(--mp-accent) 0%, transparent 65%)" }}
+        />
+        <div className="mp-noise absolute inset-0 opacity-[0.05] mix-blend-overlay" />
       </div>
+
+      <motion.div
+        suppressHydrationWarning
+        style={{ y: yText }}
+        className="relative mx-auto w-full max-w-[1100px] px-8 pb-6 text-center"
+      >
+        <Reveal>
+          <span className="mp-mono text-[10px] uppercase tracking-[0.25em] text-[var(--mp-accent)]">
+            (06) Junte-se
+          </span>
+        </Reveal>
+        <h2 className="mx-auto mt-8 font-extrabold tracking-tight text-white text-[56px] sm:text-[80px] md:text-[112px] lg:text-[144px] xl:text-[168px]">
+          <span className="block leading-[1.2]">
+            <SplitWords text="Comece" delay={0.05} />
+          </span>
+          <span className="block italic font-light leading-[1.2] text-white/40 pr-[0.3em]">
+            <SplitWords text="agora." delay={0.25} />
+          </span>
+        </h2>
+
+        <Reveal delay={0.3} className="mt-12 flex flex-col items-center gap-5 sm:flex-row sm:justify-center">
+          <Magnetic>
+            <Link
+              href="/mundo-mapping/empresa/login"
+              data-hover
+              className="mp-magnet group inline-flex h-16 items-center gap-3 rounded-full bg-white px-10 text-[16px] font-semibold tracking-tight text-black transition hover:bg-white/90"
+            >
+              Cadastrar meu produto
+              <span className="transition-transform group-hover:translate-x-1"><Icon.Arrow /></span>
+            </Link>
+          </Magnetic>
+          <Link
+            href="/mundo-mapping/influenciador/login"
+            data-hover
+            className="mp-mono text-[12px] uppercase tracking-[0.25em] text-white/50 transition hover:text-white"
+          >
+            Entrar como creator →
+          </Link>
+        </Reveal>
+      </motion.div>
     </section>
   );
 }
 
-// ─── 10. FOOTER ───────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+//  10. FOOTER (minimalista)
+// ════════════════════════════════════════════════════════════════════════════
 
 function Footer() {
+  const links = [
+    { label: "Empresa", href: "/mundo-mapping/empresa/login" },
+    { label: "Creator", href: "/mundo-mapping/influenciador/login" },
+    { label: "Mundo Mapping", href: "https://mundomapping.com" },
+    { label: "Termos", href: "/mundo-mapping/termos" },
+    { label: "Privacidade", href: "/mundo-mapping/privacidade" },
+  ];
+
   return (
-    <footer className="border-t border-white/[0.05] bg-[#0a0a0a] px-6 py-10">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
-        <MappingPartnersLogo onDark size="sm" subtitle="Uma sub-marca da Mundo Mapping" />
-        <div className="flex items-center gap-6 text-xs text-white/25">
-          <Link className="transition hover:text-white/60" href="/mundo-mapping/empresa/login">Entrar</Link>
-          <Link className="transition hover:text-white/60" href="/mundo-mapping/afiliados">Cadastrar produto</Link>
-          <Link className="transition hover:text-white/60" href="/mundo-mapping/influenciadores">Influenciadores</Link>
+    <footer className="border-t border-white/[0.06] bg-[#060606] px-6 py-12 lg:px-10">
+      <div className="mx-auto grid max-w-[1400px] gap-10 md:grid-cols-[1.2fr_1fr_auto] md:items-start">
+        <div>
+          <MappingPartnersLogo onDark size="sm" subtitle="Sub-marca da Mundo Mapping" />
+          <p className="mp-mono mt-5 max-w-xs text-[11px] leading-[1.8] text-white/35">
+            partners@mundomapping.com<br/>
+            São Paulo · Brasil
+          </p>
         </div>
-        <p className="text-xs text-white/20">© {new Date().getFullYear()} Mapping Partners</p>
+
+        <nav className="flex flex-wrap gap-x-6 gap-y-3">
+          {links.map((l) => (
+            <Link
+              key={l.label}
+              href={l.href}
+              data-hover
+              className="mp-mono text-[11px] uppercase tracking-[0.22em] text-white/45 transition hover:text-white"
+            >
+              {l.label}
+            </Link>
+          ))}
+        </nav>
+
+        <p className="mp-mono text-[10px] uppercase tracking-[0.25em] text-white/25">
+          © {COPYRIGHT_YEAR} Mapping Partners
+        </p>
       </div>
     </footer>
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+//  PAGE
+// ════════════════════════════════════════════════════════════════════════════
 
 export default function MappingPartnersPage() {
   return (
     <>
       <style>{globalStyles}</style>
-      <div className="min-h-screen bg-[#0a0a0a]">
+      <div className="mp-root min-h-screen bg-[#080808] text-white selection:bg-[var(--mp-accent)] selection:text-white">
+        <CustomCursor />
         <Navbar />
         <main>
           <Hero />
-          <Metrics />
-          <HowItWorks />
-          <Differentials />
-          <ForWhom />
-          <TaxModel />
-          <Plans />
+          <Marquee />
+          <Manifesto />
+          <Metricas />
+          <ComoFunciona />
+          <DuasFrentes />
+          <Planos />
           <FinalCTA />
         </main>
         <Footer />
