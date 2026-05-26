@@ -1,7 +1,7 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { SUPABASE_URL, SUPABASE_ANON_KEY, readSupabaseEnv } from "./env";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./env";
 
-const SERVICE_ROLE_KEY = readSupabaseEnv("SUPABASE_SERVICE_ROLE_KEY", "");
+const SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").replace(/^=+/, "").trim();
 
 // Returns a Supabase client that bypasses RLS (service role) when the key is
 // available, otherwise falls back to anon key with the provided access token.
