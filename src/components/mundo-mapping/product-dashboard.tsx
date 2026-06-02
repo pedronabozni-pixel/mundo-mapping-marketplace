@@ -20,9 +20,27 @@ export function ProductDashboard() {
   const [period, setPeriod] = useState("30 dias");
   const [realAffiliates, setRealAffiliates] = useState<number | null>(null);
   const [realComissao, setRealComissao] = useState<number | null>(null);
+  const [walletMissing, setWalletMissing] = useState(false);
 
   const publishedCount = products.filter((p) => p.status === "published").length;
   const shoppingCount = products.filter((p) => p.visibleInShopping).length;
+
+  useEffect(() => {
+    async function checkWallet() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("wallet_id, user_type")
+        .eq("id", user.id)
+        .single();
+      if (profile?.user_type === "empresa" && !profile.wallet_id) {
+        setWalletMissing(true);
+      }
+    }
+    checkWallet();
+  }, []);
 
   useEffect(() => {
     async function fetchMetrics() {
@@ -52,6 +70,22 @@ export function ProductDashboard() {
 
   return (
     <>
+      {walletMissing && (
+        <div className="mx-6 mt-6 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
+          <svg className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <div>
+            <p className="text-sm font-semibold text-amber-800">Conta financeira não configurada</p>
+            <p className="mt-1 text-sm leading-6 text-amber-700">
+              Seu cadastro financeiro junto ao Asaas não foi criado. Complete seus dados de perfil para poder publicar produtos.{" "}
+              <a className="font-semibold underline underline-offset-2" href="/mundo-mapping/afiliados/perfil">
+                Ir para o perfil
+              </a>
+            </p>
+          </div>
+        </div>
+      )}
       <PageHeader
         actions={
           <>

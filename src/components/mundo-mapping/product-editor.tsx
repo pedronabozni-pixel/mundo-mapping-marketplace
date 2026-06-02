@@ -284,6 +284,20 @@ export function ProductEditor({
       return;
     }
 
+    if (publish) {
+      try {
+        const guardRes = await fetch("/api/mundo-mapping/empresa/produtos/publicar", { method: "POST" });
+        if (!guardRes.ok) {
+          const body = await guardRes.json().catch(() => ({}));
+          setFeedback({ msg: (body as { error?: string }).error ?? "Não foi possível publicar o produto.", type: "error" });
+          return;
+        }
+      } catch {
+        setFeedback({ msg: "Erro ao verificar permissão de publicação. Tente novamente.", type: "error" });
+        return;
+      }
+    }
+
     const guaranteeDays = Math.min(30, Math.max(7, form.guaranteeDays || 0));
     const normalized: ProductInput = {
       ...form,

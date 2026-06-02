@@ -9,7 +9,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "missing_token" }, { status: 401 });
   }
 
-  // Verify token and get user identity
   const admin = createAdminClient();
   const { data: { user }, error: authError } = await admin.auth.getUser(access_token);
 
@@ -19,29 +18,26 @@ export async function POST(req: NextRequest) {
 
   const userId = user.id;
 
-  // Read profile (use access token so RLS allows it, or admin bypasses)
   const authedAdmin = createAdminClient(access_token);
   const { data: profile } = await authedAdmin
     .from("profiles")
-    .select("wallet_id, full_name, email, cpf_cnpj, phone, user_type")
+    .select("wallet_id, company_name, full_name, email, cpf_cnpj, user_type")
     .eq("id", userId)
     .single();
 
-  if (!profile || profile.user_type !== "influenciador") {
-    return NextResponse.json({ error: "not_influencer" }, { status: 403 });
+  if (!profile || profile.user_type !== "empresa") {
+    return NextResponse.json({ error: "not_empresa" }, { status: 403 });
   }
 
-  // Already has wallet — nothing to do
   if (profile.wallet_id) {
     return NextResponse.json({ wallet_id: profile.wallet_id, already_exists: true });
   }
 
   try {
     const wallet = await createAsaasWallet({
-      name: profile.full_name ?? user.email ?? "Influenciador",
+      name: profile.company_name ?? profile.full_name ?? user.email ?? "Empresa",
       email: profile.email ?? user.email ?? "",
       cpfCnpj: profile.cpf_cnpj,
-      mobilePhone: profile.phone,
     });
 
     await authedAdmin
@@ -54,7 +50,7 @@ export async function POST(req: NextRequest) {
     // Qualquer erro Asaas (API key inválida, CPF duplicado, timeout, etc.)
     // é logado no servidor mas nunca propagado ao cliente — o cadastro não
     // pode falhar por causa da wallet.
-    console.error("[create-wallet/influenciador]", err instanceof Error ? err.message : err);
+    console.error("[create-wallet/empresa]", err instanceof Error ? err.message : err);
     return NextResponse.json({ success: false, error: "wallet_creation_failed" });
   }
 }
