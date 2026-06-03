@@ -283,13 +283,13 @@ export function SectionCard({
 }) {
   return (
     <section
-      className={cn("rounded-[20px] p-6", className)}
-      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}
+      className={cn("rounded-2xl p-6", className)}
+      style={{ background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.05)" }}
     >
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold tracking-tight text-white">{title}</h3>
-          {subtitle ? <p className="mt-1 text-sm" style={{ color: "#888" }}>{subtitle}</p> : null}
+          <h3 className="font-serif text-lg font-normal text-white">{title}</h3>
+          {subtitle ? <p className="mt-1 text-sm" style={{ color: "#666" }}>{subtitle}</p> : null}
         </div>
         {action}
       </div>
@@ -318,22 +318,18 @@ export function MetricCard({
           : { background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }
       }
     >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm font-medium" style={{ color: "#888" }}>{label}</p>
-          <p
-            className="mt-3 text-3xl font-semibold tracking-tight"
-            style={{ color: emphasis ? "#C8102E" : "#fff" }}
-          >
-            {value}
-          </p>
-        </div>
-        <div
-          className="h-11 w-11 rounded-2xl"
-          style={{ background: emphasis ? "rgba(200,16,46,0.12)" : "rgba(255,255,255,0.04)" }}
-        />
-      </div>
-      <p className="mt-4 text-sm" style={{ color: "#888" }}>{meta}</p>
+      <p
+        className="text-[11px] font-medium uppercase tracking-[0.04em]"
+        style={{ color: "#888" }}
+      >
+        {label}
+      </p>
+      <p
+        className="mt-3 font-serif text-[32px] font-normal leading-none text-white"
+      >
+        {value}
+      </p>
+      <p className="mt-4 text-[11px]" style={{ color: "#666" }}>{meta}</p>
     </div>
   );
 }
@@ -350,9 +346,9 @@ export function MiniStat({
   return (
     <div
       className="min-w-0 rounded-2xl p-4"
-      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.04)" }}
     >
-      <p className="text-[11px] font-medium uppercase leading-4 tracking-[0.12em] break-words" style={{ color: "#555" }}>
+      <p className="text-[10px] font-medium uppercase leading-4 tracking-[0.12em] break-words" style={{ color: "#555" }}>
         {label}
       </p>
       <p
@@ -373,7 +369,7 @@ export function DataTable({
   rows: string[][];
 }) {
   return (
-    <div className="overflow-hidden rounded-[20px]" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
+    <div className="overflow-hidden rounded-xl" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y text-left" style={{ borderColor: "rgba(255,255,255,0.04)" }}>
           <thead style={{ background: "rgba(255,255,255,0.03)" }}>
@@ -609,7 +605,7 @@ export function BlueprintBlock({
         >
           {index}
         </div>
-        <h3 className="text-lg font-semibold tracking-tight text-white">{title}</h3>
+        <h3 className="font-serif text-lg font-normal text-white">{title}</h3>
       </div>
       <ul className="mt-4 space-y-3 text-sm leading-6" style={{ color: "#888" }}>
         {items.map((item) => (

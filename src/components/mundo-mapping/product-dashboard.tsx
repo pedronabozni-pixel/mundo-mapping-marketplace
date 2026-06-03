@@ -7,9 +7,8 @@ import { useProductStore } from "@/components/mundo-mapping/product-store";
 import { usePlanLimits } from "@/components/mundo-mapping/use-plan-limits";
 import { createClient } from "@/lib/supabase/client";
 
-// ─── Sparkline SVG (mock data — placeholder for future time-series) ───────────
+// ─── Sparkline SVG (dados reais de vendas dos últimos 30 dias) ───────────────
 
-const SPARK_DATA = [90, 85, 75, 80, 60, 55, 45, 50, 30, 25, 20, 15];
 const SPARK_W = 320;
 const SPARK_H = 120;
 
@@ -17,15 +16,27 @@ function buildSparkPoints(data: number[]) {
   const min = Math.min(...data);
   const max = Math.max(...data);
   const range = Math.max(max - min, 1);
-  const step = SPARK_W / (data.length - 1);
+  const step = SPARK_W / Math.max(data.length - 1, 1);
   return data.map((v, i) => ({
     x: i * step,
     y: SPARK_H - ((v - min) / range) * (SPARK_H - 20) - 10,
   }));
 }
 
-function Sparkline() {
-  const pts = buildSparkPoints(SPARK_DATA);
+function Sparkline({ values }: { values: number[] }) {
+  const hasData = values.length > 0 && values.some((v) => v > 0);
+
+  if (!hasData) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-[12px] italic text-center" style={{ color: "#555" }}>
+          Gráfico aparece a partir da primeira venda
+        </p>
+      </div>
+    );
+  }
+
+  const pts = buildSparkPoints(values);
   const polyPts = pts.map((p) => `${p.x},${p.y}`).join(" ");
   const last = pts[pts.length - 1];
 
@@ -189,6 +200,9 @@ export function ProductDashboard() {
   const [realComissao, setRealComissao] = useState<number | null>(null);
   const [walletMissing, setWalletMissing] = useState(false);
   const [empresaName, setEmpresaName] = useState<string | null>(null);
+  const [sparklineValues, setSparklineValues] = useState<number[]>([]);
+  const [vendas30dCount, setVendas30dCount] = useState<number | null>(null);
+  const [vendas30dPrevCount, setVendas30dPrevCount] = useState<number | null>(null);
 
   const publishedCount = products.filter((p) => p.status === "published").length;
 
@@ -213,23 +227,59 @@ export function ProductDashboard() {
     checkWallet();
   }, []);
 
-  // Fetch affiliate + comissão metrics
+  // Fetch affiliate + comissão metrics + sparkline data
   useEffect(() => {
     async function fetchMetrics() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const [{ data: linksData }, { data: vendasData }] = await Promise.all([
+      const now = Date.now();
+      const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+      const sixtyDaysAgo = new Date(now - 60 * 24 * 60 * 60 * 1000);
+
+      const [
+        { data: linksData },
+        { data: vendasAll },
+        { data: vendas30d },
+        { count: prevCount },
+      ] = await Promise.all([
         supabase.from("links_afiliados").select("creator_id").eq("empresa_id", user.id).eq("ativo", true),
         supabase.from("vendas").select("comissao").eq("empresa_id", user.id),
+        supabase
+          .from("vendas")
+          .select("comissao, created_at")
+          .eq("empresa_id", user.id)
+          .gte("created_at", thirtyDaysAgo.toISOString())
+          .order("created_at", { ascending: true }),
+        supabase
+          .from("vendas")
+          .select("id", { count: "exact", head: true })
+          .eq("empresa_id", user.id)
+          .gte("created_at", sixtyDaysAgo.toISOString())
+          .lt("created_at", thirtyDaysAgo.toISOString()),
       ]);
 
       const uniqueCreators = new Set((linksData ?? []).map((l) => l.creator_id)).size;
-      const comissaoTotal = (vendasData ?? []).reduce((s, v) => s + (v.comissao ?? 0), 0);
+      const comissaoTotal = (vendasAll ?? []).reduce((s, v) => s + (v.comissao ?? 0), 0);
 
       setRealAffiliates(uniqueCreators);
       setRealComissao(comissaoTotal);
+
+      // Build 30-day sparkline (one sum per day)
+      const thirtyDaysAgoMs = thirtyDaysAgo.getTime();
+      const dailyValues = Array(30).fill(0) as number[];
+      (vendas30d ?? []).forEach((v) => {
+        const dayIndex = Math.floor(
+          (new Date(v.created_at as string).getTime() - thirtyDaysAgoMs) / 86400000
+        );
+        if (dayIndex >= 0 && dayIndex < 30) {
+          dailyValues[dayIndex] += (v.comissao as number) ?? 0;
+        }
+      });
+      setSparklineValues(dailyValues);
+      setVendas30dCount(vendas30d?.length ?? 0);
+      setVendas30dPrevCount(prevCount ?? 0);
     }
     fetchMetrics();
   }, []);
@@ -243,6 +293,18 @@ export function ProductDashboard() {
     const [int, dec] = str.split(",");
     return { int: `R$ ${int}`, dec: `,${dec}` };
   }, [realComissao]);
+
+  // Compute 30d sales trend vs previous period
+  const vendasTrend = useMemo(() => {
+    if (vendas30dCount === null) return { label: "…", color: "#666" };
+    if (vendas30dCount === 0) return { label: "—", color: "#666" };
+    if (vendas30dPrevCount === null || vendas30dPrevCount === 0) {
+      return { label: String(vendas30dCount), color: "#fff" };
+    }
+    const pct = Math.round(((vendas30dCount - vendas30dPrevCount) / vendas30dPrevCount) * 100);
+    if (pct >= 0) return { label: `+${pct}%`, color: "#4ADE80" };
+    return { label: `${pct}%`, color: "#FBBF24" };
+  }, [vendas30dCount, vendas30dPrevCount]);
 
   return (
     <div className="p-7 md:p-8 space-y-8">
@@ -383,15 +445,17 @@ export function ProductDashboard() {
               </div>
               <div className="h-8 w-px" style={{ background: "rgba(255,255,255,0.08)" }} />
               <div>
-                <p className="text-[12px]" style={{ color: "#666" }}>Vendas ({period})</p>
-                <p className="mt-0.5 text-[18px] font-medium" style={{ color: "#666" }}>—</p>
+                <p className="text-[12px]" style={{ color: "#666" }}>Vendas (30d)</p>
+                <p className="mt-0.5 text-[18px] font-medium" style={{ color: vendasTrend.color }}>
+                  {vendasTrend.label}
+                </p>
               </div>
             </div>
           </div>
 
           {/* Right: sparkline */}
           <div className="hidden md:flex md:items-end">
-            <Sparkline />
+            <Sparkline values={sparklineValues} />
           </div>
         </div>
       </div>
