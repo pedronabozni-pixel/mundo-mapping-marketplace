@@ -5,7 +5,6 @@ export const dynamic = "force-dynamic";
 import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners-logo";
 
 type Tab = "entrar" | "cadastrar";
 
@@ -24,42 +23,8 @@ function formatCpfCnpj(value: string): string {
     .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
 }
 
-function Logo() {
-  return <MappingPartnersLogo size="lg" subtitle="Área da Empresa ou Produtor" variant="stacked" />;
-}
-
-function Field({
-  label,
-  name,
-  type = "text",
-  placeholder,
-  required = true,
-  value,
-  onChange,
-}: {
-  label: string;
-  name: string;
-  type?: string;
-  placeholder?: string;
-  required?: boolean;
-  value?: string;
-  onChange?: (v: string) => void;
-}) {
-  return (
-    <div>
-      <label className="mb-1.5 block text-sm font-medium text-zinc-700">{label}</label>
-      <input
-        className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none placeholder:text-zinc-400 transition focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
-        name={name}
-        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-        placeholder={placeholder}
-        required={required}
-        type={type}
-        {...(value !== undefined ? { value } : {})}
-      />
-    </div>
-  );
-}
+const inputCls =
+  "w-full bg-transparent border-b border-white/10 py-3 text-[15px] text-white placeholder:text-[#333] focus:outline-none focus:border-[#C8102E] transition-colors";
 
 export default function EmpresaLoginPage() {
   const [tab, setTab] = useState<Tab>("entrar");
@@ -207,126 +172,295 @@ export default function EmpresaLoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12">
-      <div className="w-full max-w-md">
-        <Logo />
+    <div
+      className="relative min-h-screen flex flex-col items-center justify-center px-8 py-16"
+      style={{ background: "#0a0a0a" }}
+    >
+      {/* Radial gradient overlay */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "radial-gradient(ellipse at top, rgba(200,16,46,0.06) 0%, transparent 60%)" }}
+      />
 
-        <div className="mt-8 flex w-full rounded-full border border-zinc-200 bg-white p-1">
+      <div className="relative z-10 w-full" style={{ maxWidth: 420 }}>
+        {/* Seal */}
+        <p
+          className="text-center uppercase text-[11px]"
+          style={{ letterSpacing: "0.16em", color: "#888" }}
+        >
+          MAPPING <span style={{ color: "#C8102E" }}>·</span> PARTNERS
+        </p>
+
+        {/* Title */}
+        <h1 className="mt-3 text-center font-serif text-[32px] font-normal leading-tight text-white">
+          {tab === "cadastrar" ? "Criar conta" : "Bem-vindo"}
+        </h1>
+
+        {/* Subtitle */}
+        <p className="mt-2 text-center text-[14px]" style={{ color: "#888" }}>
+          Acesse a área da sua empresa
+        </p>
+
+        {/* Tabs */}
+        <div
+          className="mt-10 flex"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+        >
           {(["entrar", "cadastrar"] as Tab[]).map((t) => (
             <button
-              className={`flex-1 rounded-full py-2.5 text-sm font-semibold transition ${
-                tab === t ? "bg-zinc-900 text-white" : "text-zinc-500 hover:text-zinc-900"
-              }`}
               key={t}
-              onClick={() => switchTab(t)}
               type="button"
+              onClick={() => switchTab(t)}
+              className="flex-1 text-[14px] font-medium bg-transparent transition-colors"
+              style={{
+                padding: "12px 4px",
+                color: tab === t ? "#fff" : "#666",
+                borderBottom: tab === t ? "2px solid #C8102E" : "2px solid transparent",
+                marginBottom: -1,
+              }}
             >
               {t === "entrar" ? "Entrar" : "Cadastrar"}
             </button>
           ))}
         </div>
 
-        <div className="mt-4 rounded-[24px] border border-zinc-200 bg-white p-5 shadow-[0_24px_80px_-54px_rgba(24,24,27,0.35)] sm:p-8">
+        {/* Form area */}
+        <div className="mt-8">
+          {/* Error */}
           {error && (
-            <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div
+              className="mb-5 rounded-lg px-[14px] py-3 text-[13px] leading-relaxed"
+              style={{
+                background: "rgba(200,16,46,0.08)",
+                border: "1px solid rgba(200,16,46,0.2)",
+                color: "#FF6B6B",
+              }}
+            >
               {error === "__duplicate_email__" ? (
                 <>
                   Este e-mail já está cadastrado.{" "}
-                  <button className="font-semibold underline underline-offset-2" onClick={() => switchTab("entrar")} type="button">
+                  <button
+                    className="font-semibold underline underline-offset-2"
+                    onClick={() => switchTab("entrar")}
+                    type="button"
+                  >
                     Fazer login
-                  </button>
-                  {" "}ou use outro e-mail.
+                  </button>{" "}
+                  ou use outro e-mail.
                 </>
-              ) : error}
+              ) : (
+                error
+              )}
             </div>
           )}
+
+          {/* Info / success */}
           {info && (
-            <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{info}</div>
+            <div
+              className="mb-5 rounded-lg px-[14px] py-3 text-[13px] leading-relaxed"
+              style={{
+                background: "rgba(34,197,94,0.08)",
+                border: "1px solid rgba(34,197,94,0.2)",
+                color: "#4ADE80",
+              }}
+            >
+              {info}
+            </div>
           )}
 
+          {/* Sign in */}
           {tab === "entrar" && !forgot && (
-            <form className="space-y-4" onSubmit={handleSignIn}>
-              <Field label="E-mail" name="email" placeholder="empresa@email.com" type="email" />
-              <Field label="Senha" name="password" placeholder="••••••••" type="password" />
-              <button
-                className="w-full rounded-xl bg-red-600 py-3 text-sm font-bold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)] transition hover:bg-red-700 disabled:opacity-60"
-                disabled={loading}
-                type="submit"
-              >
-                {loading ? "Entrando…" : "Entrar"}
-              </button>
-              <button
-                className="w-full text-center text-sm text-zinc-400 underline-offset-4 hover:text-zinc-600 hover:underline"
-                onClick={() => setForgot(true)}
-                type="button"
-              >
-                Esqueci minha senha
-              </button>
-            </form>
-          )}
-
-          {tab === "entrar" && forgot && (
-            <form className="space-y-4" onSubmit={handleForgot}>
+            <form className="space-y-7" onSubmit={handleSignIn}>
               <div>
-                <p className="mb-4 text-sm leading-6 text-zinc-500">
-                  Digite seu e-mail e enviaremos um link para redefinir sua senha.
-                </p>
-                <Field label="E-mail" name="email" placeholder="empresa@email.com" type="email" />
+                <label className="block text-[12px] font-medium mb-2" style={{ color: "#888" }}>
+                  E-mail
+                </label>
+                <input
+                  className={inputCls}
+                  name="email"
+                  type="email"
+                  placeholder="empresa@dominio.com"
+                  required
+                />
               </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[12px] font-medium" style={{ color: "#888" }}>
+                    Senha
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setForgot(true)}
+                    className="text-[12px] transition-colors hover:text-white"
+                    style={{ color: "#666" }}
+                  >
+                    Esqueci minha senha
+                  </button>
+                </div>
+                <input
+                  className={inputCls}
+                  name="password"
+                  type="password"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+
               <button
-                className="w-full rounded-xl bg-red-600 py-3 text-sm font-bold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)] transition hover:bg-red-700 disabled:opacity-60"
+                className="w-full rounded-lg bg-[#C8102E] hover:bg-[#A30D24] text-[14px] font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ padding: "14px" }}
                 disabled={loading}
                 type="submit"
               >
-                {loading ? "Enviando…" : "Enviar link de recuperação"}
-              </button>
-              <button
-                className="w-full text-center text-sm text-zinc-400 underline-offset-4 hover:text-zinc-600 hover:underline"
-                onClick={() => setForgot(false)}
-                type="button"
-              >
-                Voltar para o login
+                {loading ? "Entrando…" : <span>Entrar <span className="opacity-70">→</span></span>}
               </button>
             </form>
           )}
 
-          {tab === "cadastrar" && (
-            <form className="space-y-4" onSubmit={handleSignUp}>
-              <Field label="Nome / Razão social" name="company_name" placeholder="Empresa Ltda. ou seu nome" />
-              <Field
-                label="CPF/CNPJ"
-                name="cpf_cnpj"
-                onChange={(v) => setCpfCnpj(formatCpfCnpj(v))}
-                placeholder="000.000.000-00 ou 00.000.000/0000-00"
-                required={false}
-                value={cpfCnpj}
-              />
-              <Field label="E-mail" name="email" placeholder="empresa@email.com" type="email" />
-              <Field label="Senha" name="password" placeholder="••••••••" type="password" />
-              <Field label="Confirmar senha" name="confirm" placeholder="••••••••" type="password" />
+          {/* Forgot password */}
+          {tab === "entrar" && forgot && (
+            <form className="space-y-7" onSubmit={handleForgot}>
+              <p className="text-[14px] leading-relaxed" style={{ color: "#888" }}>
+                Digite seu e-mail e enviaremos um link para redefinir sua senha.
+              </p>
+
+              <div>
+                <label className="block text-[12px] font-medium mb-2" style={{ color: "#888" }}>
+                  E-mail
+                </label>
+                <input
+                  className={inputCls}
+                  name="email"
+                  type="email"
+                  placeholder="empresa@dominio.com"
+                  required
+                />
+              </div>
+
               <button
-                className="w-full rounded-xl bg-red-600 py-3 text-sm font-bold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)] transition hover:bg-red-700 disabled:opacity-60"
+                className="w-full rounded-lg bg-[#C8102E] hover:bg-[#A30D24] text-[14px] font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ padding: "14px" }}
                 disabled={loading}
                 type="submit"
               >
-                {loading ? "Criando conta…" : "Criar conta"}
+                {loading ? "Enviando…" : <span>Enviar link <span className="opacity-70">→</span></span>}
               </button>
-              <p className="text-center text-xs text-zinc-400">
+
+              <button
+                type="button"
+                onClick={() => setForgot(false)}
+                className="w-full text-center text-[13px] transition-colors hover:text-white"
+                style={{ color: "#666" }}
+              >
+                ← Voltar para o login
+              </button>
+            </form>
+          )}
+
+          {/* Sign up */}
+          {tab === "cadastrar" && (
+            <form className="space-y-7" onSubmit={handleSignUp}>
+              <div>
+                <label className="block text-[12px] font-medium mb-2" style={{ color: "#888" }}>
+                  Nome / Razão social
+                </label>
+                <input
+                  className={inputCls}
+                  name="company_name"
+                  placeholder="Empresa Ltda. ou seu nome"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[12px] font-medium mb-2" style={{ color: "#888" }}>
+                  CPF / CNPJ
+                </label>
+                <input
+                  className={inputCls}
+                  name="cpf_cnpj"
+                  onChange={(e) => setCpfCnpj(formatCpfCnpj(e.target.value))}
+                  placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                  value={cpfCnpj}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[12px] font-medium mb-2" style={{ color: "#888" }}>
+                  E-mail
+                </label>
+                <input
+                  className={inputCls}
+                  name="email"
+                  type="email"
+                  placeholder="empresa@dominio.com"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[12px] font-medium mb-2" style={{ color: "#888" }}>
+                  Senha
+                </label>
+                <input
+                  className={inputCls}
+                  name="password"
+                  type="password"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[12px] font-medium mb-2" style={{ color: "#888" }}>
+                  Confirmar senha
+                </label>
+                <input
+                  className={inputCls}
+                  name="confirm"
+                  type="password"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+
+              <button
+                className="w-full rounded-lg bg-[#C8102E] hover:bg-[#A30D24] text-[14px] font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ padding: "14px" }}
+                disabled={loading}
+                type="submit"
+              >
+                {loading ? "Criando conta…" : <span>Criar conta <span className="opacity-70">→</span></span>}
+              </button>
+
+              <p className="text-center text-[11px]" style={{ color: "#666" }}>
                 Ao cadastrar, você concorda com os{" "}
-                <span className="font-medium text-zinc-600">Termos de Uso</span>
+                <span className="font-medium" style={{ color: "#888" }}>
+                  Termos de Uso
+                </span>
               </p>
             </form>
           )}
         </div>
 
-        <p className="mt-6 text-center text-sm text-zinc-500">
+        {/* Cross link */}
+        <p className="mt-8 text-center text-[13px]" style={{ color: "#666" }}>
           É influenciador?{" "}
           <Link
-            className="font-semibold text-zinc-900 underline-offset-4 hover:underline"
             href="/mundo-mapping/influenciador/login"
+            className="font-medium text-white"
           >
             Acesse aqui
           </Link>
+        </p>
+
+        {/* Footer */}
+        <p
+          className="mt-20 text-center text-[11px]"
+          style={{ letterSpacing: "0.05em", color: "#444" }}
+        >
+          Sub-marca da Mundo Mapping
         </p>
       </div>
     </div>
