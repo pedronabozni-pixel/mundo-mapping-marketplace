@@ -139,10 +139,13 @@ export default function EmpresaLoginPage() {
         },
       });
       if (error) {
-        if (error.message.toLowerCase().includes("already registered") || error.message.toLowerCase().includes("already been registered")) {
+        if (error.message?.includes("already registered") || error.message?.includes("User already registered")) {
           setError("__duplicate_email__");
+        } else if (error.message?.toLowerCase().includes("invalid login") || error.message?.toLowerCase().includes("invalid credentials")) {
+          setError("E-mail ou senha incorretos.");
         } else {
-          setError(error.message);
+          console.error("[auth_error]", error.message);
+          setError("Não foi possível concluir a operação. Tente novamente em instantes.");
         }
       } else if (data.user && (data.user.identities?.length ?? 1) === 0) {
         setError("__duplicate_email__");
@@ -156,7 +159,6 @@ export default function EmpresaLoginPage() {
               email: fd.get("email") as string,
               user_type: "empresa",
               full_name: fd.get("company_name") as string,
-              company_name: fd.get("company_name") as string,
               cpf_cnpj: cpfCnpj || null,
             },
           }),

@@ -21,14 +21,14 @@ export default async function EmpresaDashboardPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("wallet_id, company_name, full_name, email, cpf_cnpj")
+    .select("wallet_id, full_name, email, cpf_cnpj")
     .eq("id", user.id)
     .single();
 
   if (!profile?.wallet_id) {
     try {
       const wallet = await createAsaasWallet({
-        name: profile?.company_name ?? profile?.full_name ?? user.email ?? "Empresa",
+        name: profile?.full_name ?? user.email ?? "Empresa",
         email: profile?.email ?? user.email ?? "",
         cpfCnpj: profile?.cpf_cnpj,
       });

@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   const authedAdmin = createAdminClient(access_token);
   const { data: profile } = await authedAdmin
     .from("profiles")
-    .select("wallet_id, company_name, full_name, email, cpf_cnpj, user_type")
+    .select("wallet_id, full_name, email, cpf_cnpj, user_type")
     .eq("id", userId)
     .single();
 
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const wallet = await createAsaasWallet({
-      name: profile.company_name ?? profile.full_name ?? user.email ?? "Empresa",
+      name: profile.full_name ?? user.email ?? "Empresa",
       email: profile.email ?? user.email ?? "",
       cpfCnpj: profile.cpf_cnpj,
     });

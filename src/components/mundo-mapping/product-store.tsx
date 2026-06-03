@@ -284,10 +284,10 @@ export function ProductStoreProvider({ children }: { children: ReactNode }) {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("company_name, full_name")
+        .select("full_name")
         .eq("id", user.id)
         .single();
-      setEmpresaNome(profile?.company_name ?? profile?.full_name ?? undefined);
+      setEmpresaNome(profile?.full_name ?? undefined);
 
       await fetchProducts(user.id);
       setReady(true);
