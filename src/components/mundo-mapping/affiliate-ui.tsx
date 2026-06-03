@@ -24,32 +24,197 @@ function cn(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
 }
 
+// ─── Icons ────────────────────────────────────────────────────────────────────
+
+function IconGrid() {
+  return (
+    <svg className="h-[18px] w-[18px]" fill="currentColor" viewBox="0 0 24 24">
+      <rect height="7" rx="1.5" width="7" x="3" y="3" />
+      <rect height="7" rx="1.5" width="7" x="14" y="3" />
+      <rect height="7" rx="1.5" width="7" x="3" y="14" />
+      <rect height="7" rx="1.5" width="7" x="14" y="14" />
+    </svg>
+  );
+}
+function IconBox() {
+  return (
+    <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+      <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+      <line x1="12" x2="12" y1="22.08" y2="12" />
+    </svg>
+  );
+}
+function IconUsers() {
+  return (
+    <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+function IconClipboard() {
+  return (
+    <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+      <rect height="4" rx="1" width="6" x="9" y="3" />
+      <line x1="9" x2="15" y1="12" y2="12" />
+      <line x1="9" x2="11" y1="16" y2="16" />
+    </svg>
+  );
+}
+function IconDollar() {
+  return (
+    <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} viewBox="0 0 24 24">
+      <line x1="12" x2="12" y1="1" y2="23" />
+      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+    </svg>
+  );
+}
+function IconBarChart() {
+  return (
+    <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} viewBox="0 0 24 24">
+      <line x1="18" x2="18" y1="20" y2="10" />
+      <line x1="12" x2="12" y1="20" y2="4" />
+      <line x1="6" x2="6" y1="20" y2="14" />
+    </svg>
+  );
+}
+function IconUser() {
+  return (
+    <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+function IconMenu() {
+  return (
+    <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth={2} viewBox="0 0 24 24">
+      <path d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  );
+}
+function IconClose() {
+  return (
+    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth={2.5} viewBox="0 0 24 24">
+      <path d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  );
+}
+
+// ─── Sidebar nav items ────────────────────────────────────────────────────────
+
+const sidebarItems: Array<{ href: string; label: string; Icon: () => ReactNode }> = [
+  { href: "/mundo-mapping/afiliados", label: "Dashboard", Icon: IconGrid },
+  { href: "/mundo-mapping/afiliados/produtos", label: "Produtos", Icon: IconBox },
+  { href: "/mundo-mapping/afiliados/creators", label: "Creators", Icon: IconUsers },
+  { href: "/mundo-mapping/afiliados/solicitacoes", label: "Solicitações", Icon: IconClipboard },
+  { href: "/mundo-mapping/afiliados/financeiro", label: "Financeiro", Icon: IconDollar },
+  { href: "/mundo-mapping/afiliados/relatorio", label: "Relatórios", Icon: IconBarChart },
+];
+
+function isNavActive(currentPath: string, href: string): boolean {
+  if (href === "/mundo-mapping/afiliados") return currentPath === href;
+  return currentPath === href || currentPath.startsWith(href + "/");
+}
+
+function SidebarLogo() {
+  return (
+    <div
+      className="flex items-center justify-center shrink-0"
+      style={{ width: 36, height: 36, background: "#C8102E", borderRadius: 8 }}
+    >
+      <span className="font-serif font-bold text-white" style={{ fontSize: 20, lineHeight: 1 }}>M</span>
+    </div>
+  );
+}
+
+function NavItem({
+  href,
+  label,
+  Icon,
+  currentPath,
+  showLabel,
+  onNavigate,
+}: {
+  href: string;
+  label: string;
+  Icon: () => ReactNode;
+  currentPath: string;
+  showLabel?: boolean;
+  onNavigate?: () => void;
+}) {
+  const active = isNavActive(currentPath, href);
+  return (
+    <Link
+      href={href}
+      onClick={onNavigate}
+      title={label}
+      className={cn(
+        "relative flex items-center rounded-lg transition-colors",
+        showLabel ? "gap-3 px-3 w-full" : "justify-center",
+        active ? "text-white" : "text-[#666] hover:text-white"
+      )}
+      style={{
+        height: 40,
+        width: showLabel ? "auto" : 40,
+        background: active ? "rgba(200,16,46,0.12)" : "transparent",
+      }}
+    >
+      {active && (
+        <span
+          className="absolute"
+          style={{
+            left: 0,
+            top: 8,
+            bottom: 8,
+            width: 2,
+            background: "#C8102E",
+            borderRadius: "0 2px 2px 0",
+          }}
+        />
+      )}
+      <Icon />
+      {showLabel && <span className="text-[13px] font-medium">{label}</span>}
+    </Link>
+  );
+}
+
+// ─── Exported UI components (dark mode) ───────────────────────────────────────
+
 export function StatusBadge({
   label,
-  tone = "neutral"
+  tone = "neutral",
 }: {
   label: string;
   tone?: "neutral" | "success" | "warning" | "danger" | "red";
 }) {
-  const toneClass =
-    tone === "success"
-      ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-      : tone === "warning"
-        ? "bg-amber-50 text-amber-700 ring-amber-200"
-        : tone === "danger"
-          ? "bg-zinc-900 text-white ring-zinc-800"
-          : tone === "red"
-            ? "bg-red-50 text-red-700 ring-red-200"
-            : "bg-zinc-100 text-zinc-700 ring-zinc-200";
-
-  return <span className={cn("inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1", toneClass)}>{label}</span>;
+  const styles: Record<string, { background: string; color: string; border?: string }> = {
+    success: { background: "rgba(74,222,128,0.12)", color: "#4ADE80" },
+    warning: { background: "rgba(251,191,36,0.12)", color: "#FBBF24" },
+    danger:  { background: "#0a0a0a", color: "#fff", border: "1px solid rgba(255,255,255,0.1)" },
+    red:     { background: "rgba(200,16,46,0.12)", color: "#C8102E" },
+    neutral: { background: "rgba(255,255,255,0.04)", color: "#888" },
+  };
+  const s = styles[tone] ?? styles.neutral;
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold"
+      style={{ background: s.background, color: s.color, border: s.border }}
+    >
+      {label}
+    </span>
+  );
 }
 
 export function PageHeader({
   eyebrow,
   title,
   description,
-  actions
+  actions,
 }: {
   eyebrow: string;
   title: string;
@@ -57,11 +222,14 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="flex flex-col gap-4 border-b border-zinc-200/80 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
+    <header
+      className="flex flex-col gap-4 px-6 py-5 lg:flex-row lg:items-center lg:justify-between"
+      style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+    >
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-400">{eyebrow}</p>
-        <h2 className="mt-2 text-[26px] font-semibold tracking-tight text-zinc-950">{title}</h2>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-zinc-500">{description}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.22em]" style={{ color: "#555" }}>{eyebrow}</p>
+        <h2 className="mt-2 font-serif text-[26px] font-normal text-white">{title}</h2>
+        <p className="mt-2 max-w-xl text-sm leading-6" style={{ color: "#888" }}>{description}</p>
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
     </header>
@@ -71,19 +239,26 @@ export function PageHeader({
 export function PeriodSwitch({
   options,
   value,
-  onChange
+  onChange,
 }: {
   options: string[];
   value: string;
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="inline-flex rounded-full border border-zinc-200 bg-white p-1">
+    <div
+      className="inline-flex rounded-lg p-[3px]"
+      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+    >
       {options.map((item) => (
         <button
-          className={cn("rounded-full px-3 py-2 text-sm transition", value === item ? "bg-zinc-900 text-white" : "text-zinc-500 hover:text-zinc-900")}
+          className={cn(
+            "rounded-md px-3 py-2 text-[13px] font-medium transition-colors",
+            value === item ? "text-white" : "hover:text-[#aaa]"
+          )}
           key={item}
           onClick={() => onChange(item)}
+          style={value === item ? { background: "rgba(255,255,255,0.06)", color: "#fff" } : { color: "#666" }}
           type="button"
         >
           {item}
@@ -98,7 +273,7 @@ export function SectionCard({
   subtitle,
   action,
   children,
-  className
+  className,
 }: {
   title: string;
   subtitle?: string;
@@ -107,11 +282,14 @@ export function SectionCard({
   className?: string;
 }) {
   return (
-    <section className={cn("rounded-[24px] border border-zinc-200 bg-white p-6 shadow-[0_24px_80px_-54px_rgba(24,24,27,0.35)]", className)}>
+    <section
+      className={cn("rounded-[20px] p-6", className)}
+      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}
+    >
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold tracking-tight text-zinc-950">{title}</h3>
-          {subtitle ? <p className="mt-1 text-sm text-zinc-500">{subtitle}</p> : null}
+          <h3 className="text-lg font-semibold tracking-tight text-white">{title}</h3>
+          {subtitle ? <p className="mt-1 text-sm" style={{ color: "#888" }}>{subtitle}</p> : null}
         </div>
         {action}
       </div>
@@ -124,7 +302,7 @@ export function MetricCard({
   label,
   value,
   meta,
-  emphasis = false
+  emphasis = false,
 }: {
   label: string;
   value: string;
@@ -133,19 +311,29 @@ export function MetricCard({
 }) {
   return (
     <div
-      className={cn(
-        "rounded-2xl border p-5 shadow-[0_18px_60px_-45px_rgba(24,24,27,0.28)]",
-        emphasis ? "border-red-200 bg-gradient-to-br from-red-50 via-white to-white" : "border-zinc-200 bg-white"
-      )}
+      className="rounded-2xl p-5"
+      style={
+        emphasis
+          ? { background: "rgba(200,16,46,0.06)", border: "1px solid rgba(200,16,46,0.15)" }
+          : { background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }
+      }
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-medium text-zinc-500">{label}</p>
-          <p className={cn("mt-3 text-3xl font-semibold tracking-tight", emphasis ? "text-red-700" : "text-zinc-950")}>{value}</p>
+          <p className="text-sm font-medium" style={{ color: "#888" }}>{label}</p>
+          <p
+            className="mt-3 text-3xl font-semibold tracking-tight"
+            style={{ color: emphasis ? "#C8102E" : "#fff" }}
+          >
+            {value}
+          </p>
         </div>
-        <div className={cn("h-11 w-11 rounded-2xl", emphasis ? "bg-red-600/10" : "bg-zinc-100")} />
+        <div
+          className="h-11 w-11 rounded-2xl"
+          style={{ background: emphasis ? "rgba(200,16,46,0.12)" : "rgba(255,255,255,0.04)" }}
+        />
       </div>
-      <p className="mt-4 text-sm text-zinc-500">{meta}</p>
+      <p className="mt-4 text-sm" style={{ color: "#888" }}>{meta}</p>
     </div>
   );
 }
@@ -153,20 +341,23 @@ export function MetricCard({
 export function MiniStat({
   label,
   value,
-  tone = "default"
+  tone = "default",
 }: {
   label: string;
   value: string;
   tone?: "default" | "red" | "green";
 }) {
   return (
-    <div className="min-w-0 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-      <p className="text-[11px] font-medium uppercase leading-4 tracking-[0.12em] text-zinc-400 break-words">{label}</p>
+    <div
+      className="min-w-0 rounded-2xl p-4"
+      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+    >
+      <p className="text-[11px] font-medium uppercase leading-4 tracking-[0.12em] break-words" style={{ color: "#555" }}>
+        {label}
+      </p>
       <p
-        className={cn(
-          "mt-2 break-words text-xl font-semibold leading-tight",
-          tone === "red" ? "text-red-700" : tone === "green" ? "text-emerald-700" : "text-zinc-950"
-        )}
+        className="mt-2 break-words text-xl font-semibold leading-tight"
+        style={{ color: tone === "red" ? "#C8102E" : tone === "green" ? "#4ADE80" : "#fff" }}
       >
         {value}
       </p>
@@ -176,29 +367,36 @@ export function MiniStat({
 
 export function DataTable({
   columns,
-  rows
+  rows,
 }: {
   columns: string[];
   rows: string[][];
 }) {
   return (
-    <div className="overflow-hidden rounded-[20px] border border-zinc-200">
+    <div className="overflow-hidden rounded-[20px]" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-zinc-200 text-left">
-          <thead className="bg-zinc-50">
+        <table className="min-w-full divide-y text-left" style={{ borderColor: "rgba(255,255,255,0.04)" }}>
+          <thead style={{ background: "rgba(255,255,255,0.03)" }}>
             <tr>
               {columns.map((column) => (
-                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500" key={column}>
+                <th
+                  className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em]"
+                  key={column}
+                  style={{ color: "#555" }}
+                >
                   {column}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-200 bg-white">
+          <tbody className="divide-y" style={{ borderColor: "rgba(255,255,255,0.04)" }}>
             {rows.map((row, rowIndex) => (
-              <tr className="hover:bg-zinc-50" key={`${row[0]}-${rowIndex}`}>
+              <tr
+                className="transition-colors hover:bg-white/[0.02]"
+                key={`${row[0]}-${rowIndex}`}
+              >
                 {row.map((cell, cellIndex) => (
-                  <td className="px-4 py-4 text-sm text-zinc-700" key={`${cell}-${cellIndex}`}>
+                  <td className="px-4 py-4 text-sm" key={`${cell}-${cellIndex}`} style={{ color: "#aaa" }}>
                     {cellIndex === row.length - 1 ? (
                       <StatusBadge
                         label={cell}
@@ -235,8 +433,11 @@ export function LineChart({
 }) {
   if (!values.length) {
     return (
-      <div className="flex h-52 items-center justify-center rounded-[20px] border border-dashed border-zinc-200 bg-zinc-50">
-        <p className="text-sm text-zinc-400">Nenhum dado disponível ainda.</p>
+      <div
+        className="flex h-52 items-center justify-center rounded-[20px]"
+        style={{ border: "1px dashed rgba(255,255,255,0.06)" }}
+      >
+        <p className="text-sm" style={{ color: "#555" }}>Nenhum dado disponível ainda.</p>
       </div>
     );
   }
@@ -256,30 +457,35 @@ export function LineChart({
     .join(" ");
 
   return (
-    <div className="rounded-[20px] border border-zinc-200 bg-zinc-50/70 p-4">
-      <div className="relative h-64 overflow-hidden rounded-[18px] bg-white">
+    <div
+      className="rounded-[20px] p-4"
+      style={{ border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}
+    >
+      <div className="relative h-64 overflow-hidden rounded-[18px]" style={{ background: "rgba(255,255,255,0.02)" }}>
         <div className="absolute inset-0 grid grid-rows-4">
           {[0, 1, 2, 3].map((row) => (
-            <div className="border-b border-zinc-100 last:border-b-0" key={row} />
+            <div key={row} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }} className="last:border-b-0" />
           ))}
         </div>
         <svg className="relative h-full w-full" preserveAspectRatio="none" viewBox={`0 0 ${width} ${height}`}>
           <defs>
             <linearGradient id="mm-line-fill" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#ef4444" stopOpacity="0.18" />
-              <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
+              <stop offset="0%" stopColor="#C8102E" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#C8102E" stopOpacity="0" />
             </linearGradient>
           </defs>
-          <polyline fill="none" points={points} stroke="#ef4444" strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" />
+          <polyline fill="none" points={points} stroke="#C8102E" strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" />
           <polygon fill="url(#mm-line-fill)" points={`0,${height} ${points} ${width},${height}`} />
           {values.map((value, index) => {
             const x = index * step;
             const y = height - ((value - min) / range) * (height - 32) - 16;
-            return <circle cx={x} cy={y} fill="#ffffff" key={`${value}-${index}`} r="5.5" stroke="#dc2626" strokeWidth="3" />;
+            return (
+              <circle cx={x} cy={y} fill="#0a0a0a" key={`${value}-${index}`} r="5.5" stroke="#C8102E" strokeWidth="3" />
+            );
           })}
         </svg>
       </div>
-      <div className="mt-3 flex justify-between text-xs text-zinc-500">
+      <div className="mt-3 flex justify-between text-xs" style={{ color: "#555" }}>
         {labels.map((label) => (
           <span key={label}>{label}</span>
         ))}
@@ -293,27 +499,38 @@ type FunnelStep = { label: string; value: string; width: string };
 export function Funnel({ steps = [] }: { steps?: FunnelStep[] }) {
   if (!steps.length) {
     return (
-      <div className="flex h-40 items-center justify-center rounded-[20px] border border-dashed border-zinc-200 bg-zinc-50">
-        <p className="text-sm text-zinc-400">Nenhum dado de funil disponível.</p>
+      <div
+        className="flex h-40 items-center justify-center rounded-[20px]"
+        style={{ border: "1px dashed rgba(255,255,255,0.06)" }}
+      >
+        <p className="text-sm" style={{ color: "#555" }}>Nenhum dado de funil disponível.</p>
       </div>
     );
   }
+
+  const barColors = [
+    { bg: "rgba(255,255,255,0.1)", text: "#fff" },
+    { bg: "#C8102E", text: "#fff" },
+    { bg: "rgba(200,16,46,0.6)", text: "#fff" },
+    { bg: "rgba(200,16,46,0.3)", text: "#C8102E" },
+  ];
 
   return (
     <div className="space-y-3">
       {steps.map((step, index) => (
         <div key={step.label}>
           <div className="mb-2 flex items-center justify-between text-sm">
-            <span className="font-medium text-zinc-700">{step.label}</span>
-            <span className="text-zinc-500">{step.value}</span>
+            <span className="font-medium text-white">{step.label}</span>
+            <span style={{ color: "#888" }}>{step.value}</span>
           </div>
-          <div className="h-11 rounded-2xl bg-zinc-100 p-1">
+          <div className="h-11 rounded-2xl p-1" style={{ background: "rgba(255,255,255,0.04)" }}>
             <div
-              className={cn(
-                "flex h-full items-center rounded-xl px-4 text-sm font-semibold text-white",
-                index === 0 ? "bg-zinc-900" : index === 1 ? "bg-red-700" : index === 2 ? "bg-red-500" : "bg-red-300 text-red-950"
-              )}
-              style={{ width: step.width }}
+              className="flex h-full items-center rounded-xl px-4 text-sm font-semibold"
+              style={{
+                width: step.width,
+                background: barColors[index % barColors.length].bg,
+                color: barColors[index % barColors.length].text,
+              }}
             >
               {step.label}
             </div>
@@ -328,7 +545,7 @@ export function ProductVisualCard({
   title,
   price,
   commission,
-  status
+  status,
 }: {
   title: string;
   price: string;
@@ -336,27 +553,36 @@ export function ProductVisualCard({
   status: string;
 }) {
   return (
-    <article className="overflow-hidden rounded-[22px] border border-zinc-200 bg-white shadow-[0_18px_50px_-44px_rgba(24,24,27,0.24)] transition hover:border-zinc-300">
-      <div className="relative h-28 border-b border-zinc-100 bg-[linear-gradient(135deg,#fafafa_0%,#f4f4f5_100%)] p-4">
+    <article
+      className="overflow-hidden rounded-[20px] transition-colors"
+      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}
+    >
+      <div
+        className="relative h-28 border-b p-4"
+        style={{ background: "linear-gradient(135deg,#1a1a1a 0%,#0f0f0f 100%)", borderColor: "rgba(255,255,255,0.04)" }}
+      >
         <div className="absolute right-4 top-4">
           <StatusBadge label={status} tone={status === "Público" ? "success" : "warning"} />
         </div>
-        <div className="max-w-[160px] rounded-[16px] border border-zinc-200 bg-white p-3">
-          <div className="h-10 rounded-xl bg-red-50" />
-          <div className="mt-3 h-2.5 w-20 rounded-full bg-zinc-200" />
-          <div className="mt-2 h-2.5 w-12 rounded-full bg-zinc-100" />
+        <div
+          className="max-w-[160px] rounded-[14px] p-3"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+        >
+          <div className="h-10 rounded-xl" style={{ background: "rgba(200,16,46,0.15)" }} />
+          <div className="mt-3 h-2.5 w-20 rounded-full" style={{ background: "rgba(255,255,255,0.08)" }} />
+          <div className="mt-2 h-2.5 w-12 rounded-full" style={{ background: "rgba(255,255,255,0.04)" }} />
         </div>
       </div>
       <div className="space-y-4 p-5">
         <div>
-          <h4 className="text-base font-semibold text-zinc-950">{title}</h4>
-          <p className="mt-1 text-sm text-zinc-500">Produto com checkout, criativos e regras centralizadas.</p>
+          <h4 className="text-base font-semibold text-white">{title}</h4>
+          <p className="mt-1 text-sm" style={{ color: "#555" }}>Produto com checkout, criativos e regras centralizadas.</p>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <MiniStat label="Preço" value={price} />
           <MiniStat label="Comissão" tone="red" value={commission} />
         </div>
-        <p className="text-sm font-semibold text-zinc-700">Abrir produto</p>
+        <p className="text-sm font-semibold" style={{ color: "#888" }}>Abrir produto</p>
       </div>
     </article>
   );
@@ -365,19 +591,27 @@ export function ProductVisualCard({
 export function BlueprintBlock({
   index,
   title,
-  items
+  items,
 }: {
   index: string;
   title: string;
   items: string[];
 }) {
   return (
-    <div className="rounded-[24px] border border-zinc-200 bg-white p-6 shadow-[0_20px_70px_-55px_rgba(24,24,27,0.3)]">
+    <div
+      className="rounded-[24px] p-6"
+      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}
+    >
       <div className="flex items-center gap-3">
-        <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-red-50 text-sm font-semibold text-red-700">{index}</div>
-        <h3 className="text-lg font-semibold tracking-tight text-zinc-950">{title}</h3>
+        <div
+          className="inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-semibold"
+          style={{ background: "rgba(200,16,46,0.12)", color: "#C8102E" }}
+        >
+          {index}
+        </div>
+        <h3 className="text-lg font-semibold tracking-tight text-white">{title}</h3>
       </div>
-      <ul className="mt-4 space-y-3 text-sm leading-6 text-zinc-600">
+      <ul className="mt-4 space-y-3 text-sm leading-6" style={{ color: "#888" }}>
         {items.map((item) => (
           <li key={item}>{item}</li>
         ))}
@@ -386,49 +620,11 @@ export function BlueprintBlock({
   );
 }
 
-function SidebarContent({ currentPath, onNavigate }: { currentPath: string; onNavigate?: () => void }) {
-  return (
-    <>
-      <div className="rounded-[18px] px-3 py-3">
-        <MappingPartnersLogo onDark size="sm" subtitle="Mundo Mapping" />
-        <h1 className="mt-4 text-lg font-semibold tracking-tight">Afiliados</h1>
-        <p className="mt-1 text-sm text-white/55">Produtos e operação.</p>
-      </div>
-
-      <nav className="mt-4 space-y-1.5">
-        {affiliateNavLinks.map((item) => {
-          const isActive = currentPath === item.href;
-          return (
-            <Link
-              className={cn(
-                "block rounded-[14px] px-3.5 py-3 text-left transition",
-                isActive
-                  ? "bg-red-600 text-white shadow-[0_18px_40px_-28px_rgba(220,38,38,0.85)]"
-                  : "text-white/72 hover:bg-white/[0.05] hover:text-white"
-              )}
-              href={item.href}
-              key={item.href}
-              onClick={onNavigate}
-            >
-              <p className="text-sm font-semibold">{item.label}</p>
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className="mt-auto rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
-        <p className="text-sm font-semibold">Modelo do módulo</p>
-        <p className="mt-2 text-sm leading-6 text-white/58">
-          A empresa ou produtor cadastra o produto. O influenciador afiliado recebe o próprio link para vender.
-        </p>
-      </div>
-    </>
-  );
-}
+// ─── AffiliateShell ───────────────────────────────────────────────────────────
 
 export function AffiliateShell({
   children,
-  currentPath
+  currentPath,
 }: {
   children: ReactNode;
   currentPath: string;
@@ -436,64 +632,119 @@ export function AffiliateShell({
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#f3f4f6] text-zinc-900">
+    <div className="min-h-screen" style={{ background: "#0a0a0a" }}>
       {/* ── Mobile top bar ── */}
-      <div className="flex items-center justify-between bg-[#181a20] px-4 py-3 xl:hidden">
-        <MappingPartnersLogo onDark size="sm" subtitle="Mundo Mapping" />
+      <div
+        className="flex items-center justify-between px-4 py-3 xl:hidden"
+        style={{ background: "#060606", borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+      >
+        <div className="flex items-center gap-3">
+          <SidebarLogo />
+          <span className="font-serif text-white" style={{ fontSize: 15 }}>Afiliados</span>
+        </div>
         <button
           aria-label="Abrir menu"
-          className="flex h-10 w-10 items-center justify-center rounded-xl text-white/80 hover:bg-white/10 hover:text-white"
+          className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:bg-white/[0.06]"
           onClick={() => setMenuOpen(true)}
+          style={{ color: "#888" }}
           type="button"
         >
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <IconMenu />
         </button>
       </div>
 
       {/* ── Mobile drawer overlay ── */}
       {menuOpen && (
         <div className="fixed inset-0 z-50 xl:hidden" onClick={() => setMenuOpen(false)}>
-          <div className="absolute inset-0 bg-black/50" />
+          <div className="absolute inset-0 bg-black/60" />
           <aside
-            className="absolute left-0 top-0 flex h-full w-[260px] flex-col bg-[#181a20] p-3 text-white shadow-[4px_0_40px_rgba(0,0,0,0.4)]"
+            className="absolute left-0 top-0 flex h-full flex-col gap-1 p-4 text-white"
             onClick={(e) => e.stopPropagation()}
+            style={{ width: 220, background: "#060606", borderRight: "1px solid rgba(255,255,255,0.04)" }}
           >
-            <div className="mb-2 flex items-center justify-between px-1 py-2">
-              <span className="text-sm font-semibold text-white/60">Menu</span>
+            <div className="mb-3 flex items-center justify-between px-1 py-2">
+              <SidebarLogo />
               <button
                 aria-label="Fechar menu"
-                className="flex h-8 w-8 items-center justify-center rounded-xl text-white/60 hover:bg-white/10 hover:text-white"
+                className="flex h-8 w-8 items-center justify-center rounded-xl transition-colors hover:bg-white/[0.06]"
                 onClick={() => setMenuOpen(false)}
+                style={{ color: "#666" }}
                 type="button"
               >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                  <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <IconClose />
               </button>
             </div>
-            <SidebarContent currentPath={currentPath} onNavigate={() => setMenuOpen(false)} />
+            {sidebarItems.map((item) => (
+              <NavItem
+                Icon={item.Icon}
+                currentPath={currentPath}
+                href={item.href}
+                key={item.href}
+                label={item.label}
+                onNavigate={() => setMenuOpen(false)}
+                showLabel
+              />
+            ))}
+            <div className="mt-auto pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+              <NavItem
+                Icon={IconUser}
+                currentPath={currentPath}
+                href="/mundo-mapping/afiliados/perfil"
+                label="Perfil"
+                onNavigate={() => setMenuOpen(false)}
+                showLabel
+              />
+            </div>
           </aside>
         </div>
       )}
 
-      {/* ── Main layout ── */}
-      <div className="p-4 md:p-5">
-        <div className="mx-auto grid min-h-[calc(100vh-5rem)] max-w-[1480px] gap-4 xl:min-h-[calc(100vh-2.5rem)] xl:grid-cols-[210px_1fr]">
-          {/* Desktop sidebar */}
-          <aside className="hidden h-full flex-col rounded-[24px] bg-[#181a20] p-3 text-white shadow-[0_34px_80px_-62px_rgba(0,0,0,0.78)] xl:flex">
-            <SidebarContent currentPath={currentPath} />
-          </aside>
+      {/* ── Fixed desktop sidebar ── */}
+      <aside
+        className="hidden xl:fixed xl:inset-y-0 xl:left-0 xl:flex xl:flex-col xl:items-center xl:pb-4 xl:pt-5"
+        style={{ width: 64, background: "#060606", borderRight: "1px solid rgba(255,255,255,0.04)", zIndex: 40 }}
+      >
+        <SidebarLogo />
 
-          <div className="rounded-[28px] border border-white/70 bg-[#fcfcfd] shadow-[0_40px_120px_-80px_rgba(15,23,42,0.38)]">
-            {children}
-          </div>
+        <div className="mt-7 flex w-full flex-col items-center gap-1 px-3">
+          {sidebarItems.map((item) => (
+            <NavItem
+              Icon={item.Icon}
+              currentPath={currentPath}
+              href={item.href}
+              key={item.href}
+              label={item.label}
+            />
+          ))}
         </div>
+
+        <div className="mt-auto">
+          <Link
+            href="/mundo-mapping/afiliados/perfil"
+            title="Perfil"
+            className="flex items-center justify-center rounded-full transition-colors"
+            style={{
+              width: 40,
+              height: 40,
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "#666",
+            }}
+          >
+            <IconUser />
+          </Link>
+        </div>
+      </aside>
+
+      {/* ── Content (offset for fixed sidebar on xl) ── */}
+      <div className="xl:pl-16">
+        {children}
       </div>
     </div>
   );
 }
+
+// ─── InfluencerShell (não modificado) ────────────────────────────────────────
 
 const influencerNavLinks = [
   { href: "/mundo-mapping/influenciadores", label: "Painel" },
@@ -505,7 +756,7 @@ const influencerNavLinks = [
 
 export function InfluencerShell({
   children,
-  currentPath
+  currentPath,
 }: {
   children: ReactNode;
   currentPath: string;
