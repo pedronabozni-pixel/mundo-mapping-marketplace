@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners-logo";
 
 type Props = {
   children: ReactNode;
@@ -15,29 +14,63 @@ type Props = {
   voltarLabel?: string;
 };
 
-export function MembrosShell({ children, titulo, voltarHref, voltarLabel }: Props) {
-  const router = useRouter();
+function MemberLogo({ onDark = true }: { onDark?: boolean }) {
+  return (
+    <div className="flex items-center gap-2.5">
+      <div
+        className="flex items-center justify-center shrink-0"
+        style={{ width: 28, height: 28, background: "#C8102E", borderRadius: 7 }}
+      >
+        <span className="font-serif font-bold text-white" style={{ fontSize: 16, lineHeight: 1 }}>M</span>
+      </div>
+      <span
+        className="text-[11px] font-semibold uppercase tracking-[0.18em]"
+        style={{ color: onDark ? "#888" : "#555" }}
+      >
+        Área de Membros
+      </span>
+    </div>
+  );
+}
 
+function LogoutButton({ small = false }: { small?: boolean }) {
+  const router = useRouter();
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/membros");
   }
-
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#fff7f7_0%,#f6f7fb_24%,#f4f5f7_100%)]">
-      <header className="sticky top-0 z-20 border-b border-zinc-200/80 bg-white/90 backdrop-blur">
+    <button
+      className={`inline-flex items-center justify-center rounded-xl text-sm font-semibold transition ${small ? "h-8 px-3" : "h-9 px-4"}`}
+      onClick={handleLogout}
+      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#888" }}
+      type="button"
+    >
+      Sair
+    </button>
+  );
+}
+
+export function MembrosShell({ children, titulo, voltarHref, voltarLabel }: Props) {
+  return (
+    <div className="min-h-screen" style={{ background: "#0a0a0a" }}>
+      <header
+        className="sticky top-0 z-20 backdrop-blur"
+        style={{ background: "rgba(6,6,6,0.9)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+      >
         <div className="mx-auto flex h-14 max-w-[1200px] items-center gap-4 px-5">
           <Link href="/membros/cursos">
-            <MappingPartnersLogo size="sm" subtitle="Área de Membros" />
+            <MemberLogo />
           </Link>
 
           {voltarHref && (
             <>
-              <span className="text-zinc-300">/</span>
+              <span style={{ color: "#333" }}>/</span>
               <Link
-                className="text-sm font-medium text-zinc-500 transition hover:text-zinc-900"
+                className="text-sm font-medium transition hover:text-white"
                 href={voltarHref}
+                style={{ color: "#888" }}
               >
                 {voltarLabel}
               </Link>
@@ -46,19 +79,13 @@ export function MembrosShell({ children, titulo, voltarHref, voltarLabel }: Prop
 
           {titulo && (
             <>
-              <span className="text-zinc-300">/</span>
-              <span className="truncate text-sm font-semibold text-zinc-800">{titulo}</span>
+              <span style={{ color: "#333" }}>/</span>
+              <span className="truncate text-sm font-semibold text-white">{titulo}</span>
             </>
           )}
 
           <div className="ml-auto">
-            <button
-              className="inline-flex h-9 items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-600 transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900"
-              onClick={handleLogout}
-              type="button"
-            >
-              Sair
-            </button>
+            <LogoutButton />
           </div>
         </div>
       </header>
@@ -68,7 +95,7 @@ export function MembrosShell({ children, titulo, voltarHref, voltarLabel }: Prop
   );
 }
 
-/** Navbar leve para o player de aula (fundo escuro, logo claro) */
+/** Navbar do player de aula (dark) */
 export function MembrosPlayerNavbar({
   titulo,
   voltarHref,
@@ -78,44 +105,34 @@ export function MembrosPlayerNavbar({
   voltarHref: string;
   voltarLabel: string;
 }) {
-  const router = useRouter();
-
-  async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/membros");
-  }
-
   return (
-    <header className="flex h-14 items-center gap-4 border-b border-white/10 bg-[#181a20] px-5">
-      <Link href={voltarHref} className="flex items-center gap-2 text-white/60 transition hover:text-white">
-        <MappingPartnersLogo onDark size="sm" />
+    <header
+      className="flex h-14 items-center gap-4 px-5"
+      style={{ background: "#060606", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+    >
+      <Link href={voltarHref} className="flex items-center gap-2 transition hover:opacity-80">
+        <MemberLogo />
       </Link>
 
-      <span className="text-white/20">/</span>
+      <span style={{ color: "#333" }}>/</span>
 
       <Link
-        className="text-sm font-medium text-white/60 transition hover:text-white"
+        className="text-sm font-medium transition hover:text-white"
         href={voltarHref}
+        style={{ color: "#888" }}
       >
         {voltarLabel}
       </Link>
 
       {titulo && (
         <>
-          <span className="text-white/20">/</span>
-          <span className="truncate text-sm font-semibold text-white/90">{titulo}</span>
+          <span style={{ color: "#333" }}>/</span>
+          <span className="truncate text-sm font-semibold text-white">{titulo}</span>
         </>
       )}
 
       <div className="ml-auto">
-        <button
-          className="inline-flex h-8 items-center justify-center rounded-lg border border-white/10 px-3 text-sm font-semibold text-white/60 transition hover:border-white/20 hover:text-white"
-          onClick={handleLogout}
-          type="button"
-        >
-          Sair
-        </button>
+        <LogoutButton small />
       </div>
     </header>
   );

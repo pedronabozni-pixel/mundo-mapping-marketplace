@@ -30,6 +30,17 @@ type Acesso = {
   created_at: string;
 };
 
+type MaterialDraft = { titulo: string; url: string };
+
+type NovaAulaState = {
+  moduloId: string;
+  titulo: string;
+  videoUrl: string;
+  duracao: string;
+  liberadoEm: string;
+  materiais: MaterialDraft[];
+};
+
 type Props = {
   produto: { id: string; slug: string; nome: string; tipo_entregavel: string | null };
   empresaId: string;
@@ -39,6 +50,14 @@ type Props = {
 
 type Tab = "conteudo" | "acessos";
 
+function inferTipo(url: string): string {
+  const u = url.toLowerCase();
+  if (u.endsWith(".pdf")) return "pdf";
+  if (/\.(zip|rar|7z)$/.test(u)) return "arquivo";
+  if (/\.(png|jpg|jpeg|gif|webp)$/.test(u)) return "imagem";
+  return "link";
+}
+
 export default function MembrosManagerClient({ produto, empresaId, modulosIniciais, acessosIniciais }: Props) {
   const [tab, setTab] = useState<Tab>("conteudo");
   const [modulos, setModulos] = useState<Modulo[]>(modulosIniciais);
@@ -47,11 +66,10 @@ export default function MembrosManagerClient({ produto, empresaId, modulosInicia
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
-  // Estado para novos módulos/aulas
   const [novoModulo, setNovoModulo] = useState("");
-  const [novaAula, setNovaAula] = useState<{ moduloId: string; titulo: string; videoUrl: string; duracao: string; liberadoEm: string } | null>(null);
+  const [novaAula, setNovaAula] = useState<NovaAulaState | null>(null);
+  const [novoMaterial, setNovoMaterial] = useState<MaterialDraft>({ titulo: "", url: "" });
 
-  // Estado para novo acesso
   const [novoAcesso, setNovoAcesso] = useState({ email: "", nome: "", expira: "" });
 
   const supabase = createClient();
@@ -91,6 +109,18 @@ export default function MembrosManagerClient({ produto, empresaId, modulosInicia
   }
 
   // ── Aulas ──────────────────────────────────────────────────────
+  function addMaterialDraft() {
+    if (!novaAula) return;
+    if (!novoMaterial.titulo.trim() || !novoMaterial.url.trim()) return;
+    setNovaAula({ ...novaAula, materiais: [...novaAula.materiais, { ...novoMaterial }] });
+    setNovoMaterial({ titulo: "", url: "" });
+  }
+
+  function removeMaterialDraft(idx: number) {
+    if (!novaAula) return;
+    setNovaAula({ ...novaAula, materiais: novaAula.materiais.filter((_, i) => i !== idx) });
+  }
+
   async function criarAula() {
     if (!novaAula || !novaAula.titulo.trim()) return;
     setSaving(true);
@@ -109,14 +139,30 @@ export default function MembrosManagerClient({ produto, empresaId, modulosInicia
       })
       .select("id, titulo, descricao, video_url, duracao_minutos, ordem, liberado_em")
       .single();
+
+    if (error || !data) { setSaving(false); flash("Erro ao criar aula."); return; }
+
+    // Insere materiais (se houver)
+    if (novaAula.materiais.length > 0) {
+      const rows = novaAula.materiais.map((mat) => ({
+        empresa_id: empresaId,
+        aula_id: data.id,
+        titulo: mat.titulo.trim(),
+        url: mat.url.trim(),
+        tipo: inferTipo(mat.url),
+      }));
+      const { error: matError } = await supabase.from("materiais_aula").insert(rows);
+      if (matError) flash("Aula criada, mas houve erro ao salvar materiais.");
+    }
+
     setSaving(false);
-    if (error) { flash("Erro ao criar aula."); return; }
     setModulos((prev) =>
       prev.map((m) =>
         m.id === novaAula.moduloId ? { ...m, aulas: [...m.aulas, data] } : m
       )
     );
     setNovaAula(null);
+    setNovoMaterial({ titulo: "", url: "" });
     flash("Aula criada!");
   }
 
@@ -149,7 +195,6 @@ export default function MembrosManagerClient({ produto, empresaId, modulosInicia
     setSaving(false);
     if (!res.ok) { flash("Erro ao conceder acesso."); return; }
     setNovoAcesso({ email: "", nome: "", expira: "" });
-    // Recarrega acessos
     const { data } = await supabase
       .from("acessos_membros")
       .select("id, comprador_email, comprador_nome, ativo, expira_em, created_at")
@@ -194,9 +239,9 @@ export default function MembrosManagerClient({ produto, empresaId, modulosInicia
           {(["conteudo", "acessos"] as Tab[]).map((t) => (
             <button key={t} onClick={() => setTab(t)} style={{
               ...s.tab,
-              background: tab === t ? "#6366f1" : "transparent",
-              color: tab === t ? "#fff" : "#6b7280",
-              borderColor: tab === t ? "#6366f1" : "#2a2a2a",
+              background: tab === t ? "#C8102E" : "transparent",
+              color: tab === t ? "#fff" : "#888",
+              borderColor: tab === t ? "#C8102E" : "rgba(255,255,255,0.08)",
             }}>
               {t === "conteudo" ? "📚 Conteúdo" : "👥 Acessos"}
             </button>
@@ -247,12 +292,12 @@ export default function MembrosManagerClient({ produto, empresaId, modulosInicia
                             ▶
                           </button>
                           <div>
-                            <span style={{ color: "#6b7280", fontSize: "0.7rem", fontWeight: 600 }}>MÓDULO {modIdx + 1}</span>
+                            <span style={{ color: "#555", fontSize: "0.7rem", fontWeight: 600 }}>MÓDULO {modIdx + 1}</span>
                             <p style={{ fontWeight: 700, color: "#fff", margin: 0, fontSize: "0.95rem" }}>{mod.titulo}</p>
                           </div>
                         </div>
                         <div style={{ display: "flex", gap: "0.5rem" }}>
-                          <span style={{ color: "#6b7280", fontSize: "0.8rem", alignSelf: "center" }}>
+                          <span style={{ color: "#555", fontSize: "0.8rem", alignSelf: "center" }}>
                             {mod.aulas.length} aula{mod.aulas.length !== 1 ? "s" : ""}
                           </span>
                           <button
@@ -269,12 +314,12 @@ export default function MembrosManagerClient({ produto, empresaId, modulosInicia
                           {aulasOrdenadas.map((aula, aulaIdx) => (
                             <div key={aula.id} style={s.aulaRow}>
                               <div style={{ flex: 1 }}>
-                                <span style={{ color: "#6b7280", fontSize: "0.75rem" }}>{aulaIdx + 1}. </span>
+                                <span style={{ color: "#555", fontSize: "0.75rem" }}>{aulaIdx + 1}. </span>
                                 <span style={{ color: "#e5e7eb", fontSize: "0.875rem", fontWeight: 600 }}>{aula.titulo}</span>
-                                {aula.video_url && <span style={{ color: "#4b5563", fontSize: "0.75rem", marginLeft: "0.5rem" }}>🎬 com vídeo</span>}
-                                {aula.duracao_minutos && <span style={{ color: "#4b5563", fontSize: "0.75rem", marginLeft: "0.5rem" }}>⏱ {aula.duracao_minutos}min</span>}
+                                {aula.video_url && <span style={{ color: "#666", fontSize: "0.75rem", marginLeft: "0.5rem" }}>🎬 com vídeo</span>}
+                                {aula.duracao_minutos && <span style={{ color: "#666", fontSize: "0.75rem", marginLeft: "0.5rem" }}>⏱ {aula.duracao_minutos}min</span>}
                                 {aula.liberado_em && (
-                                  <span style={{ color: "#78350f", background: "#78350f22", borderRadius: "4px", fontSize: "0.7rem", padding: "0.1rem 0.4rem", marginLeft: "0.5rem" }}>
+                                  <span style={{ color: "#FBBF24", background: "rgba(251,191,36,0.1)", borderRadius: "4px", fontSize: "0.7rem", padding: "0.1rem 0.4rem", marginLeft: "0.5rem" }}>
                                     Drip: {new Date(aula.liberado_em).toLocaleDateString("pt-BR")}
                                   </span>
                                 )}
@@ -285,7 +330,7 @@ export default function MembrosManagerClient({ produto, empresaId, modulosInicia
 
                           {/* Nova aula neste módulo */}
                           {novaAula?.moduloId === mod.id ? (
-                            <div style={{ ...s.aulaRow, flexDirection: "column", alignItems: "stretch", gap: "0.75rem", background: "#111" }}>
+                            <div style={{ ...s.aulaRow, flexDirection: "column", alignItems: "stretch", gap: "0.75rem", background: "rgba(255,255,255,0.03)" }}>
                               <input
                                 value={novaAula.titulo}
                                 onChange={(e) => setNovaAula({ ...novaAula, titulo: e.target.value })}
@@ -296,7 +341,7 @@ export default function MembrosManagerClient({ produto, empresaId, modulosInicia
                               <input
                                 value={novaAula.videoUrl}
                                 onChange={(e) => setNovaAula({ ...novaAula, videoUrl: e.target.value })}
-                                placeholder="URL do vídeo (YouTube, Vimeo, Panda)"
+                                placeholder="URL do vídeo (YouTube, Vimeo)"
                                 style={s.input}
                               />
                               <div style={{ display: "flex", gap: "0.75rem" }}>
@@ -308,7 +353,7 @@ export default function MembrosManagerClient({ produto, empresaId, modulosInicia
                                   style={{ ...s.input, maxWidth: "150px" }}
                                 />
                                 <div style={{ flex: 1 }}>
-                                  <label style={{ fontSize: "0.75rem", color: "#6b7280", display: "block", marginBottom: "0.25rem" }}>
+                                  <label style={{ fontSize: "0.75rem", color: "#888", display: "block", marginBottom: "0.25rem" }}>
                                     Liberar em (drip — deixe em branco para liberar agora)
                                   </label>
                                   <input
@@ -319,14 +364,54 @@ export default function MembrosManagerClient({ produto, empresaId, modulosInicia
                                   />
                                 </div>
                               </div>
+
+                              {/* Sub-formulário: materiais */}
+                              <div style={s.materiaisBox}>
+                                <p style={{ fontSize: "0.75rem", color: "#888", fontWeight: 600, margin: "0 0 0.5rem" }}>
+                                  Materiais da aula (opcional)
+                                </p>
+
+                                {novaAula.materiais.length > 0 && (
+                                  <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "0.6rem" }}>
+                                    {novaAula.materiais.map((mat, i) => (
+                                      <div key={i} style={s.materialRow}>
+                                        <span style={{ flex: 1, color: "#e5e7eb", fontSize: "0.8rem" }}>
+                                          {mat.titulo}
+                                          <span style={{ color: "#555", marginLeft: "0.4rem" }}>{mat.url}</span>
+                                        </span>
+                                        <button onClick={() => removeMaterialDraft(i)} style={s.btnDanger}>✕</button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+
+                                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                                  <input
+                                    value={novoMaterial.titulo}
+                                    onChange={(e) => setNovoMaterial({ ...novoMaterial, titulo: e.target.value })}
+                                    placeholder="Título do material"
+                                    style={{ ...s.input, flex: 1, minWidth: "140px" }}
+                                  />
+                                  <input
+                                    value={novoMaterial.url}
+                                    onChange={(e) => setNovoMaterial({ ...novoMaterial, url: e.target.value })}
+                                    placeholder="URL (PDF, link…)"
+                                    style={{ ...s.input, flex: 1, minWidth: "140px" }}
+                                  />
+                                  <button onClick={addMaterialDraft} style={s.btnSecondary} type="button">
+                                    + Material
+                                  </button>
+                                </div>
+                              </div>
+
                               <div style={{ display: "flex", gap: "0.5rem" }}>
                                 <button onClick={criarAula} disabled={saving} style={s.btnPrimary}>Salvar aula</button>
-                                <button onClick={() => setNovaAula(null)} style={s.btnSecondary}>Cancelar</button>
+                                <button onClick={() => { setNovaAula(null); setNovoMaterial({ titulo: "", url: "" }); }} style={s.btnSecondary}>Cancelar</button>
                               </div>
                             </div>
                           ) : (
                             <button
-                              onClick={() => setNovaAula({ moduloId: mod.id, titulo: "", videoUrl: "", duracao: "", liberadoEm: "" })}
+                              onClick={() => setNovaAula({ moduloId: mod.id, titulo: "", videoUrl: "", duracao: "", liberadoEm: "", materiais: [] })}
                               style={s.btnAddAula}
                             >
                               + Nova aula
@@ -372,7 +457,7 @@ export default function MembrosManagerClient({ produto, empresaId, modulosInicia
                   Conceder
                 </button>
               </div>
-              <p style={{ color: "#4b5563", fontSize: "0.775rem", marginTop: "0.5rem" }}>
+              <p style={{ color: "#555", fontSize: "0.775rem", marginTop: "0.5rem" }}>
                 O aluno precisará se cadastrar em /membros com este e-mail para acessar o curso.
               </p>
             </div>
@@ -381,7 +466,7 @@ export default function MembrosManagerClient({ produto, empresaId, modulosInicia
             <div style={s.card}>
               <h2 style={s.cardTitle}>
                 Alunos com Acesso
-                <span style={{ fontWeight: 400, color: "#6b7280", marginLeft: "0.5rem", fontSize: "0.875rem" }}>
+                <span style={{ fontWeight: 400, color: "#888", marginLeft: "0.5rem", fontSize: "0.875rem" }}>
                   ({acessos.filter((a) => a.ativo).length} ativos)
                 </span>
               </h2>
@@ -400,12 +485,12 @@ export default function MembrosManagerClient({ produto, empresaId, modulosInicia
                           {acesso.comprador_nome || acesso.comprador_email}
                         </span>
                         {acesso.comprador_nome && (
-                          <span style={{ color: "#6b7280", fontSize: "0.775rem", marginLeft: "0.5rem" }}>
+                          <span style={{ color: "#555", fontSize: "0.775rem", marginLeft: "0.5rem" }}>
                             {acesso.comprador_email}
                           </span>
                         )}
                         {acesso.expira_em && (
-                          <span style={{ color: "#78350f", background: "#78350f22", borderRadius: "4px", fontSize: "0.7rem", padding: "0.1rem 0.4rem", marginLeft: "0.5rem" }}>
+                          <span style={{ color: "#FBBF24", background: "rgba(251,191,36,0.1)", borderRadius: "4px", fontSize: "0.7rem", padding: "0.1rem 0.4rem", marginLeft: "0.5rem" }}>
                             expira {new Date(acesso.expira_em).toLocaleDateString("pt-BR")}
                           </span>
                         )}
@@ -413,8 +498,8 @@ export default function MembrosManagerClient({ produto, empresaId, modulosInicia
                       <span style={{
                         fontSize: "0.75rem",
                         fontWeight: 600,
-                        color: acesso.ativo ? "#34d399" : "#6b7280",
-                        background: acesso.ativo ? "#34d39922" : "#6b728022",
+                        color: acesso.ativo ? "#4ADE80" : "#888",
+                        background: acesso.ativo ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.06)",
                         borderRadius: "6px",
                         padding: "0.2rem 0.6rem",
                       }}>
@@ -440,13 +525,13 @@ export default function MembrosManagerClient({ produto, empresaId, modulosInicia
 const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: "100vh",
-    background: "#0f0f0f",
+    background: "#0a0a0a",
     fontFamily: "Inter, system-ui, sans-serif",
     color: "#fff",
   },
   header: {
-    background: "#1a1a1a",
-    borderBottom: "1px solid #2a2a2a",
+    background: "#060606",
+    borderBottom: "1px solid rgba(255,255,255,0.06)",
     padding: "1rem 2rem",
   },
   headerInner: {
@@ -457,7 +542,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: "1rem",
   },
   back: {
-    color: "#6b7280",
+    color: "#888",
     textDecoration: "none",
     fontSize: "0.875rem",
   },
@@ -472,9 +557,9 @@ const styles: Record<string, React.CSSProperties> = {
     padding: "2rem 1.5rem",
   },
   flash: {
-    background: "#1e1b4b",
-    border: "1px solid #6366f144",
-    color: "#a5b4fc",
+    background: "rgba(200,16,46,0.08)",
+    border: "1px solid rgba(200,16,46,0.2)",
+    color: "#C8102E",
     borderRadius: "10px",
     padding: "0.75rem 1rem",
     marginBottom: "1rem",
@@ -496,8 +581,8 @@ const styles: Record<string, React.CSSProperties> = {
     transition: "all 0.15s",
   },
   card: {
-    background: "#1a1a1a",
-    border: "1px solid #2a2a2a",
+    background: "rgba(255,255,255,0.02)",
+    border: "1px solid rgba(255,255,255,0.06)",
     borderRadius: "14px",
     padding: "1.25rem",
     marginBottom: "1rem",
@@ -509,8 +594,8 @@ const styles: Record<string, React.CSSProperties> = {
     color: "#e5e7eb",
   },
   input: {
-    background: "#111",
-    border: "1px solid #2a2a2a",
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: "8px",
     padding: "0.6rem 0.875rem",
     color: "#fff",
@@ -520,7 +605,7 @@ const styles: Record<string, React.CSSProperties> = {
     boxSizing: "border-box" as const,
   },
   btnPrimary: {
-    background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+    background: "#C8102E",
     color: "#fff",
     border: "none",
     borderRadius: "8px",
@@ -531,9 +616,9 @@ const styles: Record<string, React.CSSProperties> = {
     whiteSpace: "nowrap" as const,
   },
   btnSecondary: {
-    background: "transparent",
-    color: "#9ca3af",
-    border: "1px solid #2a2a2a",
+    background: "rgba(255,255,255,0.04)",
+    color: "#888",
+    border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: "8px",
     padding: "0.6rem 1.25rem",
     fontWeight: 600,
@@ -541,9 +626,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "0.875rem",
   },
   btnDanger: {
-    background: "#7f1d1d22",
-    color: "#fca5a5",
-    border: "1px solid #7f1d1d44",
+    background: "rgba(200,16,46,0.08)",
+    color: "#C8102E",
+    border: "1px solid rgba(200,16,46,0.2)",
     borderRadius: "6px",
     padding: "0.3rem 0.7rem",
     cursor: "pointer",
@@ -553,16 +638,16 @@ const styles: Record<string, React.CSSProperties> = {
   btnIcon: {
     background: "transparent",
     border: "none",
-    color: "#6b7280",
+    color: "#888",
     cursor: "pointer",
     fontSize: "0.7rem",
     padding: "0.25rem",
   },
   btnAddAula: {
     marginTop: "0.75rem",
-    background: "#111",
-    border: "1px dashed #2a2a2a",
-    color: "#6366f1",
+    background: "rgba(255,255,255,0.03)",
+    border: "1px dashed rgba(255,255,255,0.08)",
+    color: "#C8102E",
     borderRadius: "8px",
     padding: "0.6rem 1rem",
     cursor: "pointer",
@@ -575,12 +660,26 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     gap: "0.75rem",
     padding: "0.6rem 0.75rem",
-    background: "#161616",
+    background: "rgba(255,255,255,0.02)",
     borderRadius: "8px",
     marginBottom: "0.4rem",
   },
+  materiaisBox: {
+    background: "rgba(255,255,255,0.02)",
+    border: "1px solid rgba(255,255,255,0.06)",
+    borderRadius: "8px",
+    padding: "0.75rem",
+  },
+  materialRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.5rem",
+    padding: "0.4rem 0.6rem",
+    background: "rgba(255,255,255,0.03)",
+    borderRadius: "6px",
+  },
   empty: {
-    color: "#4b5563",
+    color: "#555",
     textAlign: "center" as const,
     padding: "1.5rem",
     fontSize: "0.875rem",
