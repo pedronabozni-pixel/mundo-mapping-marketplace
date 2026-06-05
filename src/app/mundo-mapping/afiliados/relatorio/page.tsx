@@ -24,13 +24,13 @@ function fmtBRL(n: number) {
 }
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded-xl bg-zinc-100 ${className}`} />;
+  return <div className={`animate-pulse rounded-xl ${className}`} style={{ background: "rgba(255,255,255,0.04)" }} />;
 }
 
 function DualLineChart({ data }: { data: TimelinePoint[] }) {
   if (!data.length) return (
-    <div className="flex h-52 items-center justify-center rounded-[20px] border border-zinc-200 bg-zinc-50">
-      <p className="text-sm text-zinc-400">Nenhum dado para o período</p>
+    <div className="flex h-52 items-center justify-center rounded-[20px]" style={{ border: "1px dashed rgba(255,255,255,0.06)" }}>
+      <p className="text-sm" style={{ color: "#555" }}>Nenhum dado para o período</p>
     </div>
   );
 
@@ -55,7 +55,7 @@ function DualLineChart({ data }: { data: TimelinePoint[] }) {
   }
 
   return (
-    <div className="rounded-[20px] border border-zinc-200 bg-zinc-50/70 p-4">
+    <div className="rounded-[20px] p-4" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
       <svg className="h-52 w-full" preserveAspectRatio="none" viewBox={`0 0 ${W} ${H}`}>
         <defs>
           <linearGradient id="fillC" x1="0" x2="0" y1="0" y2="1">
@@ -73,11 +73,11 @@ function DualLineChart({ data }: { data: TimelinePoint[] }) {
         <polyline fill="none" points={pts("vendas")} stroke="#dc2626" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
       </svg>
       <div className="mt-3 flex flex-wrap justify-between gap-2">
-        <div className="flex gap-4 text-xs text-zinc-500">
-          <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full bg-zinc-400" />Cliques</span>
-          <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full bg-red-500" />Vendas</span>
+        <div className="flex gap-4 text-xs" style={{ color: "#888" }}>
+          <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#555" }} />Cliques</span>
+          <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#C8102E" }} />Vendas</span>
         </div>
-        <div className="flex gap-3 text-xs text-zinc-400">
+        <div className="flex gap-3 text-xs" style={{ color: "#555" }}>
           {data.filter((_, i) => i === 0 || i === Math.floor(data.length / 2) || i === data.length - 1)
             .map(d => <span key={d.date}>{d.date}</span>)}
         </div>
@@ -88,21 +88,24 @@ function DualLineChart({ data }: { data: TimelinePoint[] }) {
 
 function MetricCard({ label, value, sub, icon, loading }: { label: string; value: string; sub: string; icon: string; loading: boolean }) {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-[0_18px_60px_-45px_rgba(24,24,27,0.28)]">
+    <div
+      className="rounded-2xl p-5"
+      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}
+    >
       {loading ? (
         <>
-          <Skeleton className="h-4 w-24 mb-3" />
-          <Skeleton className="h-8 w-32 mb-2" />
+          <Skeleton className="mb-3 h-4 w-24" />
+          <Skeleton className="mb-2 h-8 w-32" />
           <Skeleton className="h-3 w-20" />
         </>
       ) : (
         <>
           <div className="flex items-start justify-between gap-3">
-            <p className="text-sm font-medium text-zinc-500">{label}</p>
+            <p className="text-sm font-medium" style={{ color: "#888" }}>{label}</p>
             <span className="text-lg">{icon}</span>
           </div>
-          <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950">{value}</p>
-          <p className="mt-1 text-xs text-zinc-400">{sub}</p>
+          <p className="mt-2 text-2xl font-semibold tracking-tight text-white">{value}</p>
+          <p className="mt-1 text-xs" style={{ color: "#555" }}>{sub}</p>
         </>
       )}
     </div>
@@ -112,13 +115,13 @@ function MetricCard({ label, value, sub, icon, loading }: { label: string; value
 function UpgradeWall({ plan, onUpgrade }: { plan: Plan; onUpgrade: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center p-12 text-center">
-      <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100">
-        <svg className="h-8 w-8 text-zinc-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl" style={{ background: "rgba(255,255,255,0.06)" }}>
+        <svg className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth={1.5} style={{ color: "#555" }} viewBox="0 0 24 24">
           <path d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
-      <h2 className="text-xl font-semibold tracking-tight text-zinc-950">Recurso exclusivo Partner e Elite</h2>
-      <p className="mt-3 max-w-md text-sm leading-6 text-zinc-500">
+      <h2 className="text-xl font-semibold tracking-tight text-white">Recurso exclusivo Partner e Elite</h2>
+      <p className="mt-3 max-w-md text-sm leading-6" style={{ color: "#888" }}>
         O relatório de desempenho de campanhas está disponível nos planos <strong>Partner</strong> e <strong>Elite</strong>.
         Você está no plano <strong>Associate</strong>. Faça upgrade para acessar métricas em tempo real, gráficos e análise por creator.
       </p>
@@ -302,12 +305,16 @@ export default function RelatorioPage() {
         title="Relatório de campanhas"
         description="Métricas em tempo real de cliques, vendas e comissões geradas pelos seus afiliados."
         actions={
-          <div className="inline-flex rounded-full border border-zinc-200 bg-white p-1">
+          <div
+            className="inline-flex rounded-lg p-[3px]"
+            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+          >
             {periodOptions.map(opt => (
               <button
-                className={`rounded-full px-3 py-2 text-sm font-semibold transition ${period === opt.value ? "bg-zinc-900 text-white" : "text-zinc-500 hover:text-zinc-900"}`}
+                className="rounded-md px-3 py-2 text-sm font-semibold transition"
                 key={opt.value}
                 onClick={() => setPeriod(opt.value)}
+                style={period === opt.value ? { background: "rgba(255,255,255,0.06)", color: "#fff" } : { color: "#666" }}
                 type="button"
               >
                 {opt.label}
@@ -336,31 +343,37 @@ export default function RelatorioPage() {
           {dataLoading ? <Skeleton className="h-40" /> : creators.length === 0 ? (
             <p className="py-8 text-center text-sm text-zinc-400">Nenhum creator com atividade no período.</p>
           ) : (
-            <div className="overflow-hidden rounded-[20px] border border-zinc-200">
+            <div className="overflow-hidden rounded-[20px]" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-zinc-200 text-left">
-                  <thead className="bg-zinc-50">
+                <table className="min-w-full text-left" style={{ borderCollapse: "collapse" }}>
+                  <thead style={{ background: "rgba(255,255,255,0.03)" }}>
                     <tr>
                       {["Creator", "Produto", "Cliques", "Vendas", "Comissão", "Status"].map(col => (
-                        <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500" key={col}>{col}</th>
+                        <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em]" key={col} style={{ color: "#555", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>{col}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-200 bg-white">
+                  <tbody>
                     {creators.map(r => (
-                      <tr className="hover:bg-zinc-50" key={r.creator_id}>
+                      <tr
+                        className="transition"
+                        key={r.creator_id}
+                        style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                        onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.02)")}
+                        onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
+                      >
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-xs font-bold text-zinc-600">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold" style={{ background: "rgba(255,255,255,0.06)", color: "#888" }}>
                               {r.name.slice(0, 2).toUpperCase()}
                             </div>
-                            <span className="text-sm font-medium text-zinc-900">{r.name}</span>
+                            <span className="text-sm font-medium text-white">{r.name}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-4 text-sm text-zinc-600">{r.produto}</td>
-                        <td className="px-4 py-4 text-sm text-zinc-700">{r.clicks.toLocaleString("pt-BR")}</td>
-                        <td className="px-4 py-4 text-sm text-zinc-700">{r.vendas.toLocaleString("pt-BR")}</td>
-                        <td className="px-4 py-4 text-sm text-zinc-700">{fmtBRL(r.comissao)}</td>
+                        <td className="px-4 py-4 text-sm" style={{ color: "#888" }}>{r.produto}</td>
+                        <td className="px-4 py-4 text-sm" style={{ color: "#aaa" }}>{r.clicks.toLocaleString("pt-BR")}</td>
+                        <td className="px-4 py-4 text-sm" style={{ color: "#aaa" }}>{r.vendas.toLocaleString("pt-BR")}</td>
+                        <td className="px-4 py-4 text-sm" style={{ color: "#aaa" }}>{fmtBRL(r.comissao)}</td>
                         <td className="px-4 py-4">
                           <StatusBadge label={r.ativo ? "Ativo" : "Inativo"} tone={r.ativo ? "success" : "neutral"} />
                         </td>
@@ -378,25 +391,31 @@ export default function RelatorioPage() {
           {dataLoading ? <Skeleton className="h-40" /> : products.length === 0 ? (
             <p className="py-8 text-center text-sm text-zinc-400">Nenhum produto com atividade no período.</p>
           ) : (
-            <div className="overflow-hidden rounded-[20px] border border-zinc-200">
+            <div className="overflow-hidden rounded-[20px]" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-zinc-200 text-left">
-                  <thead className="bg-zinc-50">
+                <table className="min-w-full text-left" style={{ borderCollapse: "collapse" }}>
+                  <thead style={{ background: "rgba(255,255,255,0.03)" }}>
                     <tr>
                       {["Produto", "Creators", "Cliques", "Vendas", "GMV", "Comissão"].map(col => (
-                        <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500" key={col}>{col}</th>
+                        <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em]" key={col} style={{ color: "#555", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>{col}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-200 bg-white">
+                  <tbody>
                     {products.map(r => (
-                      <tr className="hover:bg-zinc-50" key={r.produto_id}>
-                        <td className="px-4 py-4 text-sm font-medium text-zinc-900">{r.nome}</td>
-                        <td className="px-4 py-4 text-sm text-zinc-700">{r.creators}</td>
-                        <td className="px-4 py-4 text-sm text-zinc-700">{r.clicks.toLocaleString("pt-BR")}</td>
-                        <td className="px-4 py-4 text-sm text-zinc-700">{r.vendas.toLocaleString("pt-BR")}</td>
-                        <td className="px-4 py-4 text-sm text-zinc-700">{fmtBRL(r.gmv)}</td>
-                        <td className="px-4 py-4 text-sm text-zinc-700">{fmtBRL(r.comissao)}</td>
+                      <tr
+                        className="transition"
+                        key={r.produto_id}
+                        style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                        onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.02)")}
+                        onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
+                      >
+                        <td className="px-4 py-4 text-sm font-medium text-white">{r.nome}</td>
+                        <td className="px-4 py-4 text-sm" style={{ color: "#aaa" }}>{r.creators}</td>
+                        <td className="px-4 py-4 text-sm" style={{ color: "#aaa" }}>{r.clicks.toLocaleString("pt-BR")}</td>
+                        <td className="px-4 py-4 text-sm" style={{ color: "#aaa" }}>{r.vendas.toLocaleString("pt-BR")}</td>
+                        <td className="px-4 py-4 text-sm" style={{ color: "#aaa" }}>{fmtBRL(r.gmv)}</td>
+                        <td className="px-4 py-4 text-sm" style={{ color: "#aaa" }}>{fmtBRL(r.comissao)}</td>
                       </tr>
                     ))}
                   </tbody>

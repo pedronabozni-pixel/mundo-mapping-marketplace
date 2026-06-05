@@ -18,18 +18,18 @@ export default function BlueprintPage() {
       <div className="space-y-6 p-6">
         <SectionCard subtitle="Leitura critica da interface atual com foco em percepcao de valor, clareza e confianca." title="Diagnostico senior">
           <div className="grid gap-4 lg:grid-cols-2">
-            <div className="rounded-2xl border border-zinc-200 p-5">
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-400">O que enfraquece o produto hoje</p>
-              <ul className="mt-3 space-y-3 text-sm leading-6 text-zinc-600">
+            <div className="rounded-2xl p-5" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
+              <p className="text-sm font-semibold uppercase tracking-[0.16em]" style={{ color: "#555" }}>O que enfraquece o produto hoje</p>
+              <ul className="mt-3 space-y-3 text-sm leading-6" style={{ color: "#888" }}>
                 <li>Hierarquia visual rasa, com muitos elementos de peso parecido.</li>
                 <li>Cadastro com cara de CRUD administrativo, sem onboarding orientado.</li>
                 <li>Dashboard pouco analitico e sem leitura executiva.</li>
                 <li>Detalhe de produto estatico, sem papel de hub operacional.</li>
               </ul>
             </div>
-            <div className="rounded-2xl border border-zinc-200 p-5">
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-400">O que deve ser preservado</p>
-              <ul className="mt-3 space-y-3 text-sm leading-6 text-zinc-600">
+            <div className="rounded-2xl p-5" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
+              <p className="text-sm font-semibold uppercase tracking-[0.16em]" style={{ color: "#555" }}>O que deve ser preservado</p>
+              <ul className="mt-3 space-y-3 text-sm leading-6" style={{ color: "#888" }}>
                 <li>Sidebar com contraste forte em relacao ao conteudo.</li>
                 <li>Base clara, vermelho como cor principal de acao e linguagem corporativa.</li>
                 <li>Tipografia sans-serif neutra e composicao comercial.</li>
@@ -151,9 +151,9 @@ export default function BlueprintPage() {
                 "A base de 16 mil creators validados passou a aparecer como insumo de score, curadoria e matching no produto."
               ]
             ].map(([title, text]) => (
-              <div className="rounded-2xl border border-zinc-200 p-5" key={title}>
-                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-400">{title}</p>
-                <p className="mt-3 text-sm leading-6 text-zinc-600">{text}</p>
+              <div className="rounded-2xl p-5" key={title} style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
+                <p className="text-sm font-semibold uppercase tracking-[0.16em]" style={{ color: "#555" }}>{title}</p>
+                <p className="mt-3 text-sm leading-6" style={{ color: "#888" }}>{text}</p>
               </div>
             ))}
           </div>

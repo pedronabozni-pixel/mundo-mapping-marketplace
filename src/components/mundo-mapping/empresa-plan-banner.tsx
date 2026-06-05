@@ -72,19 +72,24 @@ export function UpgradeModal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/50 px-4 py-8"
+      className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8"
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      style={{ background: "rgba(0,0,0,0.7)" }}
     >
-      <div className="w-full max-w-4xl overflow-auto rounded-[24px] border border-zinc-200 bg-white p-8 shadow-[0_40px_120px_-80px_rgba(15,23,42,0.38)]">
+      <div
+        className="w-full max-w-4xl overflow-auto rounded-[24px] p-8"
+        style={{ background: "#111", border: "1px solid rgba(255,255,255,0.08)" }}
+      >
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-400">Planos</p>
-            <h3 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-950">Escolha seu plano</h3>
-            <p className="mt-1 text-sm text-zinc-500">Quanto maior o plano, menor a taxa adicional sobre o Asaas.</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em]" style={{ color: "#555" }}>Planos</p>
+            <h3 className="mt-1 text-2xl font-semibold tracking-tight text-white">Escolha seu plano</h3>
+            <p className="mt-1 text-sm" style={{ color: "#888" }}>Quanto maior o plano, menor a taxa adicional sobre o Asaas.</p>
           </div>
           <button
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-zinc-200 text-sm text-zinc-400 transition hover:bg-zinc-50 hover:text-zinc-700"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition"
             onClick={onClose}
+            style={{ border: "1px solid rgba(255,255,255,0.08)", color: "#555" }}
             type="button"
           >
             ✕
@@ -96,39 +101,59 @@ export function UpgradeModal({
             const isCurrent = plan.id === currentPlan;
             return (
               <div
-                className={`relative flex flex-col rounded-[20px] p-6 ${
-                  isCurrent
-                    ? "border-2 border-red-200 bg-gradient-to-b from-red-50 via-white to-white"
-                    : "border border-zinc-200 bg-white shadow-[0_18px_60px_-45px_rgba(24,24,27,0.22)]"
-                }`}
+                className="relative flex flex-col rounded-[20px] p-6"
                 key={plan.id}
+                style={
+                  isCurrent
+                    ? {
+                        background: "linear-gradient(135deg, rgba(200,16,46,0.08) 0%, rgba(200,16,46,0.02) 60%, transparent 100%)",
+                        border: "2px solid rgba(200,16,46,0.25)",
+                      }
+                    : {
+                        background: "rgba(255,255,255,0.02)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                      }
+                }
               >
                 {isCurrent && (
-                  <span className="absolute -top-3.5 left-5 rounded-full bg-red-600 px-3 py-1 text-xs font-bold text-white shadow-[0_8px_24px_-10px_rgba(220,38,38,0.7)]">
+                  <span className="absolute -top-3.5 left-5 rounded-full bg-[#C8102E] px-3 py-1 text-xs font-bold text-white shadow-[0_8px_24px_-10px_rgba(200,16,46,0.7)]">
                     Plano atual
                   </span>
                 )}
-                <p className={`text-xs font-bold uppercase tracking-widest ${isCurrent ? "text-red-700" : "text-zinc-400"}`}>
+                <p
+                  className="text-xs font-bold uppercase tracking-widest"
+                  style={{ color: isCurrent ? "#C8102E" : "#555" }}
+                >
                   {plan.label}
                 </p>
                 <div className="mt-3 flex items-baseline gap-1">
-                  <span className="text-3xl font-semibold text-zinc-950">{plan.price}</span>
-                  {plan.period && <span className="text-sm text-zinc-400">{plan.period}</span>}
+                  <span className="text-3xl font-semibold text-white">{plan.price}</span>
+                  {plan.period && <span className="text-sm" style={{ color: "#666" }}>{plan.period}</span>}
                 </div>
-                <div className={`mt-3 rounded-xl px-3 py-2 text-xs font-semibold ${isCurrent ? "bg-red-50 text-red-700" : "bg-zinc-100 text-zinc-500"}`}>
+                <div
+                  className="mt-3 rounded-xl px-3 py-2 text-xs font-semibold"
+                  style={
+                    isCurrent
+                      ? { background: "rgba(200,16,46,0.1)", color: "#C8102E" }
+                      : { background: "rgba(255,255,255,0.04)", color: "#666" }
+                  }
+                >
                   {plan.fee}
                 </div>
                 <ul className="mt-5 flex-1 space-y-2.5">
                   {plan.features.map((feat) => (
-                    <li className="flex items-start gap-2.5 text-sm text-zinc-600" key={feat}>
-                      <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${isCurrent ? "bg-red-600" : "bg-zinc-300"}`} />
+                    <li className="flex items-start gap-2.5 text-sm" key={feat} style={{ color: "#888" }}>
+                      <span
+                        className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
+                        style={{ background: isCurrent ? "#C8102E" : "rgba(255,255,255,0.2)" }}
+                      />
                       {feat}
                     </li>
                   ))}
                 </ul>
                 {!isCurrent && plan.id !== "associate" && (
                   <Link
-                    className="mt-6 block w-full rounded-xl bg-red-600 py-2.5 text-center text-sm font-bold text-white shadow-[0_8px_24px_-10px_rgba(220,38,38,0.7)] transition hover:bg-red-700"
+                    className="mt-6 block w-full rounded-xl bg-[#C8102E] py-2.5 text-center text-sm font-bold text-white shadow-[0_8px_24px_-10px_rgba(200,16,46,0.7)] transition hover:bg-[#A30D24]"
                     href={`/assinar/${plan.id}`}
                     onClick={onClose}
                   >
@@ -176,12 +201,25 @@ export function EmpresaPlanBanner() {
 
   return (
     <>
-      <div className={`flex flex-wrap items-center justify-between gap-3 border-b px-6 py-3 ${atLimit ? "border-amber-200 bg-amber-50" : "border-zinc-200/80 bg-white"}`}>
+      <div
+        className="flex flex-wrap items-center justify-between gap-3 px-6 py-3"
+        style={{
+          borderBottom: `1px solid ${atLimit ? "rgba(251,191,36,0.2)" : "rgba(255,255,255,0.06)"}`,
+          background: atLimit ? "rgba(251,191,36,0.06)" : "rgba(255,255,255,0.015)",
+        }}
+      >
         <div className="flex flex-wrap items-center gap-3">
-          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ${atLimit ? "bg-amber-100 text-amber-800 ring-amber-200" : "bg-zinc-100 text-zinc-700 ring-zinc-200"}`}>
+          <span
+            className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold"
+            style={
+              atLimit
+                ? { background: "rgba(251,191,36,0.12)", color: "#FBBF24", border: "1px solid rgba(251,191,36,0.2)" }
+                : { background: "rgba(255,255,255,0.04)", color: "#888", border: "1px solid rgba(255,255,255,0.06)" }
+            }
+          >
             Plano {PLAN_LABEL[plan]}
           </span>
-          <span className={`text-sm ${atLimit ? "font-semibold text-amber-700" : "text-zinc-500"}`}>
+          <span className="text-sm" style={{ color: atLimit ? "#FBBF24" : "#888", fontWeight: atLimit ? 600 : 400 }}>
             {limit === null
               ? "Produtos ilimitados"
               : `${productCount} de ${limit} produto${limit !== 1 ? "s" : ""} utilizado${limit !== 1 ? "s" : ""}${atLimit ? " · Limite atingido" : ""}`}
@@ -189,7 +227,7 @@ export function EmpresaPlanBanner() {
         </div>
         {plan !== "elite" && (
           <button
-            className="inline-flex h-8 items-center justify-center rounded-xl bg-red-600 px-4 text-xs font-bold text-white shadow-[0_8px_24px_-10px_rgba(220,38,38,0.7)] transition hover:bg-red-700"
+            className="inline-flex h-8 items-center justify-center rounded-xl bg-[#C8102E] px-4 text-xs font-bold text-white shadow-[0_8px_24px_-10px_rgba(200,16,46,0.7)] transition hover:bg-[#A30D24]"
             onClick={() => setModalOpen(true)}
             type="button"
           >

@@ -84,7 +84,7 @@ export default function FinanceiroPage() {
   if (loading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-red-600 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#C8102E] border-t-transparent" />
       </div>
     );
   }
@@ -124,9 +124,12 @@ export default function FinanceiroPage() {
         title="Extrato financeiro"
       >
         {isEmpty ? (
-          <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center">
-            <p className="text-sm font-medium text-zinc-700">Nenhuma movimentação financeira ainda.</p>
-            <p className="mt-2 text-sm text-zinc-500">
+          <div
+            className="rounded-2xl px-6 py-12 text-center"
+            style={{ background: "rgba(255,255,255,0.015)", border: "1px dashed rgba(255,255,255,0.06)" }}
+          >
+            <p className="text-sm font-medium text-white">Nenhuma movimentação financeira ainda.</p>
+            <p className="mt-2 text-sm" style={{ color: "#888" }}>
               As vendas geradas pelos creators aparecem aqui automaticamente.
             </p>
           </div>
@@ -134,7 +137,10 @@ export default function FinanceiroPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-100 bg-zinc-50 text-left text-xs font-semibold uppercase tracking-[0.1em] text-zinc-400">
+                <tr
+                  className="text-left text-xs font-semibold uppercase tracking-[0.1em]"
+                  style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", background: "rgba(255,255,255,0.03)", color: "#555" }}
+                >
                   <th className="px-4 py-3">Data</th>
                   <th className="px-4 py-3">Produto</th>
                   <th className="px-4 py-3">Creator</th>
@@ -142,13 +148,19 @@ export default function FinanceiroPage() {
                   <th className="px-4 py-3">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody>
                 {dash!.vendas.map((v) => (
-                  <tr className="transition hover:bg-zinc-50" key={v.id}>
-                    <td className="px-4 py-3 text-zinc-500">{formatDate(v.criado_em)}</td>
-                    <td className="px-4 py-3 font-medium text-zinc-800">{v.produto_nome || "—"}</td>
-                    <td className="px-4 py-3 text-zinc-500">{v.creator_nome || "—"}</td>
-                    <td className="px-4 py-3 text-right font-semibold text-zinc-800">
+                  <tr
+                    className="transition"
+                    key={v.id}
+                    style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                    onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.02)")}
+                    onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
+                  >
+                    <td className="px-4 py-3" style={{ color: "#888" }}>{formatDate(v.criado_em)}</td>
+                    <td className="px-4 py-3 font-medium text-white">{v.produto_nome || "—"}</td>
+                    <td className="px-4 py-3" style={{ color: "#888" }}>{v.creator_nome || "—"}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-white">
                       {formatBRL(v.comissao ?? 0)}
                     </td>
                     <td className="px-4 py-3">
@@ -174,9 +186,13 @@ export default function FinanceiroPage() {
             { label: "Pago", desc: "Repasse finalizado para o creator." },
             { label: "Revertido", desc: "Estorno, cancelamento ou chargeback registrado." },
           ].map((item) => (
-            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4" key={item.label}>
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-400">{item.label}</p>
-              <p className="mt-2 text-sm leading-6 text-zinc-700">{item.desc}</p>
+            <div
+              className="rounded-2xl p-4"
+              key={item.label}
+              style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.12em]" style={{ color: "#888" }}>{item.label}</p>
+              <p className="mt-2 text-sm leading-6" style={{ color: "#aaa" }}>{item.desc}</p>
             </div>
           ))}
         </div>

@@ -554,20 +554,20 @@ export function ProductVisualCard({
       style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}
     >
       <div
-        className="relative h-28 border-b p-4"
-        style={{ background: "linear-gradient(135deg,#1a1a1a 0%,#0f0f0f 100%)", borderColor: "rgba(255,255,255,0.04)" }}
+        className="relative border-b"
+        style={{
+          height: 120,
+          background: "linear-gradient(135deg,#1a1a1a 0%,#0f0f0f 100%)",
+          borderColor: "rgba(200,16,46,0.1)",
+        }}
       >
         <div className="absolute right-4 top-4">
           <StatusBadge label={status} tone={status === "Público" ? "success" : "warning"} />
         </div>
         <div
-          className="max-w-[160px] rounded-[14px] p-3"
-          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
-        >
-          <div className="h-10 rounded-xl" style={{ background: "rgba(200,16,46,0.15)" }} />
-          <div className="mt-3 h-2.5 w-20 rounded-full" style={{ background: "rgba(255,255,255,0.08)" }} />
-          <div className="mt-2 h-2.5 w-12 rounded-full" style={{ background: "rgba(255,255,255,0.04)" }} />
-        </div>
+          className="absolute bottom-4 left-4 rounded-[6px]"
+          style={{ width: 32, height: 32, background: "rgba(200,16,46,0.2)" }}
+        />
       </div>
       <div className="space-y-4 p-5">
         <div>

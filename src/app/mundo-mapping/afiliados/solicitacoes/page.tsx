@@ -58,20 +58,24 @@ function RejectModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/50 px-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-sm rounded-[24px] border border-zinc-200 bg-white p-7 shadow-[0_40px_120px_-80px_rgba(15,23,42,0.38)]">
-        <h3 className="text-base font-semibold text-zinc-950">Rejeitar solicitação</h3>
-        <p className="mt-1 text-sm text-zinc-500">{pedido.creator_nome} — {pedido.produto_nome}</p>
+      <div className="w-full max-w-sm rounded-[24px] p-7" style={{ background: "#111", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <h3 className="text-base font-semibold text-white">Rejeitar solicitação</h3>
+        <p className="mt-1 text-sm" style={{ color: "#888" }}>{pedido.creator_nome} — {pedido.produto_nome}</p>
         <textarea
-          className="mt-4 w-full resize-none rounded-xl border border-zinc-200 px-4 py-3 text-sm text-zinc-800 outline-none transition focus:border-red-300 focus:ring-4 focus:ring-red-50"
+          className="mt-4 w-full resize-none rounded-xl px-4 py-3 text-sm text-white outline-none transition placeholder:text-[#555]"
           onChange={(e) => setMotivo(e.target.value)}
           placeholder="Motivo da rejeição (opcional)"
           rows={3}
+          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
           value={motivo}
+          onFocus={(e) => (e.target.style.borderColor = "#C8102E")}
+          onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
         />
         <div className="mt-4 flex justify-end gap-3">
           <button
-            className="inline-flex h-9 items-center rounded-xl border border-zinc-200 px-4 text-sm font-semibold text-zinc-600 hover:bg-zinc-50"
+            className="inline-flex h-9 items-center rounded-xl px-4 text-sm font-semibold transition"
             onClick={onClose}
+            style={{ border: "1px solid rgba(255,255,255,0.08)", color: "#888" }}
             type="button"
           >
             Cancelar
@@ -254,16 +258,20 @@ export default function SolicitacoesPage() {
           title="Solicitações recebidas"
         >
           {/* Tabs */}
-          <div className="mb-6 flex gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1">
+          <div
+            className="mb-6 flex gap-1 rounded-[10px] p-[3px]"
+            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+          >
             {(["pendente", "aprovado", "rejeitado"] as Tab[]).map((t) => (
               <button
-                className={`flex-1 rounded-lg py-2 text-sm font-semibold transition ${
-                  tab === t
-                    ? "bg-white text-zinc-950 shadow-sm"
-                    : "text-zinc-500 hover:text-zinc-700"
-                }`}
+                className="flex-1 rounded-md py-2 text-sm font-semibold transition"
                 key={t}
                 onClick={() => setTab(t)}
+                style={
+                  tab === t
+                    ? { background: "rgba(255,255,255,0.06)", color: "#fff" }
+                    : { background: "transparent", color: "#666" }
+                }
                 type="button"
               >
                 {TAB_LABELS[t]}
@@ -273,7 +281,7 @@ export default function SolicitacoesPage() {
 
           {/* DB error */}
           {dbError && (
-            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="mb-4 rounded-xl px-4 py-3 text-sm" style={{ background: "rgba(200,16,46,0.08)", border: "1px solid rgba(200,16,46,0.2)", color: "#C8102E" }}>
               <p className="font-semibold">Erro ao carregar solicitações</p>
               <p className="mt-1 font-mono text-xs">{dbError}</p>
               <p className="mt-2">Se a tabela ainda não existe, rode a migration <code>20260513_pedidos_afiliacao.sql</code> no Supabase SQL Editor.</p>
@@ -284,11 +292,11 @@ export default function SolicitacoesPage() {
           {loading ? (
             <div className="space-y-3">
               {[0, 1, 2].map((i) => (
-                <div key={i} className="h-20 animate-pulse rounded-2xl bg-zinc-100" />
+                <div key={i} className="h-20 animate-pulse rounded-2xl" style={{ background: "rgba(255,255,255,0.04)" }} />
               ))}
             </div>
           ) : !dbError && filtered.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center text-sm text-zinc-500">
+            <div className="rounded-2xl px-6 py-12 text-center text-sm" style={{ background: "rgba(255,255,255,0.015)", border: "1px dashed rgba(255,255,255,0.06)", color: "#666" }}>
               {tab === "pendente"
                 ? "Nenhuma solicitação pendente. Quando creators solicitarem afiliação em produtos com aprovação manual, aparecerão aqui."
                 : tab === "aprovado"
@@ -303,12 +311,13 @@ export default function SolicitacoesPage() {
 
                 return (
                   <div
-                    className="flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-4 rounded-2xl p-5 sm:flex-row sm:items-center sm:justify-between"
                     key={pedido.id}
+                    style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm font-semibold text-zinc-950">
+                        <span className="text-sm font-semibold text-white">
                           {pedido.creator_nome || "Creator"}
                         </span>
                         <StatusBadge
@@ -324,8 +333,8 @@ export default function SolicitacoesPage() {
                           }
                         />
                       </div>
-                      <p className="mt-1 text-sm text-zinc-500">{pedido.produto_nome}</p>
-                      <p className="mt-0.5 text-xs text-zinc-400">
+                      <p className="mt-1 text-sm" style={{ color: "#888" }}>{pedido.produto_nome}</p>
+                      <p className="mt-0.5 text-xs" style={{ color: "#555" }}>
                         Solicitado em {formatDate(pedido.criado_em)} ·{" "}
                         {pedido.comissao_tipo === "percent"
                           ? `${pedido.comissao_valor}% de comissão`
@@ -334,10 +343,11 @@ export default function SolicitacoesPage() {
 
                       {/* Link gerado (aprovados) */}
                       {pedido.status === "aprovado" && linkUrl && (
-                        <div className="mt-2 flex items-center gap-2 overflow-hidden rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
-                          <span className="flex-1 truncate font-mono text-xs text-emerald-800">{linkUrl}</span>
+                        <div className="mt-2 flex items-center gap-2 overflow-hidden rounded-lg px-3 py-2" style={{ background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)" }}>
+                          <span className="flex-1 truncate font-mono text-xs" style={{ color: "#4ADE80" }}>{linkUrl}</span>
                           <button
-                            className="shrink-0 text-xs font-semibold text-emerald-700 hover:underline"
+                            className="shrink-0 text-xs font-semibold hover:underline"
+                            style={{ color: "#4ADE80" }}
                             onClick={() => navigator.clipboard.writeText(linkUrl)}
                             type="button"
                           >
@@ -355,9 +365,10 @@ export default function SolicitacoesPage() {
                     {pedido.status === "pendente" && (
                       <div className="flex shrink-0 gap-2">
                         <button
-                          className="inline-flex h-9 items-center rounded-xl border border-zinc-200 px-4 text-sm font-semibold text-zinc-600 transition hover:bg-zinc-50 disabled:opacity-50"
+                          className="inline-flex h-9 items-center rounded-xl px-4 text-sm font-semibold transition disabled:opacity-50"
                           disabled={isActing}
                           onClick={() => setRejectTarget(pedido)}
+                          style={{ border: "1px solid rgba(255,255,255,0.08)", color: "#888" }}
                           type="button"
                         >
                           Rejeitar

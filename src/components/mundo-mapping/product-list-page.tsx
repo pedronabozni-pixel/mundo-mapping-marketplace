@@ -15,7 +15,7 @@ export function ProductListPage() {
         actions={
           atLimit ? (
             <div className="flex flex-col items-end gap-1">
-              <span className="inline-flex h-11 cursor-not-allowed items-center justify-center rounded-xl bg-zinc-200 px-4 text-sm font-semibold text-zinc-400">
+              <span className="inline-flex h-11 cursor-not-allowed items-center justify-center rounded-xl px-4 text-sm font-semibold" style={{ background: "rgba(255,255,255,0.04)", color: "#555" }}>
                 Criar produto
               </span>
               <p className="text-xs text-zinc-500">
@@ -44,13 +44,13 @@ export function ProductListPage() {
           {!ready ? (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {[0, 1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-48 animate-pulse rounded-[22px] bg-zinc-100" />
+                <div key={i} className="h-48 animate-pulse rounded-[22px]" style={{ background: "rgba(255,255,255,0.04)" }} />
               ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center">
-              <p className="text-sm font-medium text-zinc-700">Nenhum produto criado ainda.</p>
-              <p className="mt-2 text-sm text-zinc-500">Use o botão "Criar produto" para cadastrar seu primeiro produto.</p>
+            <div className="rounded-2xl px-6 py-12 text-center" style={{ background: "rgba(255,255,255,0.015)", border: "1px dashed rgba(255,255,255,0.06)" }}>
+              <p className="text-sm font-medium" style={{ color: "#aaa" }}>Nenhum produto criado ainda.</p>
+              <p className="mt-2 text-sm" style={{ color: "#666" }}>Use o botão "Criar produto" para cadastrar seu primeiro produto.</p>
               <Link
                 className="mt-5 inline-flex h-10 items-center justify-center rounded-xl bg-red-600 px-5 text-sm font-bold text-white shadow-[0_8px_24px_-10px_rgba(220,38,38,0.7)] transition hover:bg-red-700"
                 href="/mundo-mapping/afiliados/produtos/novo"

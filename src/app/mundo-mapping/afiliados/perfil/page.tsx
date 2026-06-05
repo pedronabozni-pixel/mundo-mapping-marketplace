@@ -43,22 +43,25 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-zinc-700">{label}</label>
+      <label className="mb-1.5 block text-xs font-medium" style={{ color: "#888" }}>{label}</label>
       <input
-        className={`w-full rounded-xl border px-4 py-2.5 text-sm text-zinc-950 outline-none transition ${
-          readOnly
-            ? "border-zinc-100 bg-zinc-50 text-zinc-400 cursor-default"
-            : "border-zinc-200 bg-white placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
-        }`}
+        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition placeholder:text-[#555]"
         name={name}
         onBlur={onBlur}
         onChange={(e) => onChange?.(e.target.value)}
+        onFocus={(e) => { if (!readOnly) e.target.style.borderColor = "#C8102E"; }}
         placeholder={placeholder}
         readOnly={readOnly}
+        style={
+          readOnly
+            ? { background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", color: "#555", cursor: "default" }
+            : { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }
+        }
         type={type}
         value={value}
+        onBlurCapture={(e) => { e.target.style.borderColor = "rgba(255,255,255,0.08)"; onBlur?.(); }}
       />
-      {hint && <p className="mt-1 text-xs text-zinc-400">{hint}</p>}
+      {hint && <p className="mt-1 text-xs" style={{ color: "#555" }}>{hint}</p>}
     </div>
   );
 }
@@ -71,10 +74,13 @@ function SelectField({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-zinc-700">{label}</label>
+      <label className="mb-1.5 block text-xs font-medium" style={{ color: "#888" }}>{label}</label>
       <select
-        className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
+        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition"
         onChange={(e) => onChange(e.target.value)}
+        onFocus={(e) => (e.target.style.borderColor = "#C8102E")}
+        onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", colorScheme: "dark" }}
         value={value}
       >
         {placeholder && <option value="">{placeholder}</option>}
@@ -93,12 +99,12 @@ function DocUpload({
 }) {
   const ref = useRef<HTMLInputElement>(null);
   return (
-    <div className="flex items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3">
+    <div className="flex items-center justify-between gap-4 rounded-xl px-4 py-3" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
       <div className="min-w-0">
-        <p className="text-sm font-medium text-zinc-700">{label}</p>
+        <p className="text-sm font-medium text-white">{label}</p>
         {url ? (
           <a
-            className="mt-0.5 block truncate text-xs text-red-600 underline underline-offset-2"
+            className="mt-0.5 block truncate text-xs text-[#C8102E] underline underline-offset-2"
             href={url}
             rel="noopener noreferrer"
             target="_blank"
@@ -106,13 +112,14 @@ function DocUpload({
             Documento enviado — visualizar
           </a>
         ) : (
-          <p className="mt-0.5 text-xs text-zinc-400">Nenhum documento enviado.</p>
+          <p className="mt-0.5 text-xs" style={{ color: "#555" }}>Nenhum documento enviado.</p>
         )}
       </div>
       <button
-        className="shrink-0 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50 disabled:opacity-60"
+        className="shrink-0 rounded-xl px-4 py-2 text-sm font-semibold text-white transition disabled:opacity-60"
         disabled={uploading}
         onClick={() => ref.current?.click()}
+        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
         type="button"
       >
         {uploading ? "Enviando…" : url ? "Substituir" : "Enviar"}
@@ -373,7 +380,7 @@ export default function EmpresaPerfilPage() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-200 border-t-red-600" />
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-t-[#C8102E]" style={{ borderColor: "rgba(255,255,255,0.1)", borderTopColor: "#C8102E" }} />
       </div>
     );
   }
@@ -388,12 +395,12 @@ export default function EmpresaPerfilPage() {
 
       <div className="space-y-6 p-6">
         {info && (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <div className="rounded-xl px-4 py-3 text-sm" style={{ background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)", color: "#4ADE80" }}>
             {info}
           </div>
         )}
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="rounded-xl px-4 py-3 text-sm" style={{ background: "rgba(200,16,46,0.08)", border: "1px solid rgba(200,16,46,0.2)", color: "#C8102E" }}>
             {error}
           </div>
         )}
@@ -401,23 +408,25 @@ export default function EmpresaPerfilPage() {
         {/* 1. Dados da empresa */}
         <SectionCard title="Dados da empresa" subtitle="Informações principais da sua empresa ou negócio.">
           <div className="mb-5">
-            <label className="mb-1.5 block text-sm font-medium text-zinc-700">Logo</label>
+            <label className="mb-1.5 block text-xs font-medium" style={{ color: "#888" }}>Logo</label>
             <div className="flex items-center gap-4">
               {logoUrl ? (
                 <img
                   alt="Logo"
-                  className="h-16 w-16 rounded-2xl border border-zinc-200 object-cover"
+                  className="h-16 w-16 rounded-2xl object-cover"
                   src={logoUrl}
+                  style={{ border: "1px solid rgba(255,255,255,0.08)" }}
                 />
               ) : (
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-50 text-xs text-zinc-400">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl text-xs" style={{ border: "1px dashed rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#555" }}>
                   Logo
                 </div>
               )}
               <button
-                className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50 disabled:opacity-60"
+                className="rounded-xl px-4 py-2 text-sm font-semibold text-white transition disabled:opacity-60"
                 disabled={uploadingLogo}
                 onClick={() => logoRef.current?.click()}
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
                 type="button"
               >
                 {uploadingLogo ? "Enviando…" : "Alterar logo"}
@@ -640,9 +649,10 @@ export default function EmpresaPerfilPage() {
           </div>
           <div className="mt-5">
             <button
-              className="rounded-xl border border-zinc-200 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50 disabled:opacity-60"
+              className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition disabled:opacity-60"
               disabled={changingPassword}
               onClick={handleChangePassword}
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
               type="button"
             >
               {changingPassword ? "Alterando…" : "Alterar senha"}
@@ -652,23 +662,24 @@ export default function EmpresaPerfilPage() {
 
         {/* Histórico de pagamentos */}
         <SectionCard title="Histórico de pagamentos" subtitle="Suas cobranças e faturas.">
-          <div className="overflow-hidden rounded-[20px] border border-zinc-200">
-            <table className="min-w-full divide-y divide-zinc-200 text-left">
-              <thead className="bg-zinc-50">
+          <div className="overflow-hidden rounded-[20px]" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
+            <table className="min-w-full text-left" style={{ borderCollapse: "collapse" }}>
+              <thead style={{ background: "rgba(255,255,255,0.03)" }}>
                 <tr>
                   {["Data", "Descrição", "Valor", "Status"].map((col) => (
                     <th
-                      className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500"
+                      className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em]"
                       key={col}
+                      style={{ color: "#555", borderBottom: "1px solid rgba(255,255,255,0.04)" }}
                     >
                       {col}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="bg-white">
+              <tbody>
                 <tr>
-                  <td className="px-4 py-8 text-center text-sm text-zinc-400" colSpan={4}>
+                  <td className="px-4 py-8 text-center text-sm" colSpan={4} style={{ color: "#555" }}>
                     Nenhum pagamento registrado ainda.
                   </td>
                 </tr>
@@ -680,9 +691,10 @@ export default function EmpresaPerfilPage() {
         {/* Ações */}
         <div className="flex gap-3">
           <button
-            className="rounded-xl border border-zinc-200 bg-white px-6 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50 disabled:opacity-60"
+            className="rounded-xl px-6 py-2.5 text-sm font-semibold text-white transition disabled:opacity-60"
             disabled={saving}
             onClick={handleDiscard}
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
             type="button"
           >
             Descartar alterações
