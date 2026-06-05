@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners-logo";
 
 type Tab = "entrar" | "cadastrar";
+
+const inputCls =
+  "w-full bg-transparent border-b border-white/10 py-3 text-[15px] text-white placeholder:text-[#333] focus:outline-none focus:border-[#C8102E] transition-colors";
 
 function Field({
   label,
@@ -22,9 +24,9 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-zinc-700">{label}</label>
+      <label className="mb-2 block text-[12px] font-medium" style={{ color: "#888" }}>{label}</label>
       <input
-        className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none placeholder:text-zinc-400 transition focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
+        className={inputCls}
         name={name}
         placeholder={placeholder}
         required={required}
@@ -104,73 +106,126 @@ export default function MembrosLoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[linear-gradient(180deg,#fff7f7_0%,#f6f7fb_24%,#f4f5f7_100%)] px-6 py-12">
-      <div className="w-full max-w-md">
-        <div className="flex justify-center">
-          <MappingPartnersLogo size="lg" subtitle="Área de Membros" variant="stacked" />
-        </div>
+    <div
+      className="relative flex min-h-screen flex-col items-center justify-center px-8 py-16"
+      style={{ background: "#0a0a0a" }}
+    >
+      {/* Radial gradient overlay */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "radial-gradient(ellipse at top, rgba(200,16,46,0.06) 0%, transparent 60%)" }}
+      />
 
-        <div className="mt-8 flex w-full rounded-full border border-zinc-200 bg-white p-1">
+      <div className="relative z-10 w-full" style={{ maxWidth: 420 }}>
+        {/* Seal */}
+        <p
+          className="text-center uppercase text-[11px]"
+          style={{ letterSpacing: "0.16em", color: "#888" }}
+        >
+          MAPPING <span style={{ color: "#C8102E" }}>·</span> PARTNERS
+        </p>
+
+        {/* Title */}
+        <h1 className="mt-3 text-center font-serif text-[32px] font-normal leading-tight text-white">
+          {tab === "cadastrar" ? "Criar conta" : "Bem-vindo"}
+        </h1>
+
+        {/* Subtitle */}
+        <p className="mt-2 text-center text-[14px]" style={{ color: "#888" }}>
+          Acesse sua área de membros
+        </p>
+
+        {/* Tabs */}
+        <div className="mt-10 flex" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           {(["entrar", "cadastrar"] as Tab[]).map((t) => (
             <button
-              className={`flex-1 rounded-full py-2.5 text-sm font-semibold transition ${
-                tab === t ? "bg-zinc-900 text-white" : "text-zinc-500 hover:text-zinc-900"
-              }`}
               key={t}
-              onClick={() => switchTab(t)}
               type="button"
+              onClick={() => switchTab(t)}
+              className="flex-1 text-[14px] font-medium bg-transparent transition-colors"
+              style={{
+                padding: "12px 4px",
+                color: tab === t ? "#fff" : "#666",
+                borderBottom: tab === t ? "2px solid #C8102E" : "2px solid transparent",
+                marginBottom: -1,
+              }}
             >
               {t === "entrar" ? "Entrar" : "Criar conta"}
             </button>
           ))}
         </div>
 
-        <div className="mt-4 rounded-[24px] border border-zinc-200 bg-white p-5 shadow-[0_24px_80px_-54px_rgba(24,24,27,0.35)] sm:p-8">
+        {/* Form area */}
+        <div className="mt-8">
           {error && (
-            <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div
+              className="mb-5 rounded-lg px-[14px] py-3 text-[13px] leading-relaxed"
+              style={{
+                background: "rgba(200,16,46,0.08)",
+                border: "1px solid rgba(200,16,46,0.2)",
+                color: "#FF6B6B",
+              }}
+            >
               {error}
             </div>
           )}
           {info && (
-            <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            <div
+              className="mb-5 rounded-lg px-[14px] py-3 text-[13px] leading-relaxed"
+              style={{
+                background: "rgba(34,197,94,0.08)",
+                border: "1px solid rgba(34,197,94,0.2)",
+                color: "#4ADE80",
+              }}
+            >
               {info}
             </div>
           )}
 
           {tab === "entrar" && (
-            <form className="space-y-4" onSubmit={handleSignIn}>
+            <form className="space-y-7" onSubmit={handleSignIn}>
               <Field label="E-mail" name="email" placeholder="seu@email.com" type="email" />
               <Field label="Senha" name="password" placeholder="••••••••" type="password" />
               <button
-                className="w-full rounded-xl bg-red-600 py-3 text-sm font-bold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)] transition hover:bg-red-700 disabled:opacity-60"
+                className="w-full rounded-lg bg-[#C8102E] hover:bg-[#A30D24] text-[14px] font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ padding: "14px" }}
                 disabled={loading}
                 type="submit"
               >
-                {loading ? "Entrando…" : "Entrar"}
+                {loading ? "Entrando…" : <span>Entrar <span className="opacity-70">→</span></span>}
               </button>
             </form>
           )}
 
           {tab === "cadastrar" && (
-            <form className="space-y-4" onSubmit={handleSignUp}>
+            <form className="space-y-7" onSubmit={handleSignUp}>
               <Field label="Nome completo" name="nome" placeholder="Seu nome" />
               <Field label="E-mail" name="email" placeholder="seu@email.com" type="email" />
               <Field label="Senha" name="password" placeholder="••••••••" type="password" />
               <Field label="Confirmar senha" name="confirm" placeholder="••••••••" type="password" />
               <button
-                className="w-full rounded-xl bg-red-600 py-3 text-sm font-bold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)] transition hover:bg-red-700 disabled:opacity-60"
+                className="w-full rounded-lg bg-[#C8102E] hover:bg-[#A30D24] text-[14px] font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ padding: "14px" }}
                 disabled={loading}
                 type="submit"
               >
-                {loading ? "Criando conta…" : "Criar conta"}
+                {loading ? "Criando conta…" : <span>Criar conta <span className="opacity-70">→</span></span>}
               </button>
-              <p className="text-center text-xs text-zinc-400">
+              <p className="text-center text-[11px]" style={{ color: "#666" }}>
                 Ao criar uma conta você concorda com os{" "}
-                <span className="font-medium text-zinc-600">Termos de Uso</span>
+                <span className="font-medium" style={{ color: "#888" }}>Termos de Uso</span>
               </p>
             </form>
           )}
         </div>
+
+        {/* Footer */}
+        <p
+          className="mt-20 text-center text-[11px]"
+          style={{ letterSpacing: "0.05em", color: "#444" }}
+        >
+          Sub-marca da Mundo Mapping
+        </p>
       </div>
     </div>
   );
