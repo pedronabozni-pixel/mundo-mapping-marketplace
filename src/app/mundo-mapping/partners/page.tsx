@@ -7,6 +7,7 @@ import {
   useTransform,
   useMotionValue,
   useSpring,
+  useReducedMotion,
 } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
@@ -27,7 +28,7 @@ const globalStyles = `
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
-    .mp-marquee, .mp-blob { animation: none !important; }
+    .mp-marquee, .mp-blob, .mp-float, .mp-float-slow, .mp-pulse-dot, .mp-glow-pulse { animation: none !important; }
   }
   .mp-root {
     font-family: var(--font-inter), Inter, system-ui, -apple-system, sans-serif;
@@ -46,6 +47,33 @@ const globalStyles = `
     66% { transform: translate(-40px,30px) scale(0.97); }
   }
   .mp-blob { animation: mp-blob 18s ease-in-out infinite; }
+
+  /* Hero phone + floating cards */
+  @keyframes mp-float {
+    0%, 100% { transform: translateY(-10px); }
+    50% { transform: translateY(10px); }
+  }
+  .mp-float { animation: mp-float 5s ease-in-out infinite; }
+  @keyframes mp-float-slow {
+    0%, 100% { transform: translateY(8px) translateX(-4px); }
+    50% { transform: translateY(-8px) translateX(4px); }
+  }
+  .mp-float-slow { animation: mp-float-slow 6.5s ease-in-out infinite; }
+
+  /* Pulsing live dot */
+  @keyframes mp-pulse-dot {
+    0% { box-shadow: 0 0 0 0 rgba(74,222,128,0.55); }
+    70% { box-shadow: 0 0 0 8px rgba(74,222,128,0); }
+    100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); }
+  }
+  .mp-pulse-dot { animation: mp-pulse-dot 2s ease-out infinite; }
+
+  /* Pulsing glow (final CTA) */
+  @keyframes mp-glow-pulse {
+    0%, 100% { opacity: 0.18; transform: translate(-50%,-50%) scale(1); }
+    50% { opacity: 0.32; transform: translate(-50%,-50%) scale(1.08); }
+  }
+  .mp-glow-pulse { animation: mp-glow-pulse 5s ease-in-out infinite; }
 
   .mp-noise {
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/></svg>");
@@ -291,6 +319,52 @@ const Icon = {
       <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
     </svg>
   ),
+  Instagram: ({ size = 16 }: { size?: number }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="4" /><line x1="17.5" y1="6.5" x2="17.5" y2="6.5" />
+    </svg>
+  ),
+  TikTok: ({ size = 16 }: { size?: number }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M16.5 3c.3 2.1 1.5 3.5 3.5 3.8v2.4c-1.3.1-2.5-.3-3.6-1v5.4c0 3.4-2.6 5.4-5.4 5.4A5 5 0 0 1 6 14a5 5 0 0 1 6-4.9v2.6a2.4 2.4 0 0 0-2.7 2.3 2.3 2.3 0 0 0 4.6.2V3h2.6z" />
+    </svg>
+  ),
+  YouTube: ({ size = 16 }: { size?: number }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22.5 6.4a2.8 2.8 0 0 0-1.9-2C18.9 4 12 4 12 4s-6.9 0-8.6.4a2.8 2.8 0 0 0-1.9 2A29 29 0 0 0 1.2 12a29 29 0 0 0 .3 5.6 2.8 2.8 0 0 0 1.9 2C5.1 20 12 20 12 20s6.9 0 8.6-.4a2.8 2.8 0 0 0 1.9-2 29 29 0 0 0 .3-5.6 29 29 0 0 0-.3-5.6z" /><polygon points="9.75 15.02 15.5 12 9.75 8.98" fill="currentColor" />
+    </svg>
+  ),
+  XSocial: ({ size = 16 }: { size?: number }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  ),
+  Heart: ({ size = 12 }: { size?: number }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 21s-7-4.35-9.5-8.5C.5 9 2 5.5 5.5 5.5c2 0 3.5 1.5 4.5 3 1-1.5 2.5-3 4.5-3 3.5 0 5 3.5 3 7C19 16.65 12 21 12 21z" />
+    </svg>
+  ),
+  Play: ({ size = 12 }: { size?: number }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20" /></svg>
+  ),
+  Wallet: ({ size = 16 }: { size?: number }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0 0 4h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7" /><path d="M17 12h.01" />
+    </svg>
+  ),
+  Trending: ({ size = 16 }: { size?: number }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" />
+    </svg>
+  ),
+  Sparkle: ({ size = 16 }: { size?: number }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" />
+    </svg>
+  ),
+  Star: ({ size = 12 }: { size?: number }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15 9 22 9.3 16.5 13.8 18.5 21 12 16.8 5.5 21 7.5 13.8 2 9.3 9 9" /></svg>
+  ),
 };
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -407,18 +481,140 @@ function Navbar() {
 //  2. HERO
 // ════════════════════════════════════════════════════════════════════════════
 
+// ── Hero: phone mockup ────────────────────────────────────────────────────────
+
+function PhoneMockup({ reduce }: { reduce: boolean }) {
+  const posts = [
+    { red: true, icon: <Icon.Play size={14} /> },
+    { red: false, icon: <Icon.Heart size={14} /> },
+    { red: true, icon: <Icon.Sparkle size={14} /> },
+    { red: false, icon: <Icon.Play size={14} /> },
+    { red: true, icon: <Icon.Heart size={14} /> },
+    { red: false, icon: <Icon.Instagram size={14} /> },
+  ];
+
+  return (
+    <div className="relative" style={{ width: 232 }}>
+      {/* Glow under the phone */}
+      <div
+        className="pointer-events-none absolute -inset-10 -z-10 blur-3xl"
+        style={{ background: "radial-gradient(circle at 50% 60%, rgba(239,15,26,0.28) 0%, transparent 65%)" }}
+      />
+
+      <div className={reduce ? "" : "mp-float"}>
+        <div
+          className="relative overflow-hidden rounded-[40px] border border-white/10 bg-[#0c0c0c] p-2.5 shadow-[0_50px_100px_-30px_rgba(0,0,0,0.9)]"
+          style={{ aspectRatio: "9 / 19" }}
+        >
+          {/* Notch */}
+          <div className="absolute left-1/2 top-4 z-20 h-5 w-24 -translate-x-1/2 rounded-full bg-black" />
+
+          <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[32px] bg-[#0a0a0a]">
+            {/* Cover */}
+            <div className="relative h-24 shrink-0" style={{ background: "linear-gradient(135deg, #ef0f1a 0%, #6b0007 55%, #1a0203 100%)" }}>
+              <div className="absolute inset-0 mp-noise opacity-20 mix-blend-overlay" />
+            </div>
+
+            {/* Avatar + handle */}
+            <div className="-mt-8 flex flex-col items-center px-4">
+              <div
+                className="h-16 w-16 rounded-full border-[3px] border-[#0a0a0a]"
+                style={{ background: "conic-gradient(from 140deg, #ef0f1a, #ff7a45, #ef0f1a)" }}
+              />
+              <p className="mt-2 text-[13px] font-semibold text-white">@creator.solar</p>
+              <p className="mp-mono text-[8px] uppercase tracking-[0.18em] text-white/40">Lifestyle · Beleza</p>
+            </div>
+
+            {/* Stats */}
+            <div className="mt-3 flex items-center justify-center gap-5 px-4">
+              <div className="text-center">
+                <p className="text-[14px] font-bold text-white">284k</p>
+                <p className="mp-mono text-[7px] uppercase tracking-[0.16em] text-white/40">Seguidores</p>
+              </div>
+              <div className="h-7 w-px bg-white/10" />
+              <div className="text-center">
+                <p className="text-[14px] font-bold" style={{ color: "#4ADE80" }}>8.4%</p>
+                <p className="mp-mono text-[7px] uppercase tracking-[0.16em] text-white/40">Engajamento</p>
+              </div>
+            </div>
+
+            {/* Posts grid */}
+            <div className="mt-4 grid flex-1 grid-cols-3 gap-1 px-2 pb-2">
+              {posts.map((p, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-center rounded-[6px]"
+                  style={{
+                    background: p.red
+                      ? "linear-gradient(135deg, rgba(239,15,26,0.35), rgba(107,0,7,0.25))"
+                      : "rgba(255,255,255,0.05)",
+                    color: p.red ? "#fff" : "rgba(255,255,255,0.4)",
+                  }}
+                >
+                  {p.icon}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FloatingCard({
+  className,
+  delay,
+  drift,
+  children,
+}: {
+  className: string;
+  delay: number;
+  drift: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 18, scale: 0.94 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.7, delay, ease }}
+      className={`absolute z-20 ${className}`}
+    >
+      <div className={drift ? "mp-float-slow" : "mp-float"}>
+        <div
+          className="rounded-2xl border border-white/10 px-4 py-3 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl"
+          style={{ background: "rgba(20,20,20,0.9)" }}
+        >
+          {children}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 function Hero() {
   const ref = useRef<HTMLElement>(null);
+  const reduce = useReducedMotion() ?? false;
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const yBg = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
-  const yTitle = useTransform(scrollYProgress, [0, 1], ["0%", "-15%"]);
-  const opacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+  const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+
+  const avatars = [
+    "conic-gradient(from 120deg, #ef0f1a, #ff7a45)",
+    "linear-gradient(135deg, #6b0007, #ef0f1a)",
+    "linear-gradient(135deg, #1f6feb, #6b3df0)",
+    "linear-gradient(135deg, #f0a93d, #ef0f1a)",
+  ];
 
   return (
     <section ref={ref} className="relative isolate min-h-[100svh] overflow-hidden bg-[#080808]">
       {/* Background layers */}
       <motion.div suppressHydrationWarning style={{ y: yBg }} className="absolute inset-0 -z-10">
-        <div className="mp-grid absolute inset-0 opacity-50" />
+        <div className="mp-grid absolute inset-0 opacity-50 [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
+        <div
+          className="absolute inset-x-0 top-0 h-[600px]"
+          style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(200,16,46,0.12) 0%, transparent 60%)" }}
+        />
         <div
           className="mp-blob absolute -right-40 top-0 h-[700px] w-[700px] rounded-full opacity-[0.18]"
           style={{ background: "radial-gradient(circle, var(--mp-accent) 0%, transparent 70%)" }}
@@ -431,40 +627,57 @@ function Hero() {
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#080808] to-transparent" />
       </motion.div>
 
-      {/* Headline */}
       <motion.div
         suppressHydrationWarning
-        style={{ y: yTitle, opacity }}
-        className="relative z-10 mx-auto flex min-h-[100svh] max-w-[1400px] flex-col justify-center px-6 pt-28 lg:px-10"
+        style={{ opacity }}
+        className="relative z-10 mx-auto grid min-h-[100svh] max-w-[1400px] items-center gap-12 px-6 pt-28 pb-20 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8 lg:px-10 lg:pb-0"
       >
-        <h1 className="mp-hero-h1 text-white text-[40px] sm:text-[64px] md:text-[88px] lg:text-[120px] xl:text-[140px]">
-          <span className="block">
-            <SplitWords text="A maior rede" delay={0.1} />
-          </span>
-          <span className="block">
-            <SplitWords text="de creators" delay={0.35} />
-          </span>
-          <span className="block">
-            <SplitWords text="do Brasil." delay={0.6} className="text-[var(--mp-accent)]" />
-          </span>
-        </h1>
+        {/* ── LEFT: copy ── */}
+        <div>
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease }}
+            className="inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 backdrop-blur"
+          >
+            <span className={`h-2 w-2 rounded-full ${reduce ? "" : "mp-pulse-dot"}`} style={{ background: "#4ADE80" }} />
+            <span className="mp-mono text-[10px] uppercase tracking-[0.18em] text-white/70">+16.000 creators ativos</span>
+          </motion.div>
 
-        <div className="mt-10 flex flex-col items-start gap-8 sm:mt-14 md:flex-row md:items-end md:justify-between">
+          {/* Headline */}
+          <h1 className="mp-hero-h1 mt-7 text-white text-[40px] sm:text-[52px] lg:text-[60px] xl:text-[68px]">
+            <span className="block"><SplitWords text="A maior rede de" delay={0.1} /></span>
+            <span className="block overflow-hidden align-bottom">
+              <motion.span
+                className="inline-block italic text-[var(--mp-accent)]"
+                initial={{ y: "110%" }}
+                animate={{ y: 0 }}
+                transition={{ duration: 0.85, delay: 0.35, ease }}
+              >
+                creators
+              </motion.span>
+            </span>
+            <span className="block"><SplitWords text="do Brasil." delay={0.5} /></span>
+          </h1>
+
+          {/* Subtitle */}
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.05 }}
-            className="max-w-md text-[15px] leading-[1.7] text-white/55 md:text-[17px]"
+            transition={{ duration: 0.8, delay: 0.85 }}
+            className="mt-7 max-w-md text-[15px] leading-[1.7] text-white/55 md:text-[16px]"
           >
             16.000 creators validados. 80+ nichos. 1.950 cidades.
             A plataforma de afiliados de performance da Mundo Mapping.
           </motion.p>
 
+          {/* CTAs */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.2 }}
-            className="flex flex-col gap-3 sm:flex-row sm:items-center"
+            transition={{ duration: 0.8, delay: 1 }}
+            className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center"
           >
             <Magnetic>
               <Link
@@ -472,22 +685,97 @@ function Hero() {
                 data-hover
                 className="mp-magnet group inline-flex h-14 items-center gap-3 rounded-full bg-[var(--mp-accent)] px-7 text-[15px] font-semibold tracking-tight text-white shadow-[0_30px_60px_-20px_rgba(239,15,26,0.45)] transition hover:bg-[#ff2e3a]"
               >
-                Comece agora
+                Começar agora
                 <span className="transition-transform group-hover:translate-x-1"><Icon.Arrow /></span>
               </Link>
             </Magnetic>
-            <Link
-              href="/mundo-mapping/influenciador/login"
+            <a
+              href="#funciona"
               data-hover
-              className="mp-mono text-[11px] uppercase tracking-[0.2em] text-white/60 transition hover:text-white"
+              className="inline-flex h-14 items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.03] px-7 text-[14px] font-semibold tracking-tight text-white transition hover:border-white/30 hover:bg-white/[0.07]"
             >
-              Sou creator →
-            </Link>
+              Ver como funciona
+            </a>
           </motion.div>
+
+          {/* Social proof */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.15 }}
+            className="mt-10 flex items-center gap-4"
+          >
+            <div className="flex -space-x-2.5">
+              {avatars.map((bg, i) => (
+                <span key={i} className="h-9 w-9 rounded-full border-2 border-[#080808]" style={{ background: bg }} />
+              ))}
+              <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#080808] bg-white/10 text-[10px] font-bold text-white">
+                +16k
+              </span>
+            </div>
+            <div>
+              <div className="flex items-center gap-0.5 text-[#f0a93d]">
+                {[0, 1, 2, 3, 4].map((i) => <Icon.Star key={i} size={12} />)}
+              </div>
+              <p className="mt-0.5 text-[12px] text-white/50">creators já faturando</p>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* ── RIGHT: phone mockup + floating cards (desktop only) ── */}
+        <div className="relative hidden items-center justify-center lg:flex">
+          <div className="relative">
+            <PhoneMockup reduce={reduce} />
+
+            {/* Instagram card — top left */}
+            <FloatingCard className="-left-16 top-8" delay={1.2} drift={false}>
+              <div className="flex items-center gap-3">
+                <span
+                  className="flex h-9 w-9 items-center justify-center rounded-xl text-white"
+                  style={{ background: "linear-gradient(135deg, #f0a93d, #ef0f1a 45%, #c13584 75%, #6b3df0)" }}
+                >
+                  <Icon.Instagram size={18} />
+                </span>
+                <div>
+                  <p className="text-[13px] font-bold text-white">+1.240</p>
+                  <p className="text-[10px] text-white/50">novos seguidores</p>
+                </div>
+              </div>
+            </FloatingCard>
+
+            {/* TikTok card — right */}
+            <FloatingCard className="-right-20 top-1/2" delay={1.45} drift>
+              <div className="flex items-center gap-3">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-black text-white">
+                  <Icon.TikTok size={18} />
+                </span>
+                <div>
+                  <p className="text-[13px] font-bold text-white">128k views</p>
+                  <p className="text-[10px] text-white/50">no TikTok</p>
+                </div>
+              </div>
+            </FloatingCard>
+
+            {/* Commission card — bottom right */}
+            <FloatingCard className="-right-10 bottom-6" delay={1.7} drift={false}>
+              <div className="flex items-center gap-3">
+                <span
+                  className="flex h-9 w-9 items-center justify-center rounded-xl"
+                  style={{ background: "rgba(74,222,128,0.14)", color: "#4ADE80" }}
+                >
+                  <Icon.Wallet size={18} />
+                </span>
+                <div>
+                  <p className="mp-mono text-[8px] uppercase tracking-[0.16em] text-white/45">Comissão hoje</p>
+                  <p className="mp-display text-[20px] leading-none" style={{ color: "#4ADE80" }}>+R$ 847</p>
+                </div>
+              </div>
+            </FloatingCard>
+          </div>
         </div>
       </motion.div>
 
-      {/* Scroll indicator — outer scroll-fade, inner mount-fade */}
+      {/* Scroll indicator */}
       <motion.div
         suppressHydrationWarning
         style={{ opacity }}
@@ -536,6 +824,58 @@ function Marquee() {
             <span className="mp-display text-[40px] text-white/70 sm:text-[56px]">{item}</span>
             <span className="text-[var(--mp-accent)]" aria-hidden="true">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6" /></svg>
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  3b. CREATORS MARQUEE (rede ativa — handles rolando)
+// ════════════════════════════════════════════════════════════════════════════
+
+function CreatorsMarquee() {
+  const creators = [
+    { handle: "@creator.solar", metric: "284k", net: "ig" },
+    { handle: "@lara.fit", metric: "1.2M", net: "tk" },
+    { handle: "@joao.tech", metric: "512k", net: "yt" },
+    { handle: "@bia.makeup", metric: "847k", net: "ig" },
+    { handle: "@pedro.invest", metric: "326k", net: "x" },
+    { handle: "@duda.viagens", metric: "1.8M", net: "tk" },
+    { handle: "@rafa.games", metric: "934k", net: "yt" },
+    { handle: "@manu.style", metric: "623k", net: "ig" },
+  ];
+  const avatarBgs = [
+    "conic-gradient(from 120deg, #ef0f1a, #ff7a45)",
+    "linear-gradient(135deg, #1f6feb, #6b3df0)",
+    "linear-gradient(135deg, #f0a93d, #ef0f1a)",
+    "linear-gradient(135deg, #6b0007, #ef0f1a)",
+  ];
+  const netIcon = (net: string, size = 13) =>
+    net === "ig" ? <Icon.Instagram size={size} /> :
+    net === "tk" ? <Icon.TikTok size={size} /> :
+    net === "yt" ? <Icon.YouTube size={size} /> :
+    <Icon.XSocial size={size} />;
+
+  const doubled = [...creators, ...creators];
+
+  return (
+    <section className="relative overflow-hidden border-y border-white/[0.06] bg-[#0a0a0a] py-5">
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[#0a0a0a] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[#0a0a0a] to-transparent" />
+      <div className="mp-marquee flex w-max items-center gap-4 whitespace-nowrap">
+        {doubled.map((c, i) => (
+          <div
+            key={i}
+            className="flex items-center gap-3 rounded-full border border-white/[0.07] bg-white/[0.02] py-2 pl-2 pr-5"
+          >
+            <span className="h-8 w-8 shrink-0 rounded-full" style={{ background: avatarBgs[i % avatarBgs.length] }} />
+            <span className="flex items-center gap-2">
+              <span className="text-[14px] font-semibold text-white/85">{c.handle}</span>
+              <span className="text-white/25" style={{ color: "var(--mp-accent)" }}>{netIcon(c.net)}</span>
+              <span className="mp-mono text-[11px] text-white/45">{c.metric}</span>
             </span>
           </div>
         ))}
@@ -655,24 +995,28 @@ function ComoFunciona() {
       kicker: "Empresa",
       title: "Cadastre seu produto",
       desc: "Defina preço, comissão e nichos elegíveis. Aprovação técnica em até 24h.",
+      icon: <Icon.Plus />,
     },
     {
       n: "02",
       kicker: "Curadoria",
       title: "Receba creators validados",
       desc: "20% dos perfis são reprovados. Quem aparece no seu dashboard tem audiência real, engajamento real e nicho compatível.",
+      icon: <Icon.Sparkle size={14} />,
     },
     {
       n: "03",
       kicker: "Performance",
       title: "Acompanhe em tempo real",
       desc: "Vendas, cliques, comissões e ROI por creator. Dashboard ao vivo, sem planilha.",
+      icon: <Icon.Trending size={14} />,
     },
     {
       n: "04",
       kicker: "Pagamento",
       title: "Wallet Asaas automático",
       desc: "Comissão cai direto na conta do creator no momento da venda. Risco zero, sem mensalidade obrigatória.",
+      icon: <Icon.Wallet size={14} />,
     },
   ];
 
@@ -710,9 +1054,17 @@ function ComoFunciona() {
                       style={{ background: `radial-gradient(circle, ${reverse ? "#3a0103" : "var(--mp-accent)"} 0%, transparent 70%)` }}
                     />
                     <div className="absolute inset-0 flex flex-col justify-between p-10">
-                      <span className="mp-mono text-[11px] uppercase tracking-[0.22em] text-white/40">
-                        {step.kicker}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span
+                          className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--mp-accent)]/30 text-[var(--mp-accent)]"
+                          style={{ background: "rgba(239,15,26,0.08)" }}
+                        >
+                          {step.icon}
+                        </span>
+                        <span className="mp-mono text-[11px] uppercase tracking-[0.22em] text-white/40">
+                          {step.kicker}
+                        </span>
+                      </div>
                       <p className="mp-display text-[88px] leading-none text-white/95 sm:text-[120px] md:text-[160px] lg:text-[220px]" aria-hidden="true">
                         {step.n}
                       </p>
@@ -919,15 +1271,26 @@ function Planos() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.7, delay: i * 0.1, ease }}
-              className={`relative flex flex-col gap-10 p-10 transition-colors lg:p-12 ${
+              whileHover={{ y: -6 }}
+              className={`group relative flex flex-col gap-10 p-10 transition-colors lg:p-12 ${
                 p.highlight
-                  ? "bg-gradient-to-b from-[#160506] to-[#0a0a0a] hover:from-[#1c0608]"
+                  ? "z-10 bg-gradient-to-b from-[#160506] to-[#0a0a0a] hover:from-[#1c0608]"
                   : "bg-[#0a0a0a] hover:bg-[#0e0e0e]"
               }`}
+              style={
+                p.highlight
+                  ? { boxShadow: "inset 0 0 0 1px rgba(239,15,26,0.45), 0 40px 80px -40px rgba(239,15,26,0.4)" }
+                  : undefined
+              }
             >
+              {/* Hover glow */}
+              <div
+                className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
+                style={{ background: `radial-gradient(circle, ${p.highlight ? "rgba(239,15,26,0.5)" : "rgba(255,255,255,0.12)"} 0%, transparent 70%)` }}
+              />
               {p.highlight && (
-                <span className="mp-mono absolute right-6 top-6 rounded-full border border-[var(--mp-accent)]/40 bg-[var(--mp-accent)]/10 px-3 py-1 text-[9px] uppercase tracking-[0.22em] text-[var(--mp-accent)]">
-                  Recomendado
+                <span className="mp-mono absolute right-6 top-6 z-10 rounded-full border border-[var(--mp-accent)]/40 bg-[var(--mp-accent)]/10 px-3 py-1 text-[9px] uppercase tracking-[0.22em] text-[var(--mp-accent)]">
+                  Mais popular
                 </span>
               )}
 
@@ -991,7 +1354,7 @@ function FinalCTA() {
       <div className="absolute inset-0 -z-10">
         <div className="mp-grid absolute inset-0 opacity-40" />
         <div
-          className="mp-blob absolute left-1/2 top-1/2 h-[900px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-25"
+          className="mp-glow-pulse absolute left-1/2 top-1/2 h-[900px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full"
           style={{ background: "radial-gradient(circle, var(--mp-accent) 0%, transparent 65%)" }}
         />
         <div className="mp-noise absolute inset-0 opacity-[0.05] mix-blend-overlay" />
@@ -1101,6 +1464,7 @@ export default function MappingPartnersPage() {
           <Marquee />
           <Manifesto />
           <Metricas />
+          <CreatorsMarquee />
           <ComoFunciona />
           <DuasFrentes />
           <Planos />
