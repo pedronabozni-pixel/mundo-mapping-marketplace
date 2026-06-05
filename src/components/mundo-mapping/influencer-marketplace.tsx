@@ -78,13 +78,14 @@ export function InfluencerMarketplace() {
           <div className="flex flex-wrap gap-2">
             {marketplaceFilters.map((filter) => (
               <button
-                className={
-                  activeFilter === filter
-                    ? "rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white"
-                    : "rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-600 hover:border-zinc-300 hover:bg-white"
-                }
+                className="rounded-full px-4 py-2 text-sm font-semibold transition"
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
+                style={
+                  activeFilter === filter
+                    ? { background: "rgba(255,255,255,0.1)", color: "#fff" }
+                    : { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", color: "#666" }
+                }
                 type="button"
               >
                 {filter}
@@ -94,9 +95,12 @@ export function InfluencerMarketplace() {
 
           <div className="w-full lg:max-w-sm">
             <input
-              className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 outline-none transition focus:border-red-300 focus:ring-4 focus:ring-red-50"
+              className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition placeholder:text-[#555]"
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Buscar produto pelo nome"
+              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
+              onFocus={(e) => (e.target.style.borderColor = "#C8102E")}
+              onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
               type="text"
               value={searchTerm}
             />
@@ -112,11 +116,18 @@ export function InfluencerMarketplace() {
                 : `R$ ${product.commissionValue.toFixed(2)} por venda`;
 
             return (
-              <article className="overflow-hidden rounded-[22px] border border-zinc-200 bg-white shadow-[0_18px_50px_-44px_rgba(24,24,27,0.24)]" key={product.id}>
-                <div className="border-b border-zinc-100 bg-[linear-gradient(135deg,#fafafa_0%,#f4f4f5_100%)] p-5">
+              <article
+                className="overflow-hidden rounded-[22px]"
+                key={product.id}
+                style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}
+              >
+                <div
+                  className="p-5"
+                  style={{ background: "rgba(255,255,255,0.02)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-xl font-semibold tracking-tight text-zinc-950">{product.name}</h3>
+                      <h3 className="text-xl font-semibold tracking-tight text-white">{product.name}</h3>
                     </div>
                     <StatusBadge
                       label={
@@ -131,7 +142,9 @@ export function InfluencerMarketplace() {
                       tone={requestStatus === "approved" ? "success" : requestStatus === "requested" ? "warning" : "neutral"}
                     />
                   </div>
-                  <p className="mt-3 text-sm leading-6 text-zinc-600">{product.description || "Produto publicado no marketplace de afiliados."}</p>
+                  <p className="mt-3 text-sm leading-6" style={{ color: "#888" }}>
+                    {product.description || "Produto publicado no marketplace de afiliados."}
+                  </p>
                 </div>
 
                 <div className="space-y-4 p-5">
@@ -143,7 +156,10 @@ export function InfluencerMarketplace() {
                     <MiniStat label="Seguidores mínimos" value={product.minimumFollowers.toLocaleString("pt-BR")} />
                   </div>
 
-                  <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
+                  <div
+                    className="rounded-2xl p-4 text-sm leading-6"
+                    style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", color: "#888" }}
+                  >
                     <p>
                       {product.approvalMode === "automatic"
                         ? "Ao solicitar afiliação, a entrada pode ser aprovada automaticamente e o seu link é gerado na hora."
@@ -156,11 +172,12 @@ export function InfluencerMarketplace() {
                     <button
                       className={
                         requestStatus === "idle"
-                          ? "inline-flex h-11 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-semibold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)]"
-                          : "inline-flex h-11 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 px-4 text-sm font-semibold text-zinc-500"
+                          ? "inline-flex h-11 items-center justify-center rounded-xl bg-[#C8102E] px-4 text-sm font-semibold text-white shadow-[0_18px_40px_-25px_rgba(200,16,46,0.95)] transition hover:bg-[#A30D24]"
+                          : "inline-flex h-11 items-center justify-center rounded-xl px-4 text-sm font-semibold"
                       }
                       disabled={requestStatus !== "idle"}
                       onClick={() => requestAffiliation(product.slug, product.approvalMode)}
+                      style={requestStatus !== "idle" ? { background: "rgba(255,255,255,0.04)", color: "#555" } : {}}
                       type="button"
                     >
                       {requestStatus === "approved"
@@ -169,7 +186,11 @@ export function InfluencerMarketplace() {
                           ? "Solicitação enviada"
                           : "Solicitar afiliação"}
                     </button>
-                    <Link className="inline-flex h-11 items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-700" href="/mundo-mapping/influenciadores/meus-links">
+                    <Link
+                      className="inline-flex h-11 items-center justify-center rounded-xl px-4 text-sm font-semibold text-white transition"
+                      href="/mundo-mapping/influenciadores/meus-links"
+                      style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+                    >
                       Ver meus links
                     </Link>
                   </div>
@@ -180,7 +201,10 @@ export function InfluencerMarketplace() {
         </div>
 
         {ready && !visibleProducts.length ? (
-          <div className="mt-5 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-10 text-center text-sm text-zinc-500">
+          <div
+            className="mt-5 rounded-2xl px-6 py-10 text-center text-sm"
+            style={{ border: "1px dashed rgba(255,255,255,0.06)", color: "#555" }}
+          >
             Nenhum produto encontrado para este filtro ou busca.
           </div>
         ) : null}

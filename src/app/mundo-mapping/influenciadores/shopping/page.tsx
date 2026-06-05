@@ -204,17 +204,18 @@ function LinkModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/50 px-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-md rounded-[24px] border border-zinc-200 bg-white p-7 shadow-[0_40px_120px_-80px_rgba(15,23,42,0.38)]">
+      <div className="w-full max-w-md rounded-[24px] p-7" style={{ background: "#111", border: "1px solid rgba(255,255,255,0.08)" }}>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-lg font-semibold text-zinc-950">
+            <h3 className="text-lg font-semibold text-white">
               {produto.aprovacao_modo === "manual" ? "Afiliação com aprovação" : "Link de afiliado"}
             </h3>
-            <p className="mt-0.5 text-sm text-zinc-500">{produto.nome}</p>
+            <p className="mt-0.5 text-sm" style={{ color: "#888" }}>{produto.nome}</p>
           </div>
           <button
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-zinc-200 text-sm text-zinc-400 transition hover:bg-zinc-50"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition"
             onClick={onClose}
+            style={{ border: "1px solid rgba(255,255,255,0.08)", color: "#555" }}
             type="button"
           >
             ✕
@@ -229,7 +230,7 @@ function LinkModal({
           )}
 
           {state.phase === "error" && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="rounded-xl px-4 py-3 text-sm" style={{ background: "rgba(200,16,46,0.08)", border: "1px solid rgba(200,16,46,0.2)", color: "#C8102E" }}>
               {state.msg}
             </div>
           )}
@@ -237,12 +238,12 @@ function LinkModal({
           {state.phase === "link_ready" && (
             <div className="space-y-4">
               {state.isNew && (
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">
+                <div className="rounded-xl px-4 py-2.5 text-sm" style={{ background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)", color: "#4ADE80" }}>
                   Link gerado com sucesso!
                 </div>
               )}
-              <div className="flex items-center gap-2 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3">
-                <span className="flex-1 truncate text-sm font-medium text-zinc-700">{linkUrl}</span>
+              <div className="flex items-center gap-2 overflow-hidden rounded-xl px-4 py-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <span className="flex-1 truncate text-sm font-medium text-white">{linkUrl}</span>
                 <button
                   className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
                     copied ? "bg-emerald-600 text-white" : "bg-red-600 text-white hover:bg-red-700"
@@ -261,9 +262,9 @@ function LinkModal({
                 />
                 <MiniStat label="Preço" value={`R$ ${produto.preco.toFixed(2)}`} />
               </div>
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs" style={{ color: "#555" }}>
                 Veja o desempenho em{" "}
-                <Link className="font-semibold text-red-700" href="/mundo-mapping/influenciadores/meus-links">
+                <Link className="font-semibold text-[#C8102E] hover:underline" href="/mundo-mapping/influenciadores/meus-links">
                   Meus links
                 </Link>.
               </p>
@@ -272,11 +273,11 @@ function LinkModal({
 
           {(state.phase === "request_sent" || state.phase === "request_pending") && (
             <div className="space-y-4">
-              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
+              <div className="rounded-xl px-4 py-4 text-sm" style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.2)", color: "#FBBF24" }}>
                 <p className="font-semibold">
                   {state.phase === "request_sent" ? "Solicitação enviada!" : "Solicitação pendente"}
                 </p>
-                <p className="mt-1 leading-6">
+                <p className="mt-1 leading-6" style={{ color: "#aaa" }}>
                   Sua solicitação foi encaminhada para a empresa. Quando aprovada, seu link de afiliado será liberado automaticamente.
                 </p>
               </div>
@@ -292,9 +293,9 @@ function LinkModal({
           )}
 
           {state.phase === "request_rejected" && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-800">
+            <div className="rounded-xl px-4 py-4 text-sm" style={{ background: "rgba(200,16,46,0.08)", border: "1px solid rgba(200,16,46,0.2)", color: "#C8102E" }}>
               <p className="font-semibold">Solicitação rejeitada</p>
-              <p className="mt-1 leading-6">
+              <p className="mt-1 leading-6" style={{ color: "#aaa" }}>
                 Sua solicitação foi rejeitada pela empresa. Entre em contato com o suporte se tiver dúvidas.
               </p>
             </div>
@@ -304,15 +305,17 @@ function LinkModal({
         <div className="mt-6 flex justify-end gap-3">
           {state.phase === "link_ready" && (
             <Link
-              className="inline-flex h-9 items-center justify-center rounded-xl bg-zinc-900 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
+              className="inline-flex h-9 items-center justify-center rounded-xl px-4 text-sm font-semibold text-white transition"
               href="/mundo-mapping/influenciadores/meus-links"
+              style={{ background: "rgba(255,255,255,0.06)" }}
             >
               Ver meus links
             </Link>
           )}
           <button
-            className="inline-flex h-9 items-center justify-center rounded-xl border border-zinc-200 px-4 text-sm font-semibold text-zinc-600 transition hover:bg-zinc-50"
+            className="inline-flex h-9 items-center justify-center rounded-xl px-4 text-sm font-semibold transition"
             onClick={onClose}
+            style={{ border: "1px solid rgba(255,255,255,0.08)", color: "#888" }}
             type="button"
           >
             Fechar
@@ -465,21 +468,26 @@ export default function InfluencerShoppingPage() {
         {/* Filtros */}
         <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center">
           <input
-            className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 outline-none transition focus:border-red-300 focus:ring-4 focus:ring-red-50 lg:max-w-xs"
+            className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition placeholder:text-[#555] lg:max-w-xs"
+            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
+            onFocus={(e) => (e.target.style.borderColor = "#C8102E")}
+            onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar produto pelo nome…"
             type="text"
             value={search}
           />
           <select
-            className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700 outline-none transition focus:border-red-300 focus:ring-4 focus:ring-red-50"
+            className="rounded-xl px-4 py-3 text-sm text-white outline-none transition"
+            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", colorScheme: "dark" }}
             onChange={(e) => setNicho(e.target.value)}
             value={nicho}
           >
             {niches.map((n) => <option key={n} value={n}>{n}</option>)}
           </select>
           <select
-            className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700 outline-none transition focus:border-red-300 focus:ring-4 focus:ring-red-50"
+            className="rounded-xl px-4 py-3 text-sm text-white outline-none transition"
+            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", colorScheme: "dark" }}
             onChange={(e) => setSort(e.target.value as SortOption)}
             value={sort}
           >
@@ -491,7 +499,7 @@ export default function InfluencerShoppingPage() {
 
         {/* Grid */}
         {visible.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center text-sm text-zinc-500">
+          <div className="rounded-2xl px-6 py-12 text-center text-sm" style={{ border: "1px dashed rgba(255,255,255,0.06)", color: "#555" }}>
             {produtos.length === 0
               ? "Nenhum produto disponível no momento. Volte em breve!"
               : "Nenhum produto encontrado para este filtro."}
@@ -508,34 +516,38 @@ export default function InfluencerShoppingPage() {
 
               return (
                 <article
-                  className="flex flex-col overflow-hidden rounded-[22px] border border-zinc-200 bg-white shadow-[0_18px_50px_-44px_rgba(24,24,27,0.24)]"
+                  className="flex flex-col overflow-hidden rounded-[22px]"
                   key={produto.id}
+                  style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}
                 >
-                  <div className="flex-1 border-b border-zinc-100 bg-[linear-gradient(135deg,#fafafa_0%,#f4f4f5_100%)] p-5">
+                  <div
+                    className="flex-1 p-5"
+                    style={{ background: "rgba(255,255,255,0.02)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                  >
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         {produto.empresa_nome && (
-                          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-400">
+                          <p className="text-xs font-semibold uppercase tracking-[0.12em]" style={{ color: "#555" }}>
                             {produto.empresa_nome}
                           </p>
                         )}
-                        <h3 className="mt-2 text-lg font-semibold tracking-tight text-zinc-950">{produto.nome}</h3>
+                        <h3 className="mt-2 text-lg font-semibold tracking-tight text-white">{produto.nome}</h3>
                       </div>
                       <div className="flex shrink-0 flex-col items-end gap-1.5">
                         {produto.categoria && (
-                          <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-semibold text-zinc-500">
+                          <span className="rounded-full px-2.5 py-1 text-xs font-semibold" style={{ background: "rgba(255,255,255,0.06)", color: "#888" }}>
                             {produto.categoria}
                           </span>
                         )}
                         {produto.aprovacao_modo === "manual" && (
-                          <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                          <span className="rounded-full px-2.5 py-1 text-xs font-semibold" style={{ background: "rgba(251,191,36,0.12)", color: "#FBBF24" }}>
                             Aprovação manual
                           </span>
                         )}
                       </div>
                     </div>
                     {produto.descricao && (
-                      <p className="mt-3 line-clamp-2 text-sm leading-6 text-zinc-500">{produto.descricao}</p>
+                      <p className="mt-3 line-clamp-2 text-sm leading-6" style={{ color: "#888" }}>{produto.descricao}</p>
                     )}
                   </div>
 
@@ -547,26 +559,28 @@ export default function InfluencerShoppingPage() {
                       <MiniStat label="Mín. seguidores" value={produto.seguidores_minimo.toLocaleString("pt-BR")} />
                     </div>
                     <button
-                      className={`w-full rounded-xl py-3 text-sm font-bold transition ${
-                        btn.variant === "success"
-                          ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-[0_8px_24px_-10px_rgba(5,150,105,0.6)]"
-                          : btn.variant === "waiting"
-                          ? "cursor-not-allowed bg-amber-100 text-amber-700"
-                          : btn.variant === "rejected"
-                          ? "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
-                          : "bg-red-600 text-white hover:bg-red-700 shadow-[0_8px_24px_-10px_rgba(220,38,38,0.7)]"
-                      }`}
+                      className="w-full rounded-xl py-3 text-sm font-bold transition"
                       disabled={btn.disabled}
                       onClick={() => !btn.disabled && setSelectedProduto(produto)}
+                      style={
+                        btn.variant === "success"
+                          ? { background: "rgba(74,222,128,0.15)", color: "#4ADE80", border: "1px solid rgba(74,222,128,0.3)" }
+                          : btn.variant === "waiting"
+                          ? { background: "rgba(251,191,36,0.08)", color: "#FBBF24", cursor: "not-allowed" }
+                          : btn.variant === "rejected"
+                          ? { background: "rgba(200,16,46,0.08)", color: "#C8102E", border: "1px solid rgba(200,16,46,0.2)" }
+                          : { background: "#C8102E", color: "#fff" }
+                      }
                       type="button"
                     >
                       {btn.label}
                     </button>
                     {aff === "pending" && (
                       <button
-                        className="w-full rounded-xl border border-red-100 py-2 text-xs font-semibold text-red-500 transition hover:border-red-200 hover:bg-red-50 disabled:opacity-50"
+                        className="w-full rounded-xl py-2 text-xs font-semibold transition disabled:opacity-50"
                         disabled={cancellingId === produto.id}
                         onClick={() => cancelarSolicitacao(produto.id)}
+                        style={{ border: "1px solid rgba(200,16,46,0.2)", color: "#C8102E" }}
                         type="button"
                       >
                         {cancellingId === produto.id ? "Cancelando…" : "Cancelar solicitação"}

@@ -42,21 +42,24 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-zinc-700">{label}</label>
+      <label className="mb-1.5 block text-xs font-medium" style={{ color: "#888" }}>{label}</label>
       <input
-        className={`w-full rounded-xl border px-4 py-2.5 text-sm text-zinc-950 outline-none transition ${
-          readOnly
-            ? "border-zinc-100 bg-zinc-50 text-zinc-400 cursor-default"
-            : "border-zinc-200 bg-white placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
-        }`}
+        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition placeholder:text-[#555]"
         name={name}
         onChange={(e) => onChange?.(e.target.value)}
+        onFocus={(e) => { if (!readOnly) e.target.style.borderColor = "#C8102E"; }}
+        onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
         placeholder={placeholder}
         readOnly={readOnly}
+        style={
+          readOnly
+            ? { background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", color: "#555", cursor: "default" }
+            : { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }
+        }
         type={type}
         value={value}
       />
-      {readOnly && <p className="mt-1 text-xs text-zinc-400">Não é possível alterar o e-mail.</p>}
+      {readOnly && <p className="mt-1 text-xs" style={{ color: "#555" }}>Não é possível alterar o e-mail.</p>}
     </div>
   );
 }
@@ -79,11 +82,14 @@ function SocialRow({
   return (
     <div className="grid gap-3 sm:grid-cols-[1fr_180px]">
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-zinc-700">{platform}</label>
-        <div className="flex rounded-xl border border-zinc-200 bg-white overflow-hidden focus-within:border-zinc-400 focus-within:ring-2 focus-within:ring-zinc-100">
-          <span className="flex items-center bg-zinc-50 px-3 text-sm text-zinc-400 border-r border-zinc-200">@</span>
+        <label className="mb-1.5 block text-xs font-medium" style={{ color: "#888" }}>{platform}</label>
+        <div
+          className="flex overflow-hidden rounded-xl"
+          style={{ border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)" }}
+        >
+          <span className="flex items-center px-3 text-sm" style={{ color: "#555", borderRight: "1px solid rgba(255,255,255,0.06)" }}>@</span>
           <input
-            className="flex-1 px-3 py-2.5 text-sm text-zinc-950 outline-none bg-transparent"
+            className="flex-1 bg-transparent px-3 py-2.5 text-sm text-white outline-none"
             onChange={(e) => onHandle(e.target.value)}
             placeholder="seuhandle"
             value={handle}
@@ -91,11 +97,14 @@ function SocialRow({
         </div>
       </div>
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-zinc-700">{followerLabel}</label>
+        <label className="mb-1.5 block text-xs font-medium" style={{ color: "#888" }}>{followerLabel}</label>
         <input
-          className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
+          className="w-full rounded-xl px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-[#555]"
           onChange={(e) => onFollowers(e.target.value)}
+          onFocus={(e) => (e.target.style.borderColor = "#C8102E")}
+          onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
           placeholder="0"
+          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
           type="number"
           value={followers}
         />
@@ -254,7 +263,7 @@ export default function InfluenciadorPerfilPage() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-200 border-t-red-600" />
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-t-[#C8102E]" style={{ borderColor: "rgba(255,255,255,0.1)", borderTopColor: "#C8102E" }} />
       </div>
     );
   }
@@ -262,68 +271,77 @@ export default function InfluenciadorPerfilPage() {
   return (
     <div className="space-y-6 p-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-400">Configurações</p>
-        <h2 className="mt-2 text-[26px] font-semibold tracking-tight text-zinc-950">Meu perfil</h2>
-        <p className="mt-2 text-sm leading-6 text-zinc-500">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em]" style={{ color: "#555" }}>Configurações</p>
+        <h2 className="mt-2 font-serif text-[26px] text-white">Meu perfil</h2>
+        <p className="mt-2 text-sm leading-6" style={{ color: "#888" }}>
           Suas informações visíveis para as empresas do marketplace.
         </p>
       </div>
 
       {info && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+        <div className="rounded-xl px-4 py-3 text-sm" style={{ background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)", color: "#4ADE80" }}>
           {info}
         </div>
       )}
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-xl px-4 py-3 text-sm" style={{ background: "rgba(200,16,46,0.08)", border: "1px solid rgba(200,16,46,0.2)", color: "#C8102E" }}>
           {error}
         </div>
       )}
 
       {/* Status card */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className={`rounded-2xl border p-5 ${isVerified ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"}`}>
-          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Status</p>
-          <p className={`mt-2 text-sm font-bold ${isVerified ? "text-emerald-700" : "text-amber-700"}`}>
+        <div
+          className="rounded-2xl p-5"
+          style={
+            isVerified
+              ? { background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.2)" }
+              : { background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.2)" }
+          }
+        >
+          <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#888" }}>Status</p>
+          <p className="mt-2 text-sm font-bold" style={{ color: isVerified ? "#4ADE80" : "#FBBF24" }}>
             {isVerified ? "Creator verificado ✓" : "Aguardando aprovação"}
           </p>
         </div>
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Acesso</p>
-          <p className="mt-2 text-sm font-bold text-emerald-700">✓ Plataforma gratuita</p>
-          <p className="mt-1 text-xs text-zinc-500">Sua receita vem 100% das comissões.</p>
+        <div className="rounded-2xl p-5" style={{ background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.15)" }}>
+          <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#888" }}>Acesso</p>
+          <p className="mt-2 text-sm font-bold" style={{ color: "#4ADE80" }}>✓ Plataforma gratuita</p>
+          <p className="mt-1 text-xs" style={{ color: "#555" }}>Sua receita vem 100% das comissões.</p>
         </div>
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Produtos afiliados</p>
-          <p className="mt-2 text-sm font-bold text-zinc-950">{activeProducts}</p>
+        <div className="rounded-2xl p-5" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+          <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#888" }}>Produtos afiliados</p>
+          <p className="mt-2 text-sm font-bold text-white">{activeProducts}</p>
         </div>
       </div>
 
       {/* Dados básicos */}
-      <section className="rounded-[24px] border border-zinc-200 bg-white p-6 shadow-[0_24px_80px_-54px_rgba(24,24,27,0.35)]">
-        <h3 className="text-lg font-semibold tracking-tight text-zinc-950">Dados básicos</h3>
-        <p className="mt-1 text-sm text-zinc-500">Suas informações pessoais e de contato.</p>
+      <section className="rounded-[24px] p-6" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <h3 className="text-lg font-semibold tracking-tight text-white">Dados básicos</h3>
+        <p className="mt-1 text-sm" style={{ color: "#888" }}>Suas informações pessoais e de contato.</p>
 
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
           {/* Avatar */}
           <div className="sm:col-span-2">
-            <label className="mb-1.5 block text-sm font-medium text-zinc-700">Foto de perfil</label>
+            <label className="mb-1.5 block text-xs font-medium" style={{ color: "#888" }}>Foto de perfil</label>
             <div className="flex items-center gap-4">
               {avatarUrl ? (
                 <img
                   alt="Avatar"
-                  className="h-16 w-16 rounded-full border border-zinc-200 object-cover"
+                  className="h-16 w-16 rounded-full object-cover"
                   src={avatarUrl}
+                  style={{ border: "1px solid rgba(255,255,255,0.08)" }}
                 />
               ) : (
-                <div className="flex h-16 w-16 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 text-xs text-zinc-400">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full text-xs" style={{ border: "1px dashed rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#555" }}>
                   Foto
                 </div>
               )}
               <button
-                className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50 disabled:opacity-60"
+                className="rounded-xl px-4 py-2 text-sm font-semibold text-white transition disabled:opacity-60"
                 disabled={uploadingAvatar}
                 onClick={() => fileRef.current?.click()}
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
                 type="button"
               >
                 {uploadingAvatar ? "Enviando…" : "Alterar foto"}
@@ -342,16 +360,19 @@ export default function InfluenciadorPerfilPage() {
 
           {/* Bio */}
           <div className="sm:col-span-2">
-            <label className="mb-1.5 block text-sm font-medium text-zinc-700">Bio curta</label>
+            <label className="mb-1.5 block text-xs font-medium" style={{ color: "#888" }}>Bio curta</label>
             <textarea
-              className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100 resize-none"
+              className="w-full resize-none rounded-xl px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-[#555]"
               maxLength={280}
               onChange={(e) => setField("bio", e.target.value)}
+              onFocus={(e) => (e.target.style.borderColor = "#C8102E")}
+              onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
               placeholder="Conte um pouco sobre você e seu conteúdo…"
               rows={3}
+              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
               value={form.bio}
             />
-            <p className={`mt-1 text-right text-xs ${bioLen > 260 ? "text-amber-600" : "text-zinc-400"}`}>
+            <p className={`mt-1 text-right text-xs`} style={{ color: bioLen > 260 ? "#FBBF24" : "#555" }}>
               {bioLen}/280
             </p>
           </div>
@@ -359,9 +380,9 @@ export default function InfluenciadorPerfilPage() {
       </section>
 
       {/* Redes sociais */}
-      <section className="rounded-[24px] border border-zinc-200 bg-white p-6 shadow-[0_24px_80px_-54px_rgba(24,24,27,0.35)]">
-        <h3 className="text-lg font-semibold tracking-tight text-zinc-950">Redes sociais e métricas</h3>
-        <p className="mt-1 text-sm text-zinc-500">Handles e tamanho de audiência em cada plataforma.</p>
+      <section className="rounded-[24px] p-6" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <h3 className="text-lg font-semibold tracking-tight text-white">Redes sociais e métricas</h3>
+        <p className="mt-1 text-sm" style={{ color: "#888" }}>Handles e tamanho de audiência em cada plataforma.</p>
 
         <div className="mt-5 space-y-4">
           <SocialRow
@@ -399,19 +420,22 @@ export default function InfluenciadorPerfilPage() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-zinc-700">Taxa de engajamento média (%)</label>
-              <div className="flex items-center rounded-xl border border-zinc-100 bg-zinc-50 px-4 py-2.5 cursor-default">
-                <span className={`text-sm ${form.engagement_rate ? "text-zinc-700" : "text-zinc-400 italic"}`}>
+              <label className="mb-1.5 block text-xs font-medium" style={{ color: "#888" }}>Taxa de engajamento média (%)</label>
+              <div className="flex cursor-default items-center rounded-xl px-4 py-2.5" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}>
+                <span className="text-sm" style={{ color: form.engagement_rate ? "#aaa" : "#555", fontStyle: form.engagement_rate ? "normal" : "italic" }}>
                   {form.engagement_rate ? `${form.engagement_rate}%` : "Aguardando análise"}
                 </span>
               </div>
-              <p className="mt-1 text-xs text-zinc-400">Calculada pela equipe Mapping Partners.</p>
+              <p className="mt-1 text-xs" style={{ color: "#555" }}>Calculada pela equipe Mapping Partners.</p>
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-zinc-700">Nicho principal</label>
+              <label className="mb-1.5 block text-xs font-medium" style={{ color: "#888" }}>Nicho principal</label>
               <select
-                className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
+                className="w-full rounded-xl px-4 py-2.5 text-sm text-white outline-none transition"
                 onChange={(e) => setField("niche", e.target.value)}
+                onFocus={(e) => (e.target.style.borderColor = "#C8102E")}
+                onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", colorScheme: "dark" }}
                 value={form.niche}
               >
                 <option value="">Selecione…</option>
@@ -425,20 +449,23 @@ export default function InfluenciadorPerfilPage() {
       </section>
 
       {/* Pagamentos */}
-      <section className="rounded-[24px] border border-zinc-200 bg-white p-6 shadow-[0_24px_80px_-54px_rgba(24,24,27,0.35)]">
-        <h3 className="text-lg font-semibold tracking-tight text-zinc-950">Pagamentos</h3>
-        <p className="mt-1 text-sm text-zinc-500">Configurações para recebimento de comissões via Asaas.</p>
+      <section className="rounded-[24px] p-6" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <h3 className="text-lg font-semibold tracking-tight text-white">Pagamentos</h3>
+        <p className="mt-1 text-sm" style={{ color: "#888" }}>Configurações para recebimento de comissões via Asaas.</p>
 
         <div className="mt-5">
-          <label className="mb-1.5 block text-sm font-medium text-zinc-700">Wallet ID Asaas</label>
+          <label className="mb-1.5 block text-xs font-medium" style={{ color: "#888" }}>Wallet ID Asaas</label>
           <input
-            className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
+            className="w-full rounded-xl px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-[#555]"
             onChange={(e) => setField("wallet_id", e.target.value)}
+            onFocus={(e) => (e.target.style.borderColor = "#C8102E")}
+            onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
             placeholder="ex: wal_xxxxxxxxxxxxxxxx"
+            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
             type="text"
             value={form.wallet_id}
           />
-          <p className="mt-1.5 text-xs leading-5 text-zinc-400">
+          <p className="mt-1.5 text-xs leading-5" style={{ color: "#555" }}>
             Cole aqui o ID da sua carteira Asaas. Se não tiver, deixe vazio que criaremos automaticamente.
           </p>
         </div>

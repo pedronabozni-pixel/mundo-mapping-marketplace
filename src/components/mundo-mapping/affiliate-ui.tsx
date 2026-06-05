@@ -740,15 +740,34 @@ export function AffiliateShell({
   );
 }
 
-// ─── InfluencerShell (não modificado) ────────────────────────────────────────
+// ─── InfluencerShell icons ───────────────────────────────────────────────────
 
-const influencerNavLinks = [
-  { href: "/mundo-mapping/influenciadores", label: "Painel" },
-  { href: "/mundo-mapping/influenciadores/shopping", label: "Shopping" },
-  { href: "/mundo-mapping/influenciadores/meus-links", label: "Meus links" },
-  { href: "/mundo-mapping/influenciadores/financeiro", label: "Financeiro" },
-  { href: "/mundo-mapping/influenciadores/perfil", label: "Perfil" },
+function IconShoppingBag() {
+  return (
+    <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+      <line x1="3" x2="21" y1="6" y2="6" />
+      <path d="M16 10a4 4 0 0 1-8 0" />
+    </svg>
+  );
+}
+function IconLink() {
+  return (
+    <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  );
+}
+
+const influencerSidebarItems: Array<{ href: string; label: string; Icon: () => ReactNode }> = [
+  { href: "/mundo-mapping/influenciadores", label: "Painel", Icon: IconGrid },
+  { href: "/mundo-mapping/influenciadores/shopping", label: "Shopping", Icon: IconShoppingBag },
+  { href: "/mundo-mapping/influenciadores/meus-links", label: "Meus links", Icon: IconLink },
+  { href: "/mundo-mapping/influenciadores/financeiro", label: "Financeiro", Icon: IconDollar },
 ];
+
+// ─── InfluencerShell (sidebar minimal, dark) ─────────────────────────────────
 
 export function InfluencerShell({
   children,
@@ -757,40 +776,116 @@ export function InfluencerShell({
   children: ReactNode;
   currentPath: string;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#fff7f7_0%,#f6f7fb_24%,#f4f5f7_100%)] p-4 text-zinc-900 md:p-5">
-      <div className="mx-auto max-w-[1480px] rounded-[28px] border border-white/70 bg-[#fcfcfd] shadow-[0_40px_120px_-80px_rgba(15,23,42,0.38)]">
-        <header className="border-b border-zinc-200/80 bg-white/90 px-6 py-5 backdrop-blur">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <MappingPartnersLogo size="sm" />
-              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950">Área do influenciador</h1>
-              <p className="mt-2 text-sm leading-6 text-zinc-500">Um ambiente próprio para operar links, produtos afiliados, comissão e materiais.</p>
+    <div className="min-h-screen" style={{ background: "#0a0a0a" }}>
+      {/* ── Mobile top bar ── */}
+      <div
+        className="flex items-center justify-between px-4 py-3 xl:hidden"
+        style={{ background: "#060606", borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+      >
+        <div className="flex items-center gap-3">
+          <SidebarLogo />
+          <span className="font-serif text-white" style={{ fontSize: 15 }}>Influenciadores</span>
+        </div>
+        <button
+          aria-label="Abrir menu"
+          className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:bg-white/[0.06]"
+          onClick={() => setMenuOpen(true)}
+          style={{ color: "#888" }}
+          type="button"
+        >
+          <IconMenu />
+        </button>
+      </div>
+
+      {/* ── Mobile drawer overlay ── */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-50 xl:hidden" onClick={() => setMenuOpen(false)}>
+          <div className="absolute inset-0 bg-black/60" />
+          <aside
+            className="absolute left-0 top-0 flex h-full flex-col gap-1 p-4 text-white"
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: 220, background: "#060606", borderRight: "1px solid rgba(255,255,255,0.04)" }}
+          >
+            <div className="mb-3 flex items-center justify-between px-1 py-2">
+              <SidebarLogo />
+              <button
+                aria-label="Fechar menu"
+                className="flex h-8 w-8 items-center justify-center rounded-xl transition-colors hover:bg-white/[0.06]"
+                onClick={() => setMenuOpen(false)}
+                style={{ color: "#666" }}
+                type="button"
+              >
+                <IconClose />
+              </button>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <Link className="inline-flex h-11 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-semibold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.95)]" href="/mundo-mapping/influenciadores/shopping">
-                Acessar shopping
-              </Link>
-            </div>
-          </div>
-          <nav className="mt-5 flex flex-wrap gap-2">
-            {influencerNavLinks.map((item) => (
-              <Link
-                className={cn(
-                  "inline-flex rounded-full border px-4 py-2 text-sm font-semibold transition",
-                  currentPath === item.href
-                    ? "border-red-200 bg-red-50 text-red-700"
-                    : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300 hover:bg-white hover:text-zinc-950"
-                )}
+            {influencerSidebarItems.map((item) => (
+              <NavItem
+                Icon={item.Icon}
+                currentPath={currentPath}
                 href={item.href}
                 key={item.href}
-              >
-                {item.label}
-              </Link>
+                label={item.label}
+                onNavigate={() => setMenuOpen(false)}
+                showLabel
+              />
             ))}
-          </nav>
-        </header>
-        <div>{children}</div>
+            <div className="mt-auto pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+              <NavItem
+                Icon={IconUser}
+                currentPath={currentPath}
+                href="/mundo-mapping/influenciadores/perfil"
+                label="Perfil"
+                onNavigate={() => setMenuOpen(false)}
+                showLabel
+              />
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {/* ── Fixed desktop sidebar ── */}
+      <aside
+        className="hidden xl:fixed xl:inset-y-0 xl:left-0 xl:flex xl:flex-col xl:items-center xl:pb-4 xl:pt-5"
+        style={{ width: 64, background: "#060606", borderRight: "1px solid rgba(255,255,255,0.04)", zIndex: 40 }}
+      >
+        <SidebarLogo />
+
+        <div className="mt-7 flex w-full flex-col items-center gap-1 px-3">
+          {influencerSidebarItems.map((item) => (
+            <NavItem
+              Icon={item.Icon}
+              currentPath={currentPath}
+              href={item.href}
+              key={item.href}
+              label={item.label}
+            />
+          ))}
+        </div>
+
+        <div className="mt-auto">
+          <Link
+            href="/mundo-mapping/influenciadores/perfil"
+            title="Perfil"
+            className="flex items-center justify-center rounded-full transition-colors"
+            style={{
+              width: 40,
+              height: 40,
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "#666",
+            }}
+          >
+            <IconUser />
+          </Link>
+        </div>
+      </aside>
+
+      {/* ── Content (offset for fixed sidebar on xl) ── */}
+      <div className="xl:pl-16">
+        {children}
       </div>
     </div>
   );

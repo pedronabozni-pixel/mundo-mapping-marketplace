@@ -23,10 +23,13 @@ type LinkAfiliado = {
 
 function MetricCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-400">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-zinc-950">{value}</p>
-      {sub && <p className="mt-1 text-xs text-zinc-400">{sub}</p>}
+    <div
+      className="rounded-2xl p-5"
+      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}
+    >
+      <p className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: "#888" }}>{label}</p>
+      <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
+      {sub && <p className="mt-1 text-xs" style={{ color: "#555" }}>{sub}</p>}
     </div>
   );
 }
@@ -87,7 +90,7 @@ export default function MeusLinksPage() {
   if (loading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-red-600 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#C8102E] border-t-transparent" />
       </div>
     );
   }
@@ -95,10 +98,11 @@ export default function MeusLinksPage() {
   if (loadError) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 p-6">
-        <p className="text-sm text-zinc-500">Erro ao carregar dados.</p>
+        <p className="text-sm" style={{ color: "#888" }}>Erro ao carregar dados.</p>
         <button
-          className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
+          className="rounded-xl px-4 py-2 text-sm font-semibold text-white transition"
           onClick={load}
+          style={{ border: "1px solid rgba(255,255,255,0.08)" }}
           type="button"
         >
           Tentar novamente
@@ -121,7 +125,7 @@ export default function MeusLinksPage() {
       <SectionCard
         action={
           <Link
-            className="inline-flex h-9 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-bold text-white shadow-[0_8px_24px_-10px_rgba(220,38,38,0.7)] transition hover:bg-red-700"
+            className="inline-flex h-9 items-center justify-center rounded-xl bg-[#C8102E] px-4 text-sm font-bold text-white shadow-[0_8px_24px_-10px_rgba(200,16,46,0.7)] transition hover:bg-[#A30D24]"
             href="/mundo-mapping/influenciadores/shopping"
           >
             Ver shopping
@@ -131,10 +135,13 @@ export default function MeusLinksPage() {
         title="Meus links de afiliado"
       >
         {links.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center">
-            <p className="text-sm text-zinc-500">Você ainda não tem links de afiliado.</p>
+          <div
+            className="rounded-2xl px-6 py-12 text-center"
+            style={{ border: "1px dashed rgba(255,255,255,0.06)" }}
+          >
+            <p className="text-sm" style={{ color: "#888" }}>Você ainda não tem links de afiliado.</p>
             <Link
-              className="mt-4 inline-flex h-9 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-bold text-white shadow-[0_8px_24px_-10px_rgba(220,38,38,0.7)] transition hover:bg-red-700"
+              className="mt-4 inline-flex h-9 items-center justify-center rounded-xl bg-[#C8102E] px-4 text-sm font-bold text-white shadow-[0_8px_24px_-10px_rgba(200,16,46,0.7)] transition hover:bg-[#A30D24]"
               href="/mundo-mapping/influenciadores/shopping"
             >
               Acessar shopping
@@ -142,19 +149,22 @@ export default function MeusLinksPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>
               <thead>
-                <tr className="border-b border-zinc-100 bg-zinc-50 text-left text-xs font-semibold uppercase tracking-[0.1em] text-zinc-400">
+                <tr
+                  className="text-left text-xs font-semibold uppercase tracking-[0.1em]"
+                  style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", background: "rgba(255,255,255,0.03)", color: "#555" }}
+                >
                   <th className="px-4 py-3">Produto</th>
                   <th className="px-4 py-3">Empresa</th>
                   <th className="px-4 py-3">Meu link</th>
                   <th className="px-4 py-3 text-right">Cliques</th>
                   <th className="px-4 py-3 text-right">Comissão</th>
                   <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3"></th>
+                  <th className="px-4 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody>
                 {links.map((link) => {
                   const comissaoLabel =
                     link.comissao_tipo === "percent"
@@ -163,29 +173,36 @@ export default function MeusLinksPage() {
                   const linkUrl = getLinkUrl(link.codigo);
 
                   return (
-                    <tr className="transition hover:bg-zinc-50" key={link.id}>
-                      <td className="px-4 py-3 font-medium text-zinc-800">{link.produto_nome}</td>
-                      <td className="px-4 py-3 text-zinc-500">{link.empresa_nome || "—"}</td>
+                    <tr
+                      className="transition"
+                      key={link.id}
+                      style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                      onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.02)")}
+                      onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
+                    >
+                      <td className="px-4 py-3 font-medium text-white">{link.produto_nome}</td>
+                      <td className="px-4 py-3" style={{ color: "#888" }}>{link.empresa_nome || "—"}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <span className="max-w-[180px] truncate text-xs text-zinc-500">{linkUrl}</span>
+                          <span className="max-w-[180px] truncate text-xs" style={{ color: "#555" }}>{linkUrl}</span>
                           <button
-                            className={`shrink-0 rounded-lg px-2.5 py-1 text-xs font-bold transition ${
-                              copied === link.codigo
-                                ? "bg-emerald-100 text-emerald-700"
-                                : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
-                            }`}
+                            className="shrink-0 rounded-lg px-2.5 py-1 text-xs font-bold transition"
                             onClick={() => copyLink(link.codigo)}
+                            style={
+                              copied === link.codigo
+                                ? { background: "rgba(74,222,128,0.12)", color: "#4ADE80" }
+                                : { background: "rgba(255,255,255,0.06)", color: "#888" }
+                            }
                             type="button"
                           >
                             {copied === link.codigo ? "Copiado!" : "Copiar"}
                           </button>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-right font-semibold text-zinc-800">
+                      <td className="px-4 py-3 text-right font-semibold text-white">
                         {link.cliques.toLocaleString("pt-BR")}
                       </td>
-                      <td className="px-4 py-3 text-right text-zinc-600">{comissaoLabel}</td>
+                      <td className="px-4 py-3 text-right" style={{ color: "#888" }}>{comissaoLabel}</td>
                       <td className="px-4 py-3">
                         <StatusBadge
                           label={link.ativo ? "Ativo" : "Inativo"}
@@ -195,9 +212,10 @@ export default function MeusLinksPage() {
                       <td className="px-4 py-3">
                         {link.ativo && (
                           <button
-                            className="rounded-lg border border-red-100 px-2.5 py-1 text-xs font-semibold text-red-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                            className="rounded-lg px-2.5 py-1 text-xs font-semibold transition disabled:opacity-50"
                             disabled={cancellingId === link.id}
                             onClick={() => cancelarAfiliacao(link.id)}
+                            style={{ border: "1px solid rgba(200,16,46,0.2)", color: "#C8102E" }}
                             type="button"
                           >
                             {cancellingId === link.id ? "…" : "Cancelar"}

@@ -23,12 +23,25 @@ const TIPO_LABEL: Record<TipoChave, string> = {
   aleatoria: "Chave aleatória",
 };
 
-function MoneyCard({ label, value, sub, highlight = false }: { label: string; value: string; sub?: string; highlight?: boolean }) {
+function MoneyCard({
+  label, value, sub, highlight = false,
+}: {
+  label: string; value: string; sub?: string; highlight?: boolean;
+}) {
   return (
-    <div className={`rounded-2xl border p-5 ${highlight ? "border-emerald-200 bg-emerald-50" : "border-zinc-200 bg-white"}`}>
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-400">{label}</p>
-      <p className={`mt-2 text-2xl font-semibold ${highlight ? "text-emerald-700" : "text-zinc-950"}`}>{value}</p>
-      {sub && <p className="mt-1 text-xs text-zinc-400">{sub}</p>}
+    <div
+      className="rounded-2xl p-5"
+      style={
+        highlight
+          ? { background: "linear-gradient(135deg, rgba(74,222,128,0.06) 0%, transparent 100%)", border: "1px solid rgba(74,222,128,0.15)" }
+          : { background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }
+      }
+    >
+      <p className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: highlight ? "#4ADE80" : "#888" }}>
+        {label}
+      </p>
+      <p className="mt-2 text-2xl font-semibold" style={{ color: highlight ? "#4ADE80" : "#fff" }}>{value}</p>
+      {sub && <p className="mt-1 text-xs" style={{ color: "#555" }}>{sub}</p>}
     </div>
   );
 }
@@ -75,36 +88,50 @@ function SaqueModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-zinc-900/60 px-4 pb-0 sm:items-center sm:pb-4"
+      className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-0 sm:items-center sm:pb-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      style={{ background: "rgba(0,0,0,0.7)" }}
     >
-      <div className="w-full max-w-md rounded-t-3xl bg-white p-6 shadow-2xl sm:rounded-3xl">
+      <div
+        className="w-full max-w-md rounded-t-3xl p-6 sm:rounded-3xl"
+        style={{ background: "#111", border: "1px solid rgba(255,255,255,0.08)" }}
+      >
         <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-zinc-950">Solicitar saque</h2>
+          <h2 className="text-base font-semibold text-white">Solicitar saque</h2>
           <button
-            className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
+            className="flex h-8 w-8 items-center justify-center rounded-full transition"
             onClick={onClose}
+            style={{ color: "#555" }}
             type="button"
           >
             ✕
           </button>
         </div>
 
-        <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-600">Valor disponível</p>
-          <p className="mt-1 text-2xl font-semibold text-emerald-800">{fmt(disponivel)}</p>
+        <div
+          className="mb-5 rounded-2xl px-4 py-4"
+          style={{ background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)" }}
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: "#4ADE80" }}>Valor disponível</p>
+          <p className="mt-1 text-2xl font-semibold" style={{ color: "#4ADE80" }}>{fmt(disponivel)}</p>
         </div>
 
         {error && (
-          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+          <div
+            className="mb-4 rounded-xl px-4 py-3 text-sm"
+            style={{ background: "rgba(200,16,46,0.08)", border: "1px solid rgba(200,16,46,0.2)", color: "#C8102E" }}
+          >
+            {error}
+          </div>
         )}
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-zinc-700">Tipo de chave PIX</label>
+            <label className="mb-1.5 block text-xs font-medium" style={{ color: "#888" }}>Tipo de chave PIX</label>
             <select
-              className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none transition focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
+              className="w-full rounded-xl px-4 py-2.5 text-sm text-white outline-none transition"
               onChange={(e) => setTipo(e.target.value as TipoChave)}
+              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", colorScheme: "dark" }}
               value={tipo}
             >
               {(Object.entries(TIPO_LABEL) as [TipoChave, string][]).map(([v, l]) => (
@@ -114,10 +141,12 @@ function SaqueModal({
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-zinc-700">Chave PIX</label>
+            <label className="mb-1.5 block text-xs font-medium" style={{ color: "#888" }}>Chave PIX</label>
             <input
-              className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm text-zinc-950 outline-none placeholder:text-zinc-400 transition focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
+              className="w-full rounded-xl px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-[#555]"
               onChange={(e) => setChave(e.target.value)}
+              onFocus={(e) => (e.target.style.borderColor = "#C8102E")}
+              onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
               placeholder={
                 tipo === "cpf" ? "000.000.000-00"
                   : tipo === "cnpj" ? "00.000.000/0000-00"
@@ -125,20 +154,21 @@ function SaqueModal({
                   : tipo === "telefone" ? "+55 11 99999-9999"
                   : "Chave aleatória (UUID)"
               }
+              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
               type="text"
               value={chave}
             />
           </div>
 
           <button
-            className="w-full rounded-xl bg-red-600 py-3 text-sm font-bold text-white shadow-[0_18px_40px_-25px_rgba(220,38,38,0.8)] transition hover:bg-red-700 disabled:opacity-60"
+            className="w-full rounded-xl bg-[#C8102E] py-3 text-sm font-bold text-white shadow-[0_18px_40px_-25px_rgba(200,16,46,0.8)] transition hover:bg-[#A30D24] disabled:opacity-60"
             disabled={loading}
             type="submit"
           >
             {loading ? "Solicitando…" : "Confirmar solicitação"}
           </button>
 
-          <p className="text-center text-xs text-zinc-400">
+          <p className="text-center text-xs" style={{ color: "#555" }}>
             Saques são processados em até 5 dias úteis
           </p>
         </form>
@@ -204,7 +234,7 @@ export default function InfluencerFinancePage() {
         {loading ? (
           <div className="grid gap-4 sm:grid-cols-3">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="h-24 animate-pulse rounded-2xl bg-zinc-100" />
+              <div key={i} className="h-24 animate-pulse rounded-2xl" style={{ background: "rgba(255,255,255,0.04)" }} />
             ))}
           </div>
         ) : (
@@ -223,13 +253,20 @@ export default function InfluencerFinancePage() {
               { step: "3", title: "Comissão aprovada", desc: "Após a janela, a comissão é liberada e fica disponível para saque." },
               { step: "4", title: "Saque via PIX", desc: "Solicite o saque informando sua chave PIX. O valor é transferido em até 5 dias úteis." },
             ].map((item) => (
-              <div className="flex gap-4 rounded-2xl border border-zinc-200 bg-white p-4" key={item.step}>
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-red-50 text-sm font-bold text-red-700">
+              <div
+                className="flex gap-4 rounded-2xl p-4"
+                key={item.step}
+                style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}
+              >
+                <div
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-sm font-bold"
+                  style={{ background: "rgba(200,16,46,0.1)", color: "#C8102E" }}
+                >
                   {item.step}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-zinc-950">{item.title}</p>
-                  <p className="mt-0.5 text-sm leading-6 text-zinc-500">{item.desc}</p>
+                  <p className="text-sm font-semibold text-white">{item.title}</p>
+                  <p className="mt-0.5 text-sm leading-6" style={{ color: "#888" }}>{item.desc}</p>
                 </div>
               </div>
             ))}
@@ -238,25 +275,31 @@ export default function InfluencerFinancePage() {
 
         {/* Saque section */}
         {!loading && (
-          <div className="rounded-2xl border border-zinc-200 bg-white p-6">
+          <div
+            className="rounded-2xl p-6"
+            style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}
+          >
             {saqueSuccess ? (
               <div className="text-center">
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
-                  <svg className="h-6 w-6 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <div
+                  className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full"
+                  style={{ background: "rgba(74,222,128,0.12)" }}
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ color: "#4ADE80" }} viewBox="0 0 24 24">
                     <path d="M4.5 12.75l6 6 9-13.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
-                <p className="text-sm font-semibold text-zinc-900">Solicitação enviada!</p>
-                <p className="mt-1 text-sm text-zinc-500">Seu saque será processado em até 5 dias úteis.</p>
+                <p className="text-sm font-semibold text-white">Solicitação enviada!</p>
+                <p className="mt-1 text-sm" style={{ color: "#888" }}>Seu saque será processado em até 5 dias úteis.</p>
               </div>
             ) : podeReqSaque ? (
               <div className="flex flex-col items-center gap-4 text-center">
                 <div>
-                  <p className="text-sm font-semibold text-zinc-900">Você tem {fmt(disponivel)} disponível</p>
-                  <p className="mt-1 text-sm text-zinc-500">Solicite o saque para receber via PIX.</p>
+                  <p className="text-sm font-semibold text-white">Você tem {fmt(disponivel)} disponível</p>
+                  <p className="mt-1 text-sm" style={{ color: "#888" }}>Solicite o saque para receber via PIX.</p>
                 </div>
                 <button
-                  className="inline-flex h-11 items-center justify-center rounded-xl bg-red-600 px-8 text-sm font-bold text-white shadow-[0_8px_24px_-10px_rgba(220,38,38,0.7)] transition hover:bg-red-700"
+                  className="inline-flex h-11 items-center justify-center rounded-xl bg-[#C8102E] px-8 text-sm font-bold text-white shadow-[0_8px_24px_-10px_rgba(200,16,46,0.7)] transition hover:bg-[#A30D24]"
                   onClick={() => setSaqueModalOpen(true)}
                   type="button"
                 >
@@ -265,13 +308,13 @@ export default function InfluencerFinancePage() {
               </div>
             ) : (
               <div className="text-center">
-                <p className="text-sm font-semibold text-zinc-700">Saldo insuficiente para saque</p>
-                <p className="mt-2 text-sm text-zinc-500">
+                <p className="text-sm font-semibold text-white">Saldo insuficiente para saque</p>
+                <p className="mt-2 text-sm" style={{ color: "#888" }}>
                   Saldo mínimo para saque é{" "}
-                  <span className="font-semibold text-zinc-700">{fmt(SAQUE_MINIMO)}</span>
+                  <span className="font-semibold text-white">{fmt(SAQUE_MINIMO)}</span>
                   {". "}
                   Você tem{" "}
-                  <span className="font-semibold text-zinc-700">{fmt(disponivel)}</span> disponível.
+                  <span className="font-semibold text-white">{fmt(disponivel)}</span> disponível.
                 </p>
               </div>
             )}
