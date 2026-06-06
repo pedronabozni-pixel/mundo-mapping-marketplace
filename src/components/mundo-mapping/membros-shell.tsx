@@ -21,7 +21,7 @@ function MemberLogo({ onDark = true }: { onDark?: boolean }) {
         className="flex items-center justify-center shrink-0"
         style={{ width: 28, height: 28, background: "#C8102E", borderRadius: 7 }}
       >
-        <span className="font-serif font-bold text-white" style={{ fontSize: 16, lineHeight: 1 }}>M</span>
+        <span className="font-serif text-white" style={{ fontSize: 18, lineHeight: 1 }}>M</span>
       </div>
       <span
         className="text-[11px] font-semibold uppercase tracking-[0.18em]"

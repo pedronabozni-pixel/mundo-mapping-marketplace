@@ -127,7 +127,7 @@ function SidebarLogo() {
       className="flex items-center justify-center shrink-0"
       style={{ width: 36, height: 36, background: "#C8102E", borderRadius: 8 }}
     >
-      <span className="font-serif font-bold text-white" style={{ fontSize: 20, lineHeight: 1 }}>M</span>
+      <span className="font-serif text-white" style={{ fontSize: 22, lineHeight: 1 }}>M</span>
     </div>
   );
 }

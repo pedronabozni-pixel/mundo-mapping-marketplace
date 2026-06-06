@@ -13,7 +13,7 @@ body {
     linear-gradient(180deg, #fffdf8 0%, #f5f7f1 50%, #eef2ee 100%);
   color: #0f172a;
   min-height: 100vh;
-  font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-sans), "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 }
 
 html {
@@ -34,7 +34,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-family: var(--font-serif), "Iowan Old Style", "Palatino Linotype", Georgia, serif;
 }
 
 ::selection {
