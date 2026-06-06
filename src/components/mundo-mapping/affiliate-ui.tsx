@@ -127,7 +127,7 @@ function SidebarLogo() {
       className="flex items-center justify-center shrink-0"
       style={{ width: 36, height: 36, background: "#C8102E", borderRadius: 8 }}
     >
-      <span className="font-serif text-white" style={{ fontSize: 22, lineHeight: 1 }}>M</span>
+      <span className="font-sans font-extrabold text-white" style={{ fontSize: 20, lineHeight: 1 }}>M</span>
     </div>
   );
 }
@@ -228,7 +228,7 @@ export function PageHeader({
     >
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em]" style={{ color: "#555" }}>{eyebrow}</p>
-        <h2 className="mt-2 font-serif text-[26px] font-normal text-white">{title}</h2>
+        <h2 className="mt-2 font-sans text-[26px] font-extrabold tracking-[-0.02em] text-white">{title}</h2>
         <p className="mt-2 max-w-xl text-sm leading-6" style={{ color: "#888" }}>{description}</p>
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
@@ -288,7 +288,7 @@ export function SectionCard({
     >
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h3 className="font-serif text-lg font-normal text-white">{title}</h3>
+          <h3 className="font-sans text-lg font-bold tracking-[-0.01em] text-white">{title}</h3>
           {subtitle ? <p className="mt-1 text-sm" style={{ color: "#666" }}>{subtitle}</p> : null}
         </div>
         {action}
@@ -325,7 +325,7 @@ export function MetricCard({
         {label}
       </p>
       <p
-        className="mt-3 font-serif text-[32px] font-normal leading-none text-white"
+        className="mt-3 font-sans text-[32px] font-extrabold tracking-[-0.02em] leading-none text-white"
       >
         {value}
       </p>
@@ -605,7 +605,7 @@ export function BlueprintBlock({
         >
           {index}
         </div>
-        <h3 className="font-serif text-lg font-normal text-white">{title}</h3>
+        <h3 className="font-sans text-lg font-bold tracking-[-0.01em] text-white">{title}</h3>
       </div>
       <ul className="mt-4 space-y-3 text-sm leading-6" style={{ color: "#888" }}>
         {items.map((item) => (
@@ -636,7 +636,7 @@ export function AffiliateShell({
       >
         <div className="flex items-center gap-3">
           <SidebarLogo />
-          <span className="font-serif text-white" style={{ fontSize: 15 }}>Afiliados</span>
+          <span className="font-sans font-bold text-white" style={{ fontSize: 15 }}>Afiliados</span>
         </div>
         <button
           aria-label="Abrir menu"
@@ -787,7 +787,7 @@ export function InfluencerShell({
       >
         <div className="flex items-center gap-3">
           <SidebarLogo />
-          <span className="font-serif text-white" style={{ fontSize: 15 }}>Influenciadores</span>
+          <span className="font-sans font-bold text-white" style={{ fontSize: 15 }}>Influenciadores</span>
         </div>
         <button
           aria-label="Abrir menu"

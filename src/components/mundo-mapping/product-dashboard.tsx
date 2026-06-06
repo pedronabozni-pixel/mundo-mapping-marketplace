@@ -163,7 +163,7 @@ function DarkProductCard({
 
         {/* Price + commission */}
         <div className="flex items-baseline justify-between mb-3">
-          <span className="font-serif text-[18px] font-medium text-white">
+          <span className="font-sans text-[18px] font-extrabold tracking-[-0.01em] text-white">
             {`R$ ${price.toFixed(2)}`}
           </span>
           <span className="text-[11px] font-medium" style={{ color: "#C8102E" }}>
@@ -317,7 +317,7 @@ export function ProductDashboard() {
           >
             Cockpit <span style={{ color: "#333" }}>·</span> {period}
           </p>
-          <h1 className="mt-1.5 font-serif text-[28px] font-normal text-white leading-tight">
+          <h1 className="mt-1.5 font-sans text-[28px] font-extrabold tracking-[-0.02em] text-white leading-tight">
             {empresaName ? `Olá, ${empresaName.split(" ")[0]}` : "Olá"}
           </h1>
         </div>
@@ -422,11 +422,11 @@ export function ProductDashboard() {
             </p>
 
             <div className="mt-3 flex items-baseline gap-1">
-              <span className="font-serif text-[52px] font-normal text-white leading-none md:text-[56px]">
+              <span className="font-sans text-[52px] font-extrabold tracking-[-0.02em] text-white leading-none md:text-[56px]">
                 {comissaoFormatted.int}
               </span>
               {comissaoFormatted.dec && (
-                <span className="font-serif text-[28px] font-normal leading-none" style={{ color: "#888" }}>
+                <span className="font-sans text-[28px] font-extrabold tracking-[-0.02em] leading-none" style={{ color: "#888" }}>
                   {comissaoFormatted.dec}
                 </span>
               )}
@@ -464,7 +464,7 @@ export function ProductDashboard() {
       <div>
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className="font-serif text-[20px] font-normal text-white">Seus produtos</h2>
+            <h2 className="font-sans text-[20px] font-extrabold tracking-[-0.01em] text-white">Seus produtos</h2>
             <p className="mt-0.5 text-[12px]" style={{ color: "#555" }}>
               A empresa cadastra o produto — o creator recebe o link de afiliado para vender.
             </p>

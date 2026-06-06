@@ -272,7 +272,7 @@ export default function InfluenciadorPerfilPage() {
     <div className="space-y-6 p-6">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.22em]" style={{ color: "#555" }}>Configurações</p>
-        <h2 className="mt-2 font-serif text-[26px] text-white">Meu perfil</h2>
+        <h2 className="mt-2 font-sans text-[26px] font-extrabold tracking-[-0.02em] text-white">Meu perfil</h2>
         <p className="mt-2 text-sm leading-6" style={{ color: "#888" }}>
           Suas informações visíveis para as empresas do marketplace.
         </p>

@@ -208,7 +208,7 @@ export default function InfluenciadorLoginPage() {
         </p>
 
         {/* Title */}
-        <h1 className="mt-3 text-center font-serif text-[32px] font-normal leading-tight text-white">
+        <h1 className="mt-3 text-center font-sans text-[32px] font-extrabold tracking-[-0.02em] leading-tight text-white">
           {tab === "cadastrar" ? "Criar conta" : "Bem-vindo"}
         </h1>
 

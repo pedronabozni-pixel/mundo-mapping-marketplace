@@ -101,22 +101,6 @@ const globalStyles = `
     line-height: 0.95;
   }
 
-  /* Instrument Serif display — títulos grandes (peso 400, elegância no tamanho) */
-  .mp-serif {
-    font-family: var(--font-serif), Georgia, "Times New Roman", serif;
-    font-weight: 400;
-    font-style: normal;
-    letter-spacing: -0.015em;
-    line-height: 1.05;
-  }
-  .mp-serif-hero {
-    font-family: var(--font-serif), Georgia, "Times New Roman", serif;
-    font-weight: 400;
-    font-style: normal;
-    letter-spacing: -0.02em;
-    line-height: 1.02;
-  }
-
   /* Magnetic button glow */
   .mp-magnet { transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
   .mp-magnet:hover { transform: translate3d(0, -2px, 0); }
@@ -662,7 +646,7 @@ function Hero() {
           </motion.div>
 
           {/* Headline */}
-          <h1 className="mp-serif-hero mt-7 text-white text-[46px] sm:text-[60px] lg:text-[72px] xl:text-[80px]">
+          <h1 className="mp-hero-h1 mt-7 text-white text-[40px] sm:text-[52px] lg:text-[60px] xl:text-[68px]">
             <span className="block"><SplitWords text="A maior rede de" delay={0.1} /></span>
             <span className="block overflow-hidden align-bottom">
               <motion.span
@@ -783,7 +767,7 @@ function Hero() {
                 </span>
                 <div>
                   <p className="mp-mono text-[8px] uppercase tracking-[0.16em] text-white/45">Comissão hoje</p>
-                  <p className="mp-serif text-[24px] leading-none" style={{ color: "#4ADE80" }}>+R$ 847</p>
+                  <p className="mp-display text-[20px] leading-none" style={{ color: "#4ADE80" }}>+R$ 847</p>
                 </div>
               </div>
             </FloatingCard>
@@ -918,9 +902,9 @@ function Manifesto() {
         </Reveal>
 
         <Reveal delay={0.15}>
-          <h2 className="mp-serif text-white text-[48px] sm:text-[68px] md:text-[88px]">
+          <h2 className="mp-display text-white text-[44px] sm:text-[64px] md:text-[84px]">
             Built for{" "}
-            <span className="italic text-white/40">performance.</span>
+            <span className="italic font-light text-white/40">performance.</span>
             <br />
             Designed for{" "}
             <span className="text-[var(--mp-accent)]">trust.</span>
@@ -963,7 +947,7 @@ function Metricas() {
               <span className="mp-mono text-[10px] uppercase tracking-[0.25em] text-[var(--mp-accent)]">
                 (02) Números
               </span>
-              <h2 className="mp-serif mt-6 text-white text-[40px] sm:text-[56px] md:text-[68px]">
+              <h2 className="mp-display mt-6 text-white text-[36px] sm:text-[52px] md:text-[64px]">
                 Escala que comprova.
               </h2>
             </div>
@@ -987,7 +971,7 @@ function Metricas() {
                 0{i + 1}
               </span>
               <div>
-                <p className="mp-serif whitespace-nowrap text-white text-[44px] tabular-nums sm:text-[52px] md:text-[56px] lg:text-[60px] xl:text-[68px]">
+                <p className="mp-display whitespace-nowrap text-white text-[40px] tabular-nums sm:text-[48px] md:text-[52px] lg:text-[56px] xl:text-[64px]">
                   {stat.prefix}<Counter value={stat.value} format={stat.format} />{stat.suffix}
                 </p>
                 <p className="mt-3 text-[14px] text-white/45">{stat.label}</p>
@@ -1043,7 +1027,7 @@ function ComoFunciona() {
           <span className="mp-mono text-[10px] uppercase tracking-[0.25em] text-[var(--mp-accent)]">
             (03) Como funciona
           </span>
-          <h2 className="mp-serif mt-6 max-w-3xl text-white text-[48px] sm:text-[68px] md:text-[84px]">
+          <h2 className="mp-display mt-6 max-w-3xl text-white text-[44px] sm:text-[64px] md:text-[80px]">
             Quatro passos.<br/>
             <span className="text-white/30">Zero atrito.</span>
           </h2>
@@ -1081,7 +1065,7 @@ function ComoFunciona() {
                           {step.kicker}
                         </span>
                       </div>
-                      <p className="mp-serif text-[96px] leading-none text-white/95 sm:text-[130px] md:text-[170px] lg:text-[230px]" aria-hidden="true">
+                      <p className="mp-display text-[88px] leading-none text-white/95 sm:text-[120px] md:text-[160px] lg:text-[220px]" aria-hidden="true">
                         {step.n}
                       </p>
                     </div>
@@ -1093,7 +1077,7 @@ function ComoFunciona() {
                   <span className="mp-mono text-[10px] uppercase tracking-[0.25em] text-white/30">
                     Step {step.n}
                   </span>
-                  <h3 className="mp-serif mt-4 text-white text-[34px] sm:text-[46px] md:text-[58px]">
+                  <h3 className="mp-display mt-4 text-white text-[32px] sm:text-[44px] md:text-[56px]">
                     {step.title}
                   </h3>
                   <p className="mt-6 max-w-md text-[16px] leading-[1.8] text-white/55">
@@ -1140,7 +1124,7 @@ function DuasFrentes() {
           <span className="mp-mono text-[10px] uppercase tracking-[0.25em] text-[var(--mp-accent)]">
             (04) Duas frentes
           </span>
-          <h2 className="mp-serif mt-6 max-w-3xl text-white text-[48px] sm:text-[68px] md:text-[84px]">
+          <h2 className="mp-display mt-6 max-w-3xl text-white text-[44px] sm:text-[64px] md:text-[80px]">
             Marcas <span className="text-white/30">&</span> creators<br/>
             no mesmo lugar.
           </h2>
@@ -1164,7 +1148,7 @@ function DuasFrentes() {
                   <span className={`mp-mono text-[10px] uppercase tracking-[0.25em] ${b.accent ? "text-[var(--mp-accent)]" : "text-white/40"}`}>
                     {b.tag}
                   </span>
-                  <h3 className="mp-serif mt-5 text-white text-[38px] sm:text-[50px] md:text-[58px]">
+                  <h3 className="mp-display mt-5 text-white text-[36px] sm:text-[48px] md:text-[56px]">
                     {b.title}
                   </h3>
                   <p className="mt-6 max-w-md text-[15px] leading-[1.8] text-white/55">
@@ -1268,7 +1252,7 @@ function Planos() {
               <span className="mp-mono text-[10px] uppercase tracking-[0.25em] text-[var(--mp-accent)]">
                 (05) Planos
               </span>
-              <h2 className="mp-serif mt-6 text-white text-[48px] sm:text-[68px] md:text-[84px]">
+              <h2 className="mp-display mt-6 text-white text-[44px] sm:text-[64px] md:text-[80px]">
                 Entrada grátis.<br/>
                 <span className="text-white/30">Escala com resultado.</span>
               </h2>
@@ -1319,7 +1303,7 @@ function Planos() {
 
               <div>
                 <div className="flex items-baseline gap-2">
-                  <span className="mp-serif text-white text-[60px] sm:text-[76px]">{p.price}</span>
+                  <span className="mp-display text-white text-[56px] sm:text-[72px]">{p.price}</span>
                   {p.period && <span className="text-[15px] text-white/40">{p.period}</span>}
                 </div>
                 <p className={`mp-mono mt-3 text-[11px] uppercase tracking-[0.2em] ${p.highlight ? "text-[var(--mp-accent)]" : "text-white/40"}`}>
@@ -1386,11 +1370,11 @@ function FinalCTA() {
             (06) Junte-se
           </span>
         </Reveal>
-        <h2 className="mp-serif mx-auto mt-8 tracking-tight text-white text-[60px] sm:text-[86px] md:text-[120px] lg:text-[152px] xl:text-[176px]">
+        <h2 className="mx-auto mt-8 font-extrabold tracking-tight text-white text-[56px] sm:text-[80px] md:text-[112px] lg:text-[144px] xl:text-[168px]">
           <span className="block leading-[1.2]">
             <SplitWords text="Comece" delay={0.05} />
           </span>
-          <span className="block italic leading-[1.2] text-white/40 pr-[0.3em]">
+          <span className="block italic font-light leading-[1.2] text-white/40 pr-[0.3em]">
             <SplitWords text="agora." delay={0.25} />
           </span>
         </h2>

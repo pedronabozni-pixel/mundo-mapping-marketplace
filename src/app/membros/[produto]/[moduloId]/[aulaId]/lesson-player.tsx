@@ -110,7 +110,7 @@ export default function LessonPlayer({
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em]" style={{ color: "#555" }}>
             Módulo {moduloNum} · Aula {aulaNum}
           </p>
-          <h1 className="mt-1 font-serif text-[24px] text-white">{aulaAtual.titulo}</h1>
+          <h1 className="mt-1 font-sans text-[24px] font-extrabold tracking-[-0.02em] text-white">{aulaAtual.titulo}</h1>
           {aulaAtual.duracao_minutos && (
             <p className="mt-1 text-sm" style={{ color: "#555" }}>⏱ {aulaAtual.duracao_minutos} min</p>
           )}

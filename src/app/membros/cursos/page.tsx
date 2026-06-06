@@ -62,7 +62,7 @@ export default async function MeusCursosPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em]" style={{ color: "#555" }}>
             Meus cursos
           </p>
-          <h1 className="mt-2 font-serif text-[28px] text-white">Continue aprendendo</h1>
+          <h1 className="mt-2 font-sans text-[28px] font-extrabold tracking-[-0.02em] text-white">Continue aprendendo</h1>
           <p className="mt-1 text-sm" style={{ color: "#888" }}>{user.email}</p>
         </div>
 

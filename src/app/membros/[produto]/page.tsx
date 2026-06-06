@@ -103,7 +103,7 @@ export default async function CursoOverviewPage({ params }: Props) {
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em]" style={{ color: "#C8102E" }}>
                 Curso completo
               </p>
-              <h1 className="mt-2 font-serif text-[28px] text-white">{produtoData.nome}</h1>
+              <h1 className="mt-2 font-sans text-[28px] font-extrabold tracking-[-0.02em] text-white">{produtoData.nome}</h1>
               {produtoData.checkout_headline && (
                 <p className="mt-2 text-sm leading-6" style={{ color: "#888" }}>
                   {produtoData.checkout_headline}
@@ -153,7 +153,7 @@ export default async function CursoOverviewPage({ params }: Props) {
 
       {/* Conteúdo */}
       <div className="mx-auto max-w-[900px] px-5 py-8">
-        <h2 className="mb-5 font-serif text-[22px] text-white">Conteúdo do curso</h2>
+        <h2 className="mb-5 font-sans text-[22px] font-extrabold tracking-[-0.01em] text-white">Conteúdo do curso</h2>
 
         {!modulos || modulos.length === 0 ? (
           <div
@@ -197,7 +197,7 @@ export default async function CursoOverviewPage({ params }: Props) {
                     >
                       <div className="flex items-center gap-3">
                         <span
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg font-serif text-sm"
+                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg font-sans text-sm font-bold"
                           style={{ background: "rgba(200,16,46,0.1)", color: "#C8102E" }}
                         >
                           {modIdx + 1}

@@ -15,8 +15,9 @@ const config: Config = {
         danger: "#f87171"
       },
       fontFamily: {
-        serif: ["var(--font-serif)", "Georgia", "Times New Roman", "serif"],
-        sans: ["var(--font-sans)", "Montserrat", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Arial", "sans-serif"]
+        // serif aponta para Inter (sans) — a identidade voltou a ser 100% Inter
+        serif: ["var(--font-sans)", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Arial", "sans-serif"],
+        sans: ["var(--font-sans)", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Arial", "sans-serif"]
       }
     }
   },
