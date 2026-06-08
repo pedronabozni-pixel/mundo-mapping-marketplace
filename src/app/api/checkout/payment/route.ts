@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { normalizeEmail } from "@/lib/normalize-email";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import {
   findOrCreateCustomer,
   createCardPayment,
@@ -15,6 +16,15 @@ import {
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`payment:${ip}`, 10, 60000);
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: "Muitas requisições. Tente novamente em instantes." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
+    );
+  }
+
   try {
     const body = await req.json();
     const {

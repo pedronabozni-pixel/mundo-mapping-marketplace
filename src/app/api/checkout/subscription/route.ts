@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizeEmail } from "@/lib/normalize-email";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import {
   findOrCreateCustomer,
   createCardSubscription,
@@ -26,6 +27,15 @@ const PLAN_NAMES: Record<string, string> = {
 };
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`subscription:${ip}`, 10, 60000);
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: "Muitas requisições. Tente novamente em instantes." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
+    );
+  }
+
   let body: {
     plano: string;
     nome: string;

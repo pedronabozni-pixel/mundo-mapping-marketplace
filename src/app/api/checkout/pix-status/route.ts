@@ -2,10 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getPaymentStatus, isPaymentApproved, AsaasError } from "@/lib/asaas";
 import { normalizeEmail } from "@/lib/normalize-email";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  const ip = getClientIp(req);
+  // Limite mais alto: é polling de status do PIX pelo front.
+  const rl = checkRateLimit(`pix-status:${ip}`, 60, 60000);
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: "Muitas requisições. Tente novamente em instantes." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
+    );
+  }
+
   const { searchParams } = req.nextUrl;
   const paymentId = searchParams.get("payment_id");
   const pedidoId = searchParams.get("pedido_id");
