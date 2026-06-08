@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeEmail } from "@/lib/normalize-email";
 import {
   findOrCreateCustomer,
   createCardPayment,
@@ -29,6 +30,8 @@ export async function POST(req: NextRequest) {
     ) {
       return NextResponse.json({ ok: false, error: "Dados incompletos." }, { status: 400 });
     }
+
+    const clienteEmail = normalizeEmail(cliente.email);
 
     const supabase = await createClient();
 
@@ -80,7 +83,7 @@ export async function POST(req: NextRequest) {
         .from("pedidos")
         .insert({
           produto_id, empresa_id, creator_id, link_afiliado_id,
-          cliente_nome: cliente.nome, cliente_email: cliente.email,
+          cliente_nome: cliente.nome, cliente_email: clienteEmail,
           cliente_cpf: cliente.cpf, cliente_telefone: cliente.telefone ?? null,
           cliente_endereco: cliente.endereco ?? null,
           valor: Number(valor), comissao_creator, taxa_mapping: 0,
@@ -101,7 +104,7 @@ export async function POST(req: NextRequest) {
     try {
       const customer = await findOrCreateCustomer({
         name: cliente.nome,
-        email: cliente.email,
+        email: clienteEmail,
         cpfCnpj: cliente.cpf,
         phone: cliente.telefone,
       });
@@ -136,7 +139,7 @@ export async function POST(req: NextRequest) {
           },
           holderInfo: {
             name: cliente.nome,
-            email: cliente.email,
+            email: clienteEmail,
             cpfCnpj: cliente.cpf,
             mobilePhone: cliente.telefone,
             postalCode: cliente.endereco?.cep,
@@ -159,7 +162,7 @@ export async function POST(req: NextRequest) {
         .from("pedidos")
         .insert({
           produto_id, empresa_id, creator_id, link_afiliado_id,
-          cliente_nome: cliente.nome, cliente_email: cliente.email,
+          cliente_nome: cliente.nome, cliente_email: clienteEmail,
           cliente_cpf: cliente.cpf, cliente_telefone: cliente.telefone ?? null,
           cliente_endereco: cliente.endereco ?? null,
           valor: Number(valor), comissao_creator, taxa_mapping,
@@ -205,7 +208,7 @@ export async function POST(req: NextRequest) {
         .from("pedidos")
         .insert({
           produto_id, empresa_id, creator_id, link_afiliado_id,
-          cliente_nome: cliente.nome, cliente_email: cliente.email,
+          cliente_nome: cliente.nome, cliente_email: clienteEmail,
           cliente_cpf: cliente.cpf, cliente_telefone: cliente.telefone ?? null,
           cliente_endereco: cliente.endereco ?? null,
           valor: Number(valor), comissao_creator, taxa_mapping,
@@ -273,7 +276,7 @@ async function grantDigitalAccess(supabase: any, produto_id: string, empresa_id:
         empresa_id,
         produto_id,
         pedido_id,
-        comprador_email: cliente.email.toLowerCase().trim(),
+        comprador_email: normalizeEmail(cliente.email),
         comprador_nome: cliente.nome,
         ativo: true,
       },

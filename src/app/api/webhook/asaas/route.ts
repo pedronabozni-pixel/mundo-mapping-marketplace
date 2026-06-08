@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { normalizeEmail } from "@/lib/normalize-email";
 
 export const dynamic = "force-dynamic";
 
@@ -146,7 +147,7 @@ async function handlePaymentRefunded(payment: AsaasPayment) {
     .from("acessos_membros")
     .update({ ativo: false })
     .eq("produto_id", pedido.produto_id)
-    .eq("comprador_email", pedido.cliente_email.toLowerCase().trim());
+    .eq("comprador_email", normalizeEmail(pedido.cliente_email));
 
 }
 
@@ -177,7 +178,7 @@ async function grantDigitalAccess(supabase: any, pedido: { produto_id: string; e
         empresa_id: pedido.empresa_id,
         produto_id: pedido.produto_id,
         pedido_id: pedido.id,
-        comprador_email: pedido.cliente_email.toLowerCase().trim(),
+        comprador_email: normalizeEmail(pedido.cliente_email),
         comprador_nome: pedido.cliente_nome,
         ativo: true,
       },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeEmail } from "@/lib/normalize-email";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,7 @@ export async function POST(req: NextRequest) {
     if (!produto_id || !comprador_email) {
       return NextResponse.json({ ok: false, error: "produto_id e comprador_email são obrigatórios." }, { status: 400 });
     }
+    const emailNormalizado = normalizeEmail(comprador_email);
 
     // Verifica que o produto pertence ao usuário autenticado (empresa_id = auth.uid())
     const { data: produto } = await supabase
@@ -33,7 +35,7 @@ export async function POST(req: NextRequest) {
         {
           empresa_id: user.id,
           produto_id,
-          comprador_email: comprador_email.toLowerCase().trim(),
+          comprador_email: emailNormalizado,
           comprador_nome: comprador_nome ?? null,
           expira_em: expira_em ?? null,
           ativo: true,
@@ -68,7 +70,7 @@ export async function DELETE(req: NextRequest) {
       .update({ ativo: false })
       .eq("empresa_id", user.id)
       .eq("produto_id", produto_id)
-      .eq("comprador_email", comprador_email.toLowerCase().trim());
+      .eq("comprador_email", normalizeEmail(comprador_email));
 
     if (error) {
       return NextResponse.json({ ok: false, error: "Erro ao revogar acesso." }, { status: 500 });

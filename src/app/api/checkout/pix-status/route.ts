@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getPaymentStatus, isPaymentApproved, AsaasError } from "@/lib/asaas";
+import { normalizeEmail } from "@/lib/normalize-email";
 
 export const dynamic = "force-dynamic";
 
@@ -58,7 +59,7 @@ async function grantDigitalAccess(supabase: any, produto_id: string, empresa_id:
         empresa_id,
         produto_id,
         pedido_id,
-        comprador_email: cliente.email.toLowerCase().trim(),
+        comprador_email: normalizeEmail(cliente.email),
         comprador_nome: cliente.nome,
         ativo: true,
       },

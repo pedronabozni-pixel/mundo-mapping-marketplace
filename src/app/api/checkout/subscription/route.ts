@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { normalizeEmail } from "@/lib/normalize-email";
 import {
   findOrCreateCustomer,
   createCardSubscription,
@@ -57,6 +58,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Nome, e-mail e CPF/CNPJ são obrigatórios." }, { status: 400 });
   }
 
+  // E-mail vem do input do usuário (signup) — normaliza antes de criar conta,
+  // gravar no profile ou enviar ao gateway, evitando duplicidade por caixa/espacos.
+  const emailNorm = normalizeEmail(email);
+
   // Fail fast if the payment gateway key is not configured, before touching the DB
   if (!process.env.ASAAS_API_KEY) {
     return NextResponse.json(
@@ -85,7 +90,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "A senha deve ter pelo menos 8 caracteres." }, { status: 400 });
     }
     const { data: created, error: createErr } = await supabase.auth.admin.createUser({
-      email,
+      email: emailNorm,
       password: senha,
       email_confirm: true,
     });
@@ -101,7 +106,7 @@ export async function POST(req: NextRequest) {
     await supabase.from("profiles").upsert({
       id: userId,
       full_name: nome,
-      email,
+      email: emailNorm,
       user_type: "empresa",
       plano: "associate",
       plano_status: "ativo",
@@ -111,7 +116,7 @@ export async function POST(req: NextRequest) {
   // Find or create Asaas customer — only runs here, never before payment submit
   let customer;
   try {
-    customer = await findOrCreateCustomer({ name: nome, email, cpfCnpj });
+    customer = await findOrCreateCustomer({ name: nome, email: emailNorm, cpfCnpj });
   } catch (e) {
     const msg = e instanceof AsaasError
       ? e.message
@@ -137,7 +142,7 @@ export async function POST(req: NextRequest) {
         nextDueDate: todayISO(),
         description: PLAN_NAMES[plano],
         creditCard: card,
-        holderInfo: { name: nome, email, cpfCnpj },
+        holderInfo: { name: nome, email: emailNorm, cpfCnpj },
         remoteIp,
       });
     } catch (e) {
