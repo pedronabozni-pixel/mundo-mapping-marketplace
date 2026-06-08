@@ -1,0 +1,51 @@
+name: Security Audit
+
+# Auditoria de dependências (npm audit) em modo AVISO.
+# NÃO trava o deploy: o deploy é feito pelo Railway via Dockerfile, este workflow
+# roda em paralelo apenas para reportar vulnerabilidades conhecidas.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Toda segunda-feira às 09:00 UTC
+    - cron: "0 9 * * 1"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit (aviso)
+        id: audit
+        continue-on-error: true
+        run: |
+          npm audit --audit-level=high | tee audit-output.txt
+
+      - name: Resumo do audit
+        if: always()
+        run: |
+          echo "## 🔒 npm audit (--audit-level=high)" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.audit.outcome }}" = "success" ]; then
+            echo "✅ Nenhuma vulnerabilidade de nível **high** ou superior encontrada." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "⚠️ Vulnerabilidades **high/critical** reportadas — revisar abaixo (modo aviso, deploy não bloqueado)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat audit-output.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
