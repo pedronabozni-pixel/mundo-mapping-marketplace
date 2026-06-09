@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useInactivityLogout } from "@/hooks/use-inactivity-logout";
 
 type Props = {
   children: ReactNode;
@@ -53,6 +54,7 @@ function LogoutButton({ small = false }: { small?: boolean }) {
 }
 
 export function MembrosShell({ children, titulo, voltarHref, voltarLabel }: Props) {
+  useInactivityLogout("/membros");
   return (
     <div className="min-h-screen" style={{ background: "#0a0a0a" }}>
       <header
@@ -105,6 +107,7 @@ export function MembrosPlayerNavbar({
   voltarHref: string;
   voltarLabel: string;
 }) {
+  useInactivityLogout("/membros");
   return (
     <header
       className="flex h-14 items-center gap-4 px-5"

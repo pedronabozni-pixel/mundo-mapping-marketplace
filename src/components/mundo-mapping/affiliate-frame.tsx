@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { AffiliateShell, InfluencerShell } from "@/components/mundo-mapping/affiliate-ui";
 import { ProductStoreProvider } from "@/components/mundo-mapping/product-store";
+import { useInactivityLogout } from "@/hooks/use-inactivity-logout";
 
 function normalizePath(pathname: string) {
   if (pathname.length > 1 && pathname.endsWith("/")) {
@@ -14,6 +15,7 @@ function normalizePath(pathname: string) {
 }
 
 export function AffiliateFrame({ children }: { children: ReactNode }) {
+  useInactivityLogout("/mundo-mapping/empresa/login");
   const pathname = usePathname();
   const normalizedPath = normalizePath(pathname);
   const isInfluencerArea = normalizedPath.startsWith("/mundo-mapping/afiliados/parceiro");

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners-logo";
+import { useInactivityLogout } from "@/hooks/use-inactivity-logout";
 
 const NAV = [
   { href: "/mundo-mapping/admin", label: "Dashboard", exact: true },
@@ -22,6 +23,7 @@ export function AdminShell({
   children: React.ReactNode;
   adminName: string;
 }) {
+  useInactivityLogout("/mundo-mapping/admin/login");
   const pathname = usePathname();
 
   async function logout() {
