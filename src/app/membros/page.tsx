@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
@@ -117,6 +118,17 @@ export default function MembrosLoginPage() {
       />
 
       <div className="relative z-10 w-full" style={{ maxWidth: 420 }}>
+        {/* Logo */}
+        <div className="mb-4 flex justify-center">
+          <Image
+            src="/brand/logo-mapping-partners-completa.png"
+            alt="Mapping Partners"
+            width={110}
+            height={118}
+            priority
+          />
+        </div>
+
         {/* Seal */}
         <p
           className="text-center uppercase text-[11px]"

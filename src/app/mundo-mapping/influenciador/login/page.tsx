@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 
 type Tab = "entrar" | "cadastrar";
@@ -199,6 +200,17 @@ export default function InfluenciadorLoginPage() {
       />
 
       <div className="relative z-10 w-full" style={{ maxWidth: 420 }}>
+        {/* Logo */}
+        <div className="mb-4 flex justify-center">
+          <Image
+            src="/brand/logo-mapping-partners-completa.png"
+            alt="Mapping Partners"
+            width={110}
+            height={118}
+            priority
+          />
+        </div>
+
         {/* Seal */}
         <p
           className="text-center uppercase text-[11px]"

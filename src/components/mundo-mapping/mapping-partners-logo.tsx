@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 type Props = {
   size?: "sm" | "md" | "lg";
   variant?: "horizontal" | "stacked";
@@ -7,16 +9,13 @@ type Props = {
 
 function MIcon({ px }: { px: number }) {
   return (
-    <svg fill="none" height={px} viewBox="0 0 40 40" width={px} xmlns="http://www.w3.org/2000/svg">
-      <rect fill="#B91C1C" height="40" rx="10" width="40" />
-      <path
-        d="M8 30V11l12 12 12-12v19"
-        stroke="white"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="3.5"
-      />
-    </svg>
+    <Image
+      src="/brand/logo-mapping-partners-icone.png"
+      alt="Mapping Partners"
+      width={px}
+      height={px}
+      className="shrink-0"
+    />
   );
 }
 

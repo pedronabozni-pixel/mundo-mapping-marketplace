@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -18,12 +19,13 @@ type Props = {
 function MemberLogo({ onDark = true }: { onDark?: boolean }) {
   return (
     <div className="flex items-center gap-2.5">
-      <div
-        className="flex items-center justify-center shrink-0"
-        style={{ width: 28, height: 28, background: "#C8102E", borderRadius: 7 }}
-      >
-        <span className="font-sans font-extrabold text-white" style={{ fontSize: 16, lineHeight: 1 }}>M</span>
-      </div>
+      <Image
+        src="/brand/logo-mapping-partners-icone.png"
+        alt="Mapping Partners"
+        width={28}
+        height={28}
+        className="shrink-0"
+      />
       <span
         className="text-[11px] font-semibold uppercase tracking-[0.18em]"
         style={{ color: onDark ? "#888" : "#555" }}

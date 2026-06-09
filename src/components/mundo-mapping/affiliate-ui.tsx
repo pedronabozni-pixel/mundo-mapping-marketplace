@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ReactNode, useState } from "react";
 import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners-logo";
 
@@ -123,12 +124,13 @@ function isNavActive(currentPath: string, href: string): boolean {
 
 function SidebarLogo() {
   return (
-    <div
-      className="flex items-center justify-center shrink-0"
-      style={{ width: 36, height: 36, background: "#C8102E", borderRadius: 8 }}
-    >
-      <span className="font-sans font-extrabold text-white" style={{ fontSize: 20, lineHeight: 1 }}>M</span>
-    </div>
+    <Image
+      src="/brand/logo-mapping-partners-icone.png"
+      alt="Mapping Partners"
+      width={36}
+      height={36}
+      className="shrink-0"
+    />
   );
 }
 

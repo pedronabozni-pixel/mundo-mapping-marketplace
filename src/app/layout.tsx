@@ -11,7 +11,13 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Mundo Mapping Marketplace",
-  description: "Marketplace de afiliados da Mundo Mapping para empresas e influenciadores."
+  description: "Marketplace de afiliados da Mundo Mapping para empresas e influenciadores.",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/brand/icone-192.png",
+  },
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
