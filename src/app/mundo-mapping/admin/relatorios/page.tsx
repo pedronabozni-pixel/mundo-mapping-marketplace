@@ -101,18 +101,18 @@ export default function AdminRelatoriosPage() {
   return (
     <div className="space-y-6 p-7">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 border-b border-zinc-800 pb-5">
+      <div className="flex items-start justify-between gap-4 border-b border-[rgba(255,255,255,0.06)] pb-5">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">Admin / Relatórios</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#555]">Admin / Relatórios</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">Relatórios da plataforma</h1>
         </div>
         <div className="flex items-center gap-2.5">
           {/* Period toggle */}
-          <div className="flex rounded-xl border border-zinc-800 p-1">
+          <div className="flex rounded-xl border border-[rgba(255,255,255,0.06)] p-1">
             {periodOptions.map((opt) => (
               <button
                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                  period === opt.value ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-zinc-300"
+                  period === opt.value ? "bg-[rgba(255,255,255,0.06)] text-white" : "text-[#888] hover:text-[#aaa]"
                 }`}
                 key={opt.value}
                 onClick={() => setPeriod(opt.value)}
@@ -123,7 +123,7 @@ export default function AdminRelatoriosPage() {
             ))}
           </div>
           <button
-            className="rounded-xl border border-zinc-700 px-4 py-2 text-xs font-semibold text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200"
+            className="rounded-xl border border-[rgba(255,255,255,0.08)] px-4 py-2 text-xs font-semibold text-[#888] transition hover:border-[rgba(255,255,255,0.12)] hover:text-white"
             onClick={() => exportCSV(empresasRank, creatorsRank, period)}
             type="button"
           >
@@ -146,24 +146,24 @@ export default function AdminRelatoriosPage() {
           {loading ? (
             <div className="space-y-3">{[...Array(5)].map((_, i) => <Skeleton className="h-10" key={i} />)}</div>
           ) : empresasRank.length === 0 ? (
-            <p className="py-6 text-center text-sm text-zinc-600">Nenhuma venda no período.</p>
+            <p className="py-6 text-center text-sm text-[#555]">Nenhuma venda no período.</p>
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800 text-left text-xs font-semibold uppercase tracking-[0.1em] text-zinc-600">
+                <tr className="border-b border-[rgba(255,255,255,0.06)] text-left text-xs font-semibold uppercase tracking-[0.1em] text-[#555]">
                   <th className="pb-3">#</th>
                   <th className="pb-3">Empresa</th>
                   <th className="pb-3 text-right">Vendas</th>
                   <th className="pb-3 text-right">Comissão</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/50">
+              <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
                 {empresasRank.map((e, idx) => (
                   <tr key={e.empresa_id}>
-                    <td className="py-2.5 text-xs font-bold text-zinc-600">{idx + 1}</td>
-                    <td className="py-2.5 font-medium text-zinc-300">{e.empresa_nome}</td>
-                    <td className="py-2.5 text-right text-zinc-400">{e.vendas}</td>
-                    <td className="py-2.5 text-right font-semibold text-zinc-300">{fmtBRL(e.comissao)}</td>
+                    <td className="py-2.5 text-xs font-bold text-[#555]">{idx + 1}</td>
+                    <td className="py-2.5 font-medium text-[#aaa]">{e.empresa_nome}</td>
+                    <td className="py-2.5 text-right text-[#888]">{e.vendas}</td>
+                    <td className="py-2.5 text-right font-semibold text-[#aaa]">{fmtBRL(e.comissao)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -176,24 +176,24 @@ export default function AdminRelatoriosPage() {
           {loading ? (
             <div className="space-y-3">{[...Array(5)].map((_, i) => <Skeleton className="h-10" key={i} />)}</div>
           ) : creatorsRank.length === 0 ? (
-            <p className="py-6 text-center text-sm text-zinc-600">Nenhuma venda no período.</p>
+            <p className="py-6 text-center text-sm text-[#555]">Nenhuma venda no período.</p>
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800 text-left text-xs font-semibold uppercase tracking-[0.1em] text-zinc-600">
+                <tr className="border-b border-[rgba(255,255,255,0.06)] text-left text-xs font-semibold uppercase tracking-[0.1em] text-[#555]">
                   <th className="pb-3">#</th>
                   <th className="pb-3">Creator</th>
                   <th className="pb-3 text-right">Vendas</th>
                   <th className="pb-3 text-right">Comissão</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/50">
+              <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
                 {creatorsRank.map((c, idx) => (
                   <tr key={c.creator_id}>
-                    <td className="py-2.5 text-xs font-bold text-zinc-600">{idx + 1}</td>
-                    <td className="py-2.5 font-medium text-zinc-300">{c.creator_nome}</td>
-                    <td className="py-2.5 text-right text-zinc-400">{c.vendas}</td>
-                    <td className="py-2.5 text-right font-semibold text-zinc-300">{fmtBRL(c.comissao)}</td>
+                    <td className="py-2.5 text-xs font-bold text-[#555]">{idx + 1}</td>
+                    <td className="py-2.5 font-medium text-[#aaa]">{c.creator_nome}</td>
+                    <td className="py-2.5 text-right text-[#888]">{c.vendas}</td>
+                    <td className="py-2.5 text-right font-semibold text-[#aaa]">{fmtBRL(c.comissao)}</td>
                   </tr>
                 ))}
               </tbody>

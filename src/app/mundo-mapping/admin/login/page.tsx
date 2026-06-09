@@ -62,21 +62,21 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center px-4" style={{ background: "#0a0a0a" }}>
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-4 text-center">
           <MappingPartnersLogo onDark size="lg" subtitle="Admin" variant="stacked" />
-          <p className="text-sm text-zinc-500">Acesso restrito a administradores</p>
+          <p className="text-sm" style={{ color: "#888" }}>Acesso restrito a administradores</p>
         </div>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
-            <label className="mb-1.5 block text-xs font-semibold text-zinc-400" htmlFor="email">
+            <label className="mb-1.5 block text-xs font-semibold" style={{ color: "#888" }} htmlFor="email">
               Email
             </label>
             <input
               autoComplete="email"
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-600 outline-none transition focus:border-zinc-600 focus:ring-0"
+              className="w-full bg-transparent border-b border-white/10 py-3 text-[15px] text-white placeholder:text-[#333] outline-none transition-colors focus:border-[#C8102E]"
               id="email"
               name="email"
               placeholder="admin@exemplo.com"
@@ -86,12 +86,12 @@ export default function AdminLoginPage() {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-semibold text-zinc-400" htmlFor="password">
+            <label className="mb-1.5 block text-xs font-semibold" style={{ color: "#888" }} htmlFor="password">
               Senha
             </label>
             <input
               autoComplete="current-password"
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-600 outline-none transition focus:border-zinc-600 focus:ring-0"
+              className="w-full bg-transparent border-b border-white/10 py-3 text-[15px] text-white placeholder:text-[#333] outline-none transition-colors focus:border-[#C8102E]"
               id="password"
               name="password"
               placeholder="••••••••"
@@ -101,19 +101,19 @@ export default function AdminLoginPage() {
           </div>
 
           {error && (
-            <div className="rounded-xl border border-red-900/60 bg-red-950/40 px-4 py-3 text-sm text-red-400">
+            <div className="rounded-xl px-4 py-3 text-sm" style={{ background: "rgba(200,16,46,0.12)", border: "1px solid rgba(200,16,46,0.2)", color: "#C8102E" }}>
               {error}
             </div>
           )}
 
           {unauthorized && (
-            <div className="rounded-xl border border-amber-900/60 bg-amber-950/40 px-4 py-3 text-sm text-amber-400">
+            <div className="rounded-xl px-4 py-3 text-sm" style={{ background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.2)", color: "#FBBF24" }}>
               Acesso não autorizado. Esta conta não possui permissão de administrador.
             </div>
           )}
 
           <button
-            className="w-full rounded-xl bg-white px-4 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100 disabled:opacity-50"
+            className="w-full rounded-lg bg-[#C8102E] px-4 py-3 text-[14px] font-medium text-white transition-colors hover:bg-[#A30D24] disabled:opacity-50"
             disabled={loading}
             type="submit"
           >

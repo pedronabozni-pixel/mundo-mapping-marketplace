@@ -5,7 +5,12 @@ import { useState } from "react";
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
 export function Skeleton({ className = "" }: { className?: string }) {
-  return <div className={`animate-pulse rounded-xl bg-zinc-800 ${className}`} />;
+  return (
+    <div
+      className={`animate-pulse rounded-xl ${className}`}
+      style={{ background: "rgba(255,255,255,0.04)" }}
+    />
+  );
 }
 
 // ─── Metric card ──────────────────────────────────────────────────────────────
@@ -25,11 +30,19 @@ export function AdminCard({
 }) {
   return (
     <div
-      className={`rounded-2xl border p-5 ${
+      className="rounded-2xl border p-5"
+      style={
         emphasis
-          ? "border-red-900/60 bg-red-950/40"
-          : "border-zinc-800 bg-zinc-900"
-      }`}
+          ? {
+              background:
+                "linear-gradient(135deg, rgba(200,16,46,0.08), rgba(200,16,46,0.02), transparent)",
+              borderColor: "rgba(200,16,46,0.15)",
+            }
+          : {
+              background: "rgba(255,255,255,0.02)",
+              borderColor: "rgba(255,255,255,0.06)",
+            }
+      }
     >
       {loading ? (
         <>
@@ -38,11 +51,13 @@ export function AdminCard({
         </>
       ) : (
         <>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">{label}</p>
-          <p className={`mt-2 text-2xl font-semibold ${emphasis ? "text-red-400" : "text-white"}`}>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "#888" }}>
+            {label}
+          </p>
+          <p className="mt-2 text-2xl font-bold" style={{ color: "#fff" }}>
             {value}
           </p>
-          {sub && <p className="mt-1 text-xs text-zinc-600">{sub}</p>}
+          {sub && <p className="mt-1 text-xs" style={{ color: "#555" }}>{sub}</p>}
         </>
       )}
     </div>
@@ -63,11 +78,17 @@ export function AdminSection({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900">
-      <div className="flex items-start justify-between gap-4 border-b border-zinc-800 px-6 py-4">
+    <div
+      className="rounded-2xl border"
+      style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}
+    >
+      <div
+        className="flex items-start justify-between gap-4 border-b px-6 py-4"
+        style={{ borderColor: "rgba(255,255,255,0.06)" }}
+      >
         <div>
-          <h3 className="text-sm font-semibold text-white">{title}</h3>
-          {subtitle && <p className="mt-0.5 text-xs text-zinc-500">{subtitle}</p>}
+          <h3 className="text-sm font-semibold" style={{ color: "#fff" }}>{title}</h3>
+          {subtitle && <p className="mt-0.5 text-xs" style={{ color: "#555" }}>{subtitle}</p>}
         </div>
         {action}
       </div>
@@ -94,12 +115,12 @@ export function Pagination({
 
   return (
     <div className="mt-4 flex items-center justify-between">
-      <p className="text-xs text-zinc-500">
+      <p className="text-xs" style={{ color: "#888" }}>
         {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} de {total}
       </p>
       <div className="flex gap-1.5">
         <button
-          className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200 disabled:opacity-30"
+          className="rounded-lg border border-[rgba(255,255,255,0.08)] px-3 py-1.5 text-xs font-semibold text-[#888] transition hover:border-[rgba(255,255,255,0.12)] hover:text-white disabled:opacity-30"
           disabled={page === 1}
           onClick={() => onChange(page - 1)}
           type="button"
@@ -107,7 +128,7 @@ export function Pagination({
           Anterior
         </button>
         <button
-          className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200 disabled:opacity-30"
+          className="rounded-lg border border-[rgba(255,255,255,0.08)] px-3 py-1.5 text-xs font-semibold text-[#888] transition hover:border-[rgba(255,255,255,0.12)] hover:text-white disabled:opacity-30"
           disabled={page >= totalPages}
           onClick={() => onChange(page + 1)}
           type="button"
@@ -136,15 +157,18 @@ export function ConfirmDialog({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/80 px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4"
       onClick={(e) => e.target === e.currentTarget && onCancel()}
     >
-      <div className="w-full max-w-sm rounded-2xl border border-zinc-700 bg-zinc-900 p-6 shadow-xl">
-        <h3 className="text-base font-semibold text-white">{title}</h3>
-        <p className="mt-2 text-sm leading-6 text-zinc-400">{message}</p>
+      <div
+        className="w-full max-w-sm rounded-2xl border p-6"
+        style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.08)" }}
+      >
+        <h3 className="text-base font-semibold" style={{ color: "#fff" }}>{title}</h3>
+        <p className="mt-2 text-sm leading-6" style={{ color: "#888" }}>{message}</p>
         <div className="mt-5 flex justify-end gap-2.5">
           <button
-            className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-400 transition hover:text-zinc-200"
+            className="rounded-xl border border-[rgba(255,255,255,0.08)] px-4 py-2 text-sm font-semibold text-[#aaa] transition hover:text-white"
             onClick={onCancel}
             type="button"
           >
@@ -153,8 +177,8 @@ export function ConfirmDialog({
           <button
             className={`rounded-xl px-4 py-2 text-sm font-semibold text-white transition ${
               danger
-                ? "bg-red-700 hover:bg-red-600"
-                : "bg-zinc-700 hover:bg-zinc-600"
+                ? "bg-[#C8102E] hover:bg-[#A30D24]"
+                : "bg-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.1)]"
             }`}
             onClick={onConfirm}
             type="button"
@@ -176,17 +200,18 @@ export function AdminBadge({
   label: string;
   tone?: "success" | "warning" | "danger" | "info" | "neutral";
 }) {
-  const colors = {
-    success: "bg-emerald-950 text-emerald-400 ring-emerald-900",
-    warning: "bg-amber-950 text-amber-400 ring-amber-900",
-    danger: "bg-red-950 text-red-400 ring-red-900",
-    info: "bg-blue-950 text-blue-400 ring-blue-900",
-    neutral: "bg-zinc-800 text-zinc-400 ring-zinc-700",
+  const styles: Record<string, { background: string; color: string }> = {
+    success: { background: "rgba(74,222,128,0.12)", color: "#4ADE80" },
+    warning: { background: "rgba(251,191,36,0.12)", color: "#FBBF24" },
+    danger: { background: "rgba(200,16,46,0.12)", color: "#C8102E" },
+    info: { background: "rgba(200,16,46,0.1)", color: "#C8102E" },
+    neutral: { background: "rgba(255,255,255,0.06)", color: "#888" },
   };
 
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ${colors[tone]}`}
+      className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+      style={styles[tone]}
     >
       {label}
     </span>
@@ -197,6 +222,7 @@ export function AdminBadge({
 
 export function PlanBadge({ plano }: { plano: string | null }) {
   if (!plano) return <AdminBadge label="—" />;
+  // associate (neutral), partner (vermelho sutil), elite (dourado sutil)
   const tones: Record<string, "neutral" | "info" | "warning"> = {
     associate: "neutral",
     partner: "info",
@@ -225,41 +251,45 @@ export function PlanModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/80 px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4"
       onClick={(e) => e.target === e.currentTarget && onCancel()}
     >
-      <div className="w-full max-w-xs rounded-2xl border border-zinc-700 bg-zinc-900 p-6 shadow-xl">
-        <h3 className="text-base font-semibold text-white">Editar plano</h3>
+      <div
+        className="w-full max-w-xs rounded-2xl border p-6"
+        style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.08)" }}
+      >
+        <h3 className="text-base font-semibold" style={{ color: "#fff" }}>Editar plano</h3>
         <div className="mt-4 space-y-2">
           {["associate", "partner", "elite"].map((plan) => (
             <label
-              className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition ${
-                selected === plan
-                  ? "border-red-700 bg-red-950/40"
-                  : "border-zinc-700 hover:border-zinc-600"
-              }`}
+              className="flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition"
               key={plan}
+              style={
+                selected === plan
+                  ? { background: "rgba(200,16,46,0.12)", borderColor: "rgba(200,16,46,0.5)" }
+                  : { borderColor: "rgba(255,255,255,0.08)" }
+              }
             >
               <input
                 checked={selected === plan}
-                className="accent-red-600"
+                className="accent-[#C8102E]"
                 onChange={() => setSelected(plan)}
                 type="radio"
               />
-              <span className="text-sm font-medium capitalize text-zinc-300">{plan}</span>
+              <span className="text-sm font-medium capitalize" style={{ color: "#aaa" }}>{plan}</span>
             </label>
           ))}
         </div>
         <div className="mt-5 flex justify-end gap-2.5">
           <button
-            className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-400 transition hover:text-zinc-200"
+            className="rounded-xl border border-[rgba(255,255,255,0.08)] px-4 py-2 text-sm font-semibold text-[#aaa] transition hover:text-white"
             onClick={onCancel}
             type="button"
           >
             Cancelar
           </button>
           <button
-            className="rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600"
+            className="rounded-xl bg-[#C8102E] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#A30D24]"
             onClick={() => onSave(selected)}
             type="button"
           >
@@ -292,13 +322,13 @@ export function NoteForm({
   return (
     <form className="flex gap-2" onSubmit={handleSubmit}>
       <input
-        className="flex-1 rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none focus:border-zinc-600"
+        className="flex-1 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-white placeholder:text-[#555] outline-none focus:border-[#C8102E]"
         onChange={(e) => setText(e.target.value)}
         placeholder="Adicionar anotação interna…"
         value={text}
       />
       <button
-        className="rounded-xl bg-zinc-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-600 disabled:opacity-50"
+        className="rounded-xl bg-[rgba(255,255,255,0.06)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[rgba(255,255,255,0.1)] disabled:opacity-50"
         disabled={loading || !text.trim()}
         type="submit"
       >

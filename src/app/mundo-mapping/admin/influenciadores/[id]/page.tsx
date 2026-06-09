@@ -135,8 +135,8 @@ export default function AdminInfluenciadorDetailPage() {
   if (!profile) {
     return (
       <div className="p-7">
-        <p className="text-zinc-500">Influenciador não encontrado.</p>
-        <Link className="mt-4 inline-block text-sm text-red-400" href="/mundo-mapping/admin/influenciadores">← Voltar</Link>
+        <p className="text-[#888]">Influenciador não encontrado.</p>
+        <Link className="mt-4 inline-block text-sm text-[#C8102E]" href="/mundo-mapping/admin/influenciadores">← Voltar</Link>
       </div>
     );
   }
@@ -148,13 +148,13 @@ export default function AdminInfluenciadorDetailPage() {
   return (
     <div className="space-y-6 p-7">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 border-b border-zinc-800 pb-5">
+      <div className="flex items-start justify-between gap-4 border-b border-[rgba(255,255,255,0.06)] pb-5">
         <div>
-          <Link className="mb-2 inline-block text-xs text-zinc-600 hover:text-zinc-400" href="/mundo-mapping/admin/influenciadores">
+          <Link className="mb-2 inline-block text-xs text-[#555] hover:text-[#888]" href="/mundo-mapping/admin/influenciadores">
             ← Influenciadores
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight text-white">{profile.full_name ?? "Creator"}</h1>
-          <p className="mt-1 text-sm text-zinc-500">{profile.email}</p>
+          <p className="mt-1 text-sm text-[#888]">{profile.email}</p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <AdminBadge label={aprovacao.charAt(0).toUpperCase() + aprovacao.slice(1)} tone={APROVACAO_TONE[aprovacao] ?? "neutral"} />
@@ -170,8 +170,8 @@ export default function AdminInfluenciadorDetailPage() {
           { label: "Comissão acumulada", value: fmtBRL(comissaoTotal) },
           { label: "Nicho", value: profile.niche ?? "—" },
         ].map((item) => (
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4" key={item.label}>
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-600">{item.label}</p>
+          <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-4" key={item.label}>
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#555]">{item.label}</p>
             <p className="mt-2 text-lg font-semibold text-white">{item.value}</p>
           </div>
         ))}
@@ -181,7 +181,7 @@ export default function AdminInfluenciadorDetailPage() {
       <div className="flex flex-wrap gap-2.5">
         {aprovacao === "pendente" && (
           <button
-            className="rounded-xl border border-emerald-900/60 px-4 py-2 text-sm font-semibold text-emerald-400 transition hover:bg-emerald-950/30"
+            className="rounded-xl border border-[rgba(74,222,128,0.2)] px-4 py-2 text-sm font-semibold text-[#4ADE80] transition hover:bg-[rgba(74,222,128,0.18)]"
             onClick={() => setConfirm("aprovar")}
             type="button"
           >
@@ -190,7 +190,7 @@ export default function AdminInfluenciadorDetailPage() {
         )}
         {aprovacao !== "reprovado" && (
           <button
-            className="rounded-xl border border-red-900/60 px-4 py-2 text-sm font-semibold text-red-400 transition hover:bg-red-950/30"
+            className="rounded-xl border border-[rgba(200,16,46,0.15)] px-4 py-2 text-sm font-semibold text-[#C8102E] transition hover:bg-[rgba(200,16,46,0.18)]"
             onClick={() => setConfirm(aprovacao === "pendente" ? "reprovar" : (ativo ? "desativar" : "ativar"))}
             type="button"
           >
@@ -208,41 +208,41 @@ export default function AdminInfluenciadorDetailPage() {
             { platform: "YouTube", handle: profile.youtube_handle, followers: profile.youtube_subscribers },
             { platform: "Twitter/X", handle: profile.twitter_handle, followers: profile.twitter_followers },
           ].map((s) => (
-            <div className="rounded-xl border border-zinc-800 px-4 py-3" key={s.platform}>
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-600">{s.platform}</p>
-              <p className="mt-1 text-sm text-zinc-300">{s.handle ? `@${s.handle}` : "—"}</p>
+            <div className="rounded-xl border border-[rgba(255,255,255,0.06)] px-4 py-3" key={s.platform}>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#555]">{s.platform}</p>
+              <p className="mt-1 text-sm text-[#aaa]">{s.handle ? `@${s.handle}` : "—"}</p>
               {s.followers && (
-                <p className="text-xs text-zinc-500">{s.followers.toLocaleString("pt-BR")} seguidores</p>
+                <p className="text-xs text-[#888]">{s.followers.toLocaleString("pt-BR")} seguidores</p>
               )}
             </div>
           ))}
         </div>
         {profile.engagement_rate && (
-          <p className="mt-3 text-xs text-zinc-500">Taxa de engajamento média: {profile.engagement_rate}%</p>
+          <p className="mt-3 text-xs text-[#888]">Taxa de engajamento média: {profile.engagement_rate}%</p>
         )}
       </AdminSection>
 
       {/* Links */}
       <AdminSection subtitle={`${links.length} links gerados.`} title="Links de afiliado">
         {links.length === 0 ? (
-          <p className="py-6 text-center text-sm text-zinc-600">Nenhum link gerado.</p>
+          <p className="py-6 text-center text-sm text-[#555]">Nenhum link gerado.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800 text-left text-xs font-semibold uppercase tracking-[0.1em] text-zinc-600">
+                <tr className="border-b border-[rgba(255,255,255,0.06)] text-left text-xs font-semibold uppercase tracking-[0.1em] text-[#555]">
                   <th className="pb-3">Produto</th>
                   <th className="pb-3">Empresa</th>
                   <th className="pb-3 text-right">Cliques</th>
                   <th className="pb-3">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/50">
+              <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
                 {links.map((l) => (
                   <tr key={l.id}>
-                    <td className="py-2.5 text-zinc-300">{l.produto_nome}</td>
-                    <td className="py-2.5 text-zinc-400">{l.empresa_nome || "—"}</td>
-                    <td className="py-2.5 text-right font-semibold text-zinc-300">{l.cliques.toLocaleString("pt-BR")}</td>
+                    <td className="py-2.5 text-[#aaa]">{l.produto_nome}</td>
+                    <td className="py-2.5 text-[#888]">{l.empresa_nome || "—"}</td>
+                    <td className="py-2.5 text-right font-semibold text-[#aaa]">{l.cliques.toLocaleString("pt-BR")}</td>
                     <td className="py-2.5"><AdminBadge label={l.ativo ? "Ativo" : "Inativo"} tone={l.ativo ? "success" : "neutral"} /></td>
                   </tr>
                 ))}
@@ -258,12 +258,12 @@ export default function AdminInfluenciadorDetailPage() {
         {notas.length > 0 && (
           <div className="mt-4 space-y-3">
             {notas.map((nota) => (
-              <div className="flex items-start justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3" key={nota.id}>
+              <div className="flex items-start justify-between gap-3 rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] px-4 py-3" key={nota.id}>
                 <div>
-                  <p className="text-sm text-zinc-300">{nota.texto}</p>
-                  <p className="mt-1 text-xs text-zinc-600">{nota.autor_email ?? "admin"} · {new Date(nota.criado_em).toLocaleDateString("pt-BR")}</p>
+                  <p className="text-sm text-[#aaa]">{nota.texto}</p>
+                  <p className="mt-1 text-xs text-[#555]">{nota.autor_email ?? "admin"} · {new Date(nota.criado_em).toLocaleDateString("pt-BR")}</p>
                 </div>
-                <button className="shrink-0 text-xs text-zinc-700 hover:text-red-400 transition" onClick={() => handleDeleteNota(nota.id)} type="button">Remover</button>
+                <button className="shrink-0 text-xs text-[#555] hover:text-[#C8102E] transition" onClick={() => handleDeleteNota(nota.id)} type="button">Remover</button>
               </div>
             ))}
           </div>

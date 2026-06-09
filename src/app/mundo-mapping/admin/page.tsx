@@ -79,9 +79,9 @@ export default function AdminDashboard() {
   if (loadError) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 p-7">
-        <p className="text-sm text-zinc-500">Erro ao carregar dados.</p>
+        <p className="text-sm text-[#888]">Erro ao carregar dados.</p>
         <button
-          className="rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-semibold text-zinc-300 transition hover:bg-zinc-700"
+          className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] px-4 py-2 text-sm font-semibold text-[#aaa] transition hover:bg-[rgba(255,255,255,0.08)]"
           onClick={load}
           type="button"
         >
@@ -94,14 +94,14 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6 p-7">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 border-b border-zinc-800 pb-5">
+      <div className="flex items-start justify-between gap-4 border-b border-[rgba(255,255,255,0.06)] pb-5">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">Admin / Plataforma</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#555]">Admin / Plataforma</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">Dashboard</h1>
-          <p className="mt-1 text-sm text-zinc-500">Visão geral em tempo real da plataforma Mapping Partners.</p>
+          <p className="mt-1 text-sm text-[#888]">Visão geral em tempo real da plataforma Mapping Partners.</p>
         </div>
         <button
-          className="flex shrink-0 items-center gap-1.5 rounded-xl border border-zinc-800 px-3 py-1.5 text-xs font-semibold text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-40"
+          className="flex shrink-0 items-center gap-1.5 rounded-xl border border-[rgba(255,255,255,0.06)] px-3 py-1.5 text-xs font-semibold text-[#888] transition hover:border-[rgba(255,255,255,0.12)] hover:text-white disabled:opacity-40"
           disabled={loading}
           onClick={load}
           type="button"
@@ -159,26 +159,26 @@ export default function AdminDashboard() {
               {[...Array(5)].map((_, i) => <Skeleton className="h-10" key={i} />)}
             </div>
           ) : recentProfiles.length === 0 ? (
-            <p className="py-6 text-center text-sm text-zinc-600">Nenhum cadastro ainda.</p>
+            <p className="py-6 text-center text-sm text-[#555]">Nenhum cadastro ainda.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-800 text-left text-xs font-semibold uppercase tracking-[0.1em] text-zinc-600">
+                  <tr className="border-b border-[rgba(255,255,255,0.06)] text-left text-xs font-semibold uppercase tracking-[0.1em] text-[#555]">
                     <th className="pb-3">Nome</th>
                     <th className="pb-3">Tipo</th>
                     <th className="pb-3">Plano</th>
                     <th className="pb-3">Data</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800/50">
+                <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
                   {recentProfiles.map((p) => (
                     <tr key={p.id}>
                       <td className="py-2.5">
-                        <p className="font-medium text-zinc-300">
+                        <p className="font-medium text-[#aaa]">
                           {p.user_type === "empresa" ? (p.company_name ?? p.full_name ?? "—") : (p.full_name ?? "—")}
                         </p>
-                        <p className="text-xs text-zinc-600">{p.email ?? "—"}</p>
+                        <p className="text-xs text-[#555]">{p.email ?? "—"}</p>
                       </td>
                       <td className="py-2.5">
                         <AdminBadge
@@ -187,7 +187,7 @@ export default function AdminDashboard() {
                         />
                       </td>
                       <td className="py-2.5"><PlanBadge plano={p.plano} /></td>
-                      <td className="py-2.5 text-xs text-zinc-500">{fmtDate(p.created_at)}</td>
+                      <td className="py-2.5 text-xs text-[#888]">{fmtDate(p.created_at)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -203,27 +203,27 @@ export default function AdminDashboard() {
               {[...Array(5)].map((_, i) => <Skeleton className="h-10" key={i} />)}
             </div>
           ) : recentVendas.length === 0 ? (
-            <p className="py-6 text-center text-sm text-zinc-600">Nenhuma venda registrada.</p>
+            <p className="py-6 text-center text-sm text-[#555]">Nenhuma venda registrada.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-800 text-left text-xs font-semibold uppercase tracking-[0.1em] text-zinc-600">
+                  <tr className="border-b border-[rgba(255,255,255,0.06)] text-left text-xs font-semibold uppercase tracking-[0.1em] text-[#555]">
                     <th className="pb-3">Produto</th>
                     <th className="pb-3">Creator</th>
                     <th className="pb-3 text-right">Comissão</th>
                     <th className="pb-3">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800/50">
+                <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
                   {recentVendas.map((v) => (
                     <tr key={v.id}>
                       <td className="py-2.5">
-                        <p className="font-medium text-zinc-300">{v.produto_nome ?? "—"}</p>
-                        <p className="text-xs text-zinc-600">{v.empresa_nome ?? "—"}</p>
+                        <p className="font-medium text-[#aaa]">{v.produto_nome ?? "—"}</p>
+                        <p className="text-xs text-[#555]">{v.empresa_nome ?? "—"}</p>
                       </td>
-                      <td className="py-2.5 text-zinc-400">{v.creator_nome ?? "—"}</td>
-                      <td className="py-2.5 text-right font-semibold text-zinc-300">{fmtBRL(v.comissao ?? 0)}</td>
+                      <td className="py-2.5 text-[#888]">{v.creator_nome ?? "—"}</td>
+                      <td className="py-2.5 text-right font-semibold text-[#aaa]">{fmtBRL(v.comissao ?? 0)}</td>
                       <td className="py-2.5">
                         <AdminBadge
                           label={v.status ?? "pendente"}

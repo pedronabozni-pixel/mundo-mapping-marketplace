@@ -33,11 +33,11 @@ export function AdminShell({
   }
 
   return (
-    <div className="flex min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="flex min-h-screen bg-[#0a0a0a] text-white">
       {/* ── Sidebar ── */}
-      <aside className="fixed inset-y-0 left-0 z-50 flex w-56 flex-col border-r border-zinc-800/80 bg-zinc-950">
+      <aside className="fixed inset-y-0 left-0 z-50 flex w-56 flex-col border-r border-[rgba(255,255,255,0.06)] bg-[#060606]">
         {/* Brand */}
-        <div className="border-b border-zinc-800/80 px-5 py-4">
+        <div className="border-b border-[rgba(255,255,255,0.06)] px-5 py-4">
           <MappingPartnersLogo onDark size="sm" subtitle="Admin" />
         </div>
 
@@ -51,14 +51,19 @@ export function AdminShell({
               <Link
                 className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                   active
-                    ? "bg-zinc-800 text-white"
-                    : "text-zinc-500 hover:bg-zinc-800/60 hover:text-zinc-300"
+                    ? "text-white"
+                    : "text-[#888] hover:bg-[rgba(255,255,255,0.06)] hover:text-[#aaa]"
                 }`}
                 href={item.href}
                 key={item.href}
+                style={
+                  active
+                    ? { background: "rgba(200,16,46,0.12)", borderLeft: "2px solid #C8102E" }
+                    : { borderLeft: "2px solid transparent" }
+                }
               >
                 {active ? (
-                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#C8102E]" />
                 ) : (
                   <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-transparent" />
                 )}
@@ -69,15 +74,15 @@ export function AdminShell({
         </nav>
 
         {/* User / logout */}
-        <div className="border-t border-zinc-800/80 p-3">
+        <div className="border-t border-[rgba(255,255,255,0.06)] p-3">
           <div className="mb-2.5 flex items-center gap-2.5 px-1">
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-[10px] font-bold text-zinc-400">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[rgba(255,255,255,0.04)] text-[10px] font-bold text-[#888]">
               {adminName.slice(0, 1).toUpperCase()}
             </div>
-            <p className="min-w-0 truncate text-xs font-medium text-zinc-500">{adminName}</p>
+            <p className="min-w-0 truncate text-xs font-medium text-[#888]">{adminName}</p>
           </div>
           <button
-            className="w-full rounded-xl py-2 text-xs font-semibold text-zinc-600 transition hover:bg-zinc-800 hover:text-zinc-300"
+            className="w-full rounded-xl py-2 text-xs font-semibold text-[#555] transition hover:bg-[rgba(255,255,255,0.06)] hover:text-[#aaa]"
             onClick={logout}
             type="button"
           >
@@ -87,7 +92,7 @@ export function AdminShell({
       </aside>
 
       {/* ── Main ── */}
-      <div className="ml-56 min-h-screen flex-1 bg-zinc-950">{children}</div>
+      <div className="ml-56 min-h-screen flex-1 bg-[#0a0a0a]">{children}</div>
     </div>
   );
 }

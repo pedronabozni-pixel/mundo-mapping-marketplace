@@ -42,14 +42,14 @@ export default function AdminProdutosPage() {
 
   return (
     <div className="space-y-6 p-7">
-      <div className="flex items-start justify-between gap-4 border-b border-zinc-800 pb-5">
+      <div className="flex items-start justify-between gap-4 border-b border-[rgba(255,255,255,0.06)] pb-5">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">Admin / Produtos</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#555]">Admin / Produtos</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">Gestão de produtos</h1>
-          <p className="mt-1 text-sm text-zinc-500">Produtos com links de afiliado ativos na plataforma.</p>
+          <p className="mt-1 text-sm text-[#888]">Produtos com links de afiliado ativos na plataforma.</p>
         </div>
         <button
-          className="flex shrink-0 items-center gap-1.5 rounded-xl border border-zinc-800 px-3 py-1.5 text-xs font-semibold text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-40"
+          className="flex shrink-0 items-center gap-1.5 rounded-xl border border-[rgba(255,255,255,0.06)] px-3 py-1.5 text-xs font-semibold text-[#888] transition hover:border-[rgba(255,255,255,0.12)] hover:text-white disabled:opacity-40"
           disabled={loading}
           onClick={load}
           type="button"
@@ -59,7 +59,7 @@ export default function AdminProdutosPage() {
       </div>
 
       <input
-        className="w-64 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none focus:border-zinc-700"
+        className="w-64 rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] px-4 py-2.5 text-sm text-[#aaa] placeholder:text-[#555] outline-none focus:border-[#C8102E]"
         onChange={(e) => { setSearch(e.target.value); setPage(1); }}
         placeholder="Buscar por nome ou empresa…"
         type="text"
@@ -75,7 +75,7 @@ export default function AdminProdutosPage() {
             {[...Array(6)].map((_, i) => <Skeleton className="h-12" key={i} />)}
           </div>
         ) : paginated.length === 0 ? (
-          <p className="py-8 text-center text-sm text-zinc-600">
+          <p className="py-8 text-center text-sm text-[#555]">
             {search ? "Nenhum produto encontrado." : "Nenhum produto com links de afiliado ainda."}
           </p>
         ) : (
@@ -83,7 +83,7 @@ export default function AdminProdutosPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-800 text-left text-xs font-semibold uppercase tracking-[0.1em] text-zinc-600">
+                  <tr className="border-b border-[rgba(255,255,255,0.06)] text-left text-xs font-semibold uppercase tracking-[0.1em] text-[#555]">
                     <th className="pb-3">Produto</th>
                     <th className="pb-3">Empresa</th>
                     <th className="pb-3 text-right">Creators</th>
@@ -91,13 +91,13 @@ export default function AdminProdutosPage() {
                     <th className="pb-3">Links ativos</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800/50">
+                <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
                   {paginated.map((p) => (
                     <tr key={p.produto_id}>
-                      <td className="py-3 font-medium text-zinc-300">{p.produto_nome}</td>
-                      <td className="py-3 text-zinc-500">{p.empresa_nome}</td>
-                      <td className="py-3 text-right text-zinc-400">{p.creators}</td>
-                      <td className="py-3 text-right font-semibold text-zinc-300">{p.cliques.toLocaleString("pt-BR")}</td>
+                      <td className="py-3 font-medium text-[#aaa]">{p.produto_nome}</td>
+                      <td className="py-3 text-[#888]">{p.empresa_nome}</td>
+                      <td className="py-3 text-right text-[#888]">{p.creators}</td>
+                      <td className="py-3 text-right font-semibold text-[#aaa]">{p.cliques.toLocaleString("pt-BR")}</td>
                       <td className="py-3">
                         <AdminBadge
                           label={String(p.linksAtivos)}

@@ -126,8 +126,8 @@ export default function AdminEmpresaDetailPage() {
   if (!profile) {
     return (
       <div className="p-7">
-        <p className="text-zinc-500">Empresa não encontrada.</p>
-        <Link className="mt-4 inline-block text-sm text-red-400 hover:text-red-300" href="/mundo-mapping/admin/empresas">← Voltar</Link>
+        <p className="text-[#888]">Empresa não encontrada.</p>
+        <Link className="mt-4 inline-block text-sm text-[#C8102E] hover:text-[#A30D24]" href="/mundo-mapping/admin/empresas">← Voltar</Link>
       </div>
     );
   }
@@ -138,15 +138,15 @@ export default function AdminEmpresaDetailPage() {
   return (
     <div className="space-y-6 p-7">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 border-b border-zinc-800 pb-5">
+      <div className="flex items-start justify-between gap-4 border-b border-[rgba(255,255,255,0.06)] pb-5">
         <div>
-          <Link className="mb-2 inline-block text-xs text-zinc-600 hover:text-zinc-400" href="/mundo-mapping/admin/empresas">
+          <Link className="mb-2 inline-block text-xs text-[#555] hover:text-[#888]" href="/mundo-mapping/admin/empresas">
             ← Empresas
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight text-white">
             {profile.company_name ?? profile.full_name ?? "Empresa"}
           </h1>
-          <p className="mt-1 text-sm text-zinc-500">{profile.email}</p>
+          <p className="mt-1 text-sm text-[#888]">{profile.email}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2.5">
           <PlanBadge plano={profile.plano} />
@@ -156,24 +156,24 @@ export default function AdminEmpresaDetailPage() {
 
       {/* Info + actions */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-600">Cadastro</p>
-          <p className="mt-2 text-sm text-zinc-300">{profile.created_at ? new Date(profile.created_at).toLocaleDateString("pt-BR") : "—"}</p>
+        <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#555]">Cadastro</p>
+          <p className="mt-2 text-sm text-[#aaa]">{profile.created_at ? new Date(profile.created_at).toLocaleDateString("pt-BR") : "—"}</p>
         </div>
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-600">Comissão gerada</p>
+        <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#555]">Comissão gerada</p>
           <p className="mt-2 text-sm font-semibold text-white">{fmtBRL(totalComissao)}</p>
         </div>
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-600">Localização</p>
-          <p className="mt-2 text-sm text-zinc-300">{[profile.city, profile.state].filter(Boolean).join(", ") || "—"}</p>
+        <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#555]">Localização</p>
+          <p className="mt-2 text-sm text-[#aaa]">{[profile.city, profile.state].filter(Boolean).join(", ") || "—"}</p>
         </div>
       </div>
 
       {/* Action buttons */}
       <div className="flex flex-wrap gap-2.5">
         <button
-          className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200"
+          className="rounded-xl border border-[rgba(255,255,255,0.08)] px-4 py-2 text-sm font-semibold text-[#888] transition hover:border-[rgba(255,255,255,0.12)] hover:text-white"
           onClick={() => setPlanModal(true)}
           type="button"
         >
@@ -182,8 +182,8 @@ export default function AdminEmpresaDetailPage() {
         <button
           className={`rounded-xl border px-4 py-2 text-sm font-semibold transition ${
             ativo
-              ? "border-red-900/60 text-red-400 hover:bg-red-950/30"
-              : "border-emerald-900/60 text-emerald-400 hover:bg-emerald-950/30"
+              ? "border-[rgba(200,16,46,0.15)] text-[#C8102E] hover:bg-[rgba(200,16,46,0.18)]"
+              : "border-[rgba(74,222,128,0.2)] text-[#4ADE80] hover:bg-[rgba(74,222,128,0.18)]"
           }`}
           onClick={() => setConfirm(ativo ? "desativar" : "ativar")}
           type="button"
@@ -195,24 +195,24 @@ export default function AdminEmpresaDetailPage() {
       {/* Creators afiliados */}
       <AdminSection subtitle={`${links.length} links gerados para produtos desta empresa.`} title="Creators afiliados">
         {links.length === 0 ? (
-          <p className="py-6 text-center text-sm text-zinc-600">Nenhum creator afiliado.</p>
+          <p className="py-6 text-center text-sm text-[#555]">Nenhum creator afiliado.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800 text-left text-xs font-semibold uppercase tracking-[0.1em] text-zinc-600">
+                <tr className="border-b border-[rgba(255,255,255,0.06)] text-left text-xs font-semibold uppercase tracking-[0.1em] text-[#555]">
                   <th className="pb-3">Creator</th>
                   <th className="pb-3">Produto</th>
                   <th className="pb-3 text-right">Cliques</th>
                   <th className="pb-3">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/50">
+              <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
                 {links.map((l) => (
                   <tr key={l.id}>
-                    <td className="py-2.5 text-zinc-300">{l.creator_nome || "—"}</td>
-                    <td className="py-2.5 text-zinc-400">{l.produto_nome}</td>
-                    <td className="py-2.5 text-right font-semibold text-zinc-300">{l.cliques.toLocaleString("pt-BR")}</td>
+                    <td className="py-2.5 text-[#aaa]">{l.creator_nome || "—"}</td>
+                    <td className="py-2.5 text-[#888]">{l.produto_nome}</td>
+                    <td className="py-2.5 text-right font-semibold text-[#aaa]">{l.cliques.toLocaleString("pt-BR")}</td>
                     <td className="py-2.5">
                       <AdminBadge label={l.ativo ? "Ativo" : "Inativo"} tone={l.ativo ? "success" : "neutral"} />
                     </td>
@@ -227,12 +227,12 @@ export default function AdminEmpresaDetailPage() {
       {/* Vendas */}
       <AdminSection subtitle={`${vendas.length} vendas registradas.`} title="Histórico de vendas">
         {vendas.length === 0 ? (
-          <p className="py-6 text-center text-sm text-zinc-600">Nenhuma venda registrada.</p>
+          <p className="py-6 text-center text-sm text-[#555]">Nenhuma venda registrada.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800 text-left text-xs font-semibold uppercase tracking-[0.1em] text-zinc-600">
+                <tr className="border-b border-[rgba(255,255,255,0.06)] text-left text-xs font-semibold uppercase tracking-[0.1em] text-[#555]">
                   <th className="pb-3">Produto</th>
                   <th className="pb-3">Creator</th>
                   <th className="pb-3 text-right">Comissão</th>
@@ -240,16 +240,16 @@ export default function AdminEmpresaDetailPage() {
                   <th className="pb-3">Data</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/50">
+              <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
                 {vendas.map((v) => (
                   <tr key={v.id}>
-                    <td className="py-2.5 text-zinc-300">{v.produto_nome ?? "—"}</td>
-                    <td className="py-2.5 text-zinc-400">{v.creator_nome ?? "—"}</td>
-                    <td className="py-2.5 text-right font-semibold text-zinc-300">{fmtBRL(v.comissao ?? 0)}</td>
+                    <td className="py-2.5 text-[#aaa]">{v.produto_nome ?? "—"}</td>
+                    <td className="py-2.5 text-[#888]">{v.creator_nome ?? "—"}</td>
+                    <td className="py-2.5 text-right font-semibold text-[#aaa]">{fmtBRL(v.comissao ?? 0)}</td>
                     <td className="py-2.5">
                       <AdminBadge label={v.status ?? "pendente"} tone={v.status === "pago" || v.status === "aprovado" ? "success" : v.status === "revertido" ? "danger" : "warning"} />
                     </td>
-                    <td className="py-2.5 text-xs text-zinc-500">{new Date(v.criado_em).toLocaleDateString("pt-BR")}</td>
+                    <td className="py-2.5 text-xs text-[#888]">{new Date(v.criado_em).toLocaleDateString("pt-BR")}</td>
                   </tr>
                 ))}
               </tbody>
@@ -264,13 +264,13 @@ export default function AdminEmpresaDetailPage() {
         {notas.length > 0 && (
           <div className="mt-4 space-y-3">
             {notas.map((nota) => (
-              <div className="flex items-start justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3" key={nota.id}>
+              <div className="flex items-start justify-between gap-3 rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] px-4 py-3" key={nota.id}>
                 <div>
-                  <p className="text-sm text-zinc-300">{nota.texto}</p>
-                  <p className="mt-1 text-xs text-zinc-600">{nota.autor_email ?? "admin"} · {new Date(nota.criado_em).toLocaleDateString("pt-BR")}</p>
+                  <p className="text-sm text-[#aaa]">{nota.texto}</p>
+                  <p className="mt-1 text-xs text-[#555]">{nota.autor_email ?? "admin"} · {new Date(nota.criado_em).toLocaleDateString("pt-BR")}</p>
                 </div>
                 <button
-                  className="shrink-0 text-xs text-zinc-700 transition hover:text-red-400"
+                  className="shrink-0 text-xs text-[#555] transition hover:text-[#C8102E]"
                   onClick={() => handleDeleteNota(nota.id)}
                   type="button"
                 >
