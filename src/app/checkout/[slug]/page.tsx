@@ -71,10 +71,10 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
 
   if (!produto) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-100">
+      <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: "#0a0a0a" }}>
         <div className="text-center">
-          <h1 className="text-xl font-semibold text-zinc-900">Produto não encontrado</h1>
-          <p className="mt-2 text-sm text-zinc-500">
+          <h1 className="text-xl font-extrabold text-white">Produto não encontrado</h1>
+          <p className="mt-2 text-sm text-[#888]">
             O produto que você está procurando não existe ou não está disponível.
           </p>
         </div>
@@ -95,7 +95,7 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
   }
 
   return (
-    <div style={{ backgroundColor: produto.checkout_cor_fundo ?? "#ffffff", minHeight: "100vh" }}>
+    <div style={{ backgroundColor: "#0a0a0a", minHeight: "100vh" }}>
       <CheckoutClient
         affiliateRef={ref}
         orderBumpProduto={orderBumpProduto}

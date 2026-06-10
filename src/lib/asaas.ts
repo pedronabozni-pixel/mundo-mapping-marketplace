@@ -36,6 +36,7 @@ export interface AsaasPayment {
   status: string;
   value: number;
   billingType: string;
+  invoiceUrl?: string;
   failReasonCode?: string;
   deniedReason?: string;
   errors?: Array<{ code: string; description: string }>;
@@ -248,6 +249,41 @@ export async function createCardPayment(data: {
           : undefined,
         addressNumber: data.holderInfo.addressNumber ?? undefined,
       },
+    }),
+  });
+}
+
+/**
+ * Creates a CREDIT_CARD charge WITHOUT card data, so Asaas returns an
+ * `invoiceUrl` pointing to its own hosted payment page (PCI-minimal).
+ * The buyer fills in card number / installments on the Asaas screen; the
+ * card data never touches our server. Access is granted later by the webhook
+ * once the payment is confirmed.
+ */
+export async function createHostedCardPayment(data: {
+  customerId: string;
+  value: number;
+  description?: string;
+  externalReference: string;
+  successUrl: string;
+  remoteIp?: string;
+}): Promise<AsaasPayment> {
+  // No `creditCard` / `creditCardHolderInfo` here on purpose — sending them
+  // would make Asaas process the card server-side instead of returning invoiceUrl.
+  return asaasReq<AsaasPayment>("/payments", {
+    method: "POST",
+    body: JSON.stringify({
+      customer: data.customerId,
+      billingType: "CREDIT_CARD",
+      value: data.value,
+      dueDate: todayISO(),
+      description: data.description ?? "Compra",
+      externalReference: data.externalReference,
+      callback: {
+        successUrl: data.successUrl,
+        autoRedirect: true,
+      },
+      ...(data.remoteIp ? { remoteIp: data.remoteIp } : {}),
     }),
   });
 }

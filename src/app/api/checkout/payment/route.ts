@@ -4,12 +4,10 @@ import { normalizeEmail } from "@/lib/normalize-email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import {
   findOrCreateCustomer,
-  createCardPayment,
+  createHostedCardPayment,
   createPixPayment,
   getPixQrCode,
-  isPaymentApproved,
   mapAsaasCode,
-  mapDeclineReason,
   AsaasError,
 } from "@/lib/asaas";
 
@@ -28,8 +26,8 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const {
-      produto_id, empresa_id, ref, valor, forma_pagamento, parcelas, cliente,
-      cartao,
+      produto_id, produto_nome, produto_slug, empresa_id, ref, valor,
+      forma_pagamento, parcelas, cliente,
       order_bump_aceito, order_bump_produto_id, order_bump_valor,
       cupom_codigo, cupom_desconto,
     } = body;
@@ -128,46 +126,12 @@ export async function POST(req: NextRequest) {
       req.headers.get("x-real-ip") ??
       undefined;
 
-    // ── Cartão de crédito ─────────────────────────────────────────────────────
+    // ── Cartão de crédito (tela hospedada do Asaas — PCI-mínimo) ───────────────
+    // O cartão NÃO é processado aqui: criamos a cobrança sem dados de cartão,
+    // o Asaas devolve um invoiceUrl, e o comprador conclui o pagamento na tela
+    // segura do Asaas. O acesso é liberado depois pelo webhook (PAYMENT_CONFIRMED).
     if (forma_pagamento === "cartao") {
-      if (!cartao?.numero || !cartao?.holderName || !cartao?.mesValidade || !cartao?.anoValidade || !cartao?.cvv) {
-        return NextResponse.json({ ok: false, error: "Dados do cartão incompletos." }, { status: 400 });
-      }
-
-      let asaasPayment;
-      try {
-        asaasPayment = await createCardPayment({
-          customerId: asaasCustomerId,
-          value: Number(valor),
-          installmentCount: Number(parcelas ?? 1),
-          creditCard: {
-            holderName: cartao.holderName,
-            number: cartao.numero,
-            expiryMonth: cartao.mesValidade,
-            expiryYear: cartao.anoValidade,
-            ccv: cartao.cvv,
-          },
-          holderInfo: {
-            name: cliente.nome,
-            email: clienteEmail,
-            cpfCnpj: cliente.cpf,
-            mobilePhone: cliente.telefone,
-            postalCode: cliente.endereco?.cep,
-            addressNumber: cliente.endereco?.numero,
-          },
-          remoteIp,
-        });
-      } catch (err) {
-        const msg = err instanceof AsaasError
-          ? mapAsaasCode(err.code)
-          : "Erro ao processar pagamento. Tente novamente.";
-        return NextResponse.json({ ok: false, error: msg }, { status: 402 });
-      }
-
-      if (!isPaymentApproved(asaasPayment.status)) {
-        return NextResponse.json({ ok: false, error: mapDeclineReason(asaasPayment) }, { status: 402 });
-      }
-
+      // (a) Pedido entra como "pendente" — nunca "aprovado" antes do pagamento.
       const { data: pedido, error } = await supabase
         .from("pedidos")
         .insert({
@@ -176,8 +140,7 @@ export async function POST(req: NextRequest) {
           cliente_cpf: cliente.cpf, cliente_telefone: cliente.telefone ?? null,
           cliente_endereco: cliente.endereco ?? null,
           valor: Number(valor), comissao_creator, taxa_mapping,
-          parcelas: Number(parcelas ?? 1), forma_pagamento, status: "aprovado",
-          asaas_payment_id: asaasPayment.id,
+          parcelas: Number(parcelas ?? 1), forma_pagamento, status: "pendente",
           asaas_customer_id: asaasCustomerId,
           order_bump_aceito: order_bump_aceito ?? false,
           order_bump_produto_id: order_bump_aceito ? (order_bump_produto_id ?? null) : null,
@@ -193,11 +156,47 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: false, error: "Erro ao salvar pedido." }, { status: 500 });
       }
 
+      // (b) Cria a cobrança hospedada. successUrl absoluta: usa env quando houver,
+      // senão a origem da própria requisição (sempre correta em produção).
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL ?? process.env.APP_URL ?? req.nextUrl.origin;
+      const successUrl =
+        `${baseUrl}/checkout/${encodeURIComponent(produto_slug ?? "")}/obrigado?pedido=${pedido.id}`;
+
+      let asaasPayment;
+      try {
+        asaasPayment = await createHostedCardPayment({
+          customerId: asaasCustomerId,
+          value: Number(valor),
+          description: produto_nome ? `Compra — ${produto_nome}` : "Compra",
+          externalReference: pedido.id,
+          successUrl,
+          remoteIp,
+        });
+      } catch (err) {
+        // Cobrança não criada: remove o pedido órfão para não deixar lixo pendente.
+        await supabase.from("pedidos").delete().eq("id", pedido.id);
+        const msg = err instanceof AsaasError
+          ? mapAsaasCode(err.code)
+          : "Erro ao iniciar pagamento. Tente novamente.";
+        return NextResponse.json({ ok: false, error: msg }, { status: 402 });
+      }
+
+      // (c) Grava o asaas_payment_id — é por ele que o webhook casa o pagamento
+      // e libera o acesso. Sem isso, o acesso nunca seria liberado.
+      await supabase
+        .from("pedidos")
+        .update({ asaas_payment_id: asaasPayment.id })
+        .eq("id", pedido.id);
+
       if (cupom_codigo) await incrementCupomUso(supabase, produto_id, cupom_codigo);
 
-      await grantDigitalAccess(supabase, produto_id, empresa_id, pedido.id, cliente);
-
-      return NextResponse.json({ ok: true, pedido_id: pedido.id });
+      // (d) Front redireciona para a tela hospedada do Asaas.
+      return NextResponse.json({
+        ok: true,
+        pedido_id: pedido.id,
+        invoiceUrl: asaasPayment.invoiceUrl,
+      });
     }
 
     // ── PIX ───────────────────────────────────────────────────────────────────
@@ -269,28 +268,5 @@ async function incrementCupomUso(supabase: any, produto_id: string, cupom_codigo
     .maybeSingle();
   if (row) {
     await supabase.from("cupons").update({ usos_realizados: row.usos_realizados + 1 }).eq("id", row.id);
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function grantDigitalAccess(supabase: any, produto_id: string, empresa_id: string, pedido_id: string, cliente: { nome: string; email: string }) {
-  const { data: produto } = await supabase
-    .from("produtos")
-    .select("tipo_entregavel")
-    .eq("id", produto_id)
-    .maybeSingle();
-
-  if (produto?.tipo_entregavel === "digital" || produto?.tipo_entregavel === "curso") {
-    await supabase.from("acessos_membros").upsert(
-      {
-        empresa_id,
-        produto_id,
-        pedido_id,
-        comprador_email: normalizeEmail(cliente.email),
-        comprador_nome: cliente.nome,
-        ativo: true,
-      },
-      { onConflict: "produto_id,comprador_email" }
-    );
   }
 }
