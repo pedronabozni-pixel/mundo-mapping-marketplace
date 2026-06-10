@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getPaymentStatus, isPaymentApproved, AsaasError } from "@/lib/asaas";
 import { normalizeEmail } from "@/lib/normalize-email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
@@ -32,7 +32,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ pago: false, status: payment.status });
     }
 
-    const supabase = await createClient();
+    // Admin client: o update com .select() (RETURNING) e o upsert de acessos
+    // não passam pelo RLS do anon. Rota server-side confiável.
+    const supabase = createAdminClient();
 
     const { data: pedido } = await supabase
       .from("pedidos")

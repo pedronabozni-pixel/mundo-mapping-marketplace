@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizeEmail } from "@/lib/normalize-email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import {
@@ -41,7 +41,10 @@ export async function POST(req: NextRequest) {
 
     const clienteEmail = normalizeEmail(cliente.email);
 
-    const supabase = await createClient();
+    // Admin client: rota server-side confiável. O client anon não funciona aqui —
+    // o .insert().select() (RETURNING) exige policy de SELECT em pedidos, que o
+    // anon não tem (e não deve ter: exporia pedidos via REST pública).
+    const supabase = createAdminClient();
 
     // ── Affiliate link resolution ──────────────────────────────────────────────
     let link_afiliado_id: string | null = null;
