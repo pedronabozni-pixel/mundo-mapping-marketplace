@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import UpsellSection from "./upsell-section";
 import ObrigadoStatus from "./obrigado-status";
 
@@ -40,13 +40,16 @@ export default async function ObrigadoPage({ params, searchParams }: Props) {
     redirect(`/checkout/${slug}`);
   }
 
-  const supabase = await createClient();
+  // Admin client server-side: a leitura de `pedidos` não depende de RLS
+  // permissivo para anon e nada além do renderizado chega ao browser.
+  // Select restrito aos campos que a tela usa.
+  const supabase = createAdminClient();
 
   // Dados oficiais vêm do banco (o fluxo de cartão volta do Asaas sem query params).
   const { data: pedido } = await supabase
     .from("pedidos")
     .select(
-      "id, status, forma_pagamento, valor, asaas_payment_id, produto_id, cliente_nome, cliente_email, cliente_cpf, cliente_telefone",
+      "status, forma_pagamento, valor, asaas_payment_id, produto_id, cliente_nome, cliente_email, cliente_cpf, cliente_telefone",
     )
     .eq("id", pedidoId)
     .maybeSingle();
@@ -114,7 +117,7 @@ export default async function ObrigadoPage({ params, searchParams }: Props) {
           asaasPaymentId={pedido.asaas_payment_id ?? null}
           initialPago={pago}
           isDigital={isDigital}
-          pedidoId={pedido.id}
+          pedidoId={pedidoId}
         />
 
         {/* Order summary */}

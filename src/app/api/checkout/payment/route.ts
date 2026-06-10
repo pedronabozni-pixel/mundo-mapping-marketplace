@@ -183,11 +183,20 @@ export async function POST(req: NextRequest) {
       }
 
       // (c) Grava o asaas_payment_id — é por ele que o webhook casa o pagamento
-      // e libera o acesso. Sem isso, o acesso nunca seria liberado.
-      await supabase
+      // e libera o acesso. Se a gravação falhar, NÃO redireciona pro Asaas:
+      // o comprador pagaria uma cobrança que nunca casaria com o pedido.
+      const { error: linkError } = await supabase
         .from("pedidos")
         .update({ asaas_payment_id: asaasPayment.id })
         .eq("id", pedido.id);
+
+      if (linkError) {
+        await supabase.from("pedidos").delete().eq("id", pedido.id);
+        return NextResponse.json(
+          { ok: false, error: "Erro ao iniciar pagamento. Tente novamente." },
+          { status: 500 },
+        );
+      }
 
       if (cupom_codigo) await incrementCupomUso(supabase, produto_id, cupom_codigo);
 

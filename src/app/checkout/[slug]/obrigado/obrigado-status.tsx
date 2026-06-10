@@ -12,6 +12,11 @@ import Link from "next/link";
  *   "pendente"; o acesso é liberado pelo webhook. Aqui fazemos polling do
  *   mesmo endpoint do PIX (pix-status) para refletir a confirmação em tempo real.
  */
+// Teto do polling: depois disso paramos de consultar e oferecemos
+// "Verificar novamente" (recarrega a página, que relê o status no servidor).
+const POLL_TIMEOUT_MS = 15 * 60 * 1000;
+const POLL_INTERVAL_MS = 3000;
+
 export default function ObrigadoStatus({
   pedidoId,
   asaasPaymentId,
@@ -24,10 +29,17 @@ export default function ObrigadoStatus({
   isDigital: boolean;
 }) {
   const [pago, setPago] = useState(initialPago);
+  const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
     if (pago || !asaasPaymentId) return;
+    const startedAt = Date.now();
     const timer = setInterval(async () => {
+      if (Date.now() - startedAt > POLL_TIMEOUT_MS) {
+        clearInterval(timer);
+        setTimedOut(true);
+        return;
+      }
       try {
         const res = await fetch(
           `/api/checkout/pix-status?payment_id=${encodeURIComponent(asaasPaymentId)}&pedido_id=${encodeURIComponent(pedidoId)}`,
@@ -40,9 +52,34 @@ export default function ObrigadoStatus({
       } catch {
         /* erro de rede — tenta de novo no próximo tick */
       }
-    }, 3000);
+    }, POLL_INTERVAL_MS);
     return () => clearInterval(timer);
   }, [pago, asaasPaymentId, pedidoId]);
+
+  if (!pago && timedOut) {
+    return (
+      <div className="text-center">
+        <div className="mb-5 flex items-center justify-center">
+          <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="36" cy="36" r="36" fill="rgba(251,191,36,0.12)" />
+            <path d="M36 22v16m0 8h.01" stroke="#FBBF24" strokeWidth="4" strokeLinecap="round" />
+          </svg>
+        </div>
+        <h1 className="mb-2 text-2xl font-extrabold text-white">Pagamento ainda não confirmado</h1>
+        <p className="mb-6 text-sm leading-6 text-[#888]">
+          Assim que for aprovado, seu acesso aparece na área de membros.
+        </p>
+        <button
+          className="w-full rounded-xl py-4 text-sm font-bold text-white transition hover:opacity-90"
+          onClick={() => window.location.reload()}
+          style={{ backgroundColor: "#C8102E" }}
+          type="button"
+        >
+          Verificar novamente
+        </button>
+      </div>
+    );
+  }
 
   if (!pago) {
     return (
