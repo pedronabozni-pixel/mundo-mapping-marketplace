@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       produto_id, produto_nome, produto_slug, empresa_id, ref, valor,
       forma_pagamento, parcelas, cliente,
       order_bump_aceito, order_bump_produto_id, order_bump_valor,
-      cupom_codigo, cupom_desconto,
+      cupom_codigo,
     } = body;
 
     if (
@@ -269,6 +269,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Forma de pagamento inválida." }, { status: 400 });
 
   } catch (err) {
+    // Catch geral: sem este log, qualquer falha inesperada (DB, parse, etc.)
+    // vira um 500 cego — foi o que escondeu o bug de RLS no insert de pedidos.
+    console.error("[checkout] payment route error", asaasErrorInfo(err));
     return NextResponse.json({ ok: false, error: "Erro interno." }, { status: 500 });
   }
 }

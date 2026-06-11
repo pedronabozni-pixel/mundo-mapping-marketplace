@@ -50,7 +50,7 @@ export function ProductListPage() {
           ) : products.length === 0 ? (
             <div className="rounded-2xl px-6 py-12 text-center" style={{ background: "rgba(255,255,255,0.015)", border: "1px dashed rgba(255,255,255,0.06)" }}>
               <p className="text-sm font-medium" style={{ color: "#aaa" }}>Nenhum produto criado ainda.</p>
-              <p className="mt-2 text-sm" style={{ color: "#666" }}>Use o botão "Criar produto" para cadastrar seu primeiro produto.</p>
+              <p className="mt-2 text-sm" style={{ color: "#666" }}>Use o botão &ldquo;Criar produto&rdquo; para cadastrar seu primeiro produto.</p>
               <Link
                 className="mt-5 inline-flex h-10 items-center justify-center rounded-xl bg-red-600 px-5 text-sm font-bold text-white shadow-[0_8px_24px_-10px_rgba(220,38,38,0.7)] transition hover:bg-red-700"
                 href="/mundo-mapping/afiliados/produtos/novo"

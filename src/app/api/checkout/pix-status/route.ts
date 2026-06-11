@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getPaymentStatus, isPaymentApproved, AsaasError } from "@/lib/asaas";
+import { getPaymentStatus, isPaymentApproved } from "@/lib/asaas";
 import { normalizeEmail } from "@/lib/normalize-email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({ pago: true });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ pago: false, error: "Erro ao verificar pagamento." }, { status: 502 });
   }
 }

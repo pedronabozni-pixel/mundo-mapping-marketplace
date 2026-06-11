@@ -19,8 +19,6 @@ export type Produto = {
   checkout_subheadline: string | null;
   checkout_cta: string | null;
   checkout_garantia: string | null;
-  checkout_cor: string | null;
-  checkout_cor_fundo: string | null;
   checkout_highlights: string | null;
   checkout_depoimentos: Array<{ name: string; role?: string; text: string; photo?: string }> | null;
   checkout_mensagem_obrigado: string | null;

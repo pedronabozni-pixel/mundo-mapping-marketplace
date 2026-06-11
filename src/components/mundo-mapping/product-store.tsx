@@ -53,7 +53,6 @@ export type ProductRecord = {
   promoAssetMode: "link" | "file";
   promoAssetUrl: string;
   promoAssetName: string;
-  checkoutColor: string;
   checkoutBannerMode: "link" | "file";
   checkoutBannerUrl: string;
   checkoutBannerName: string;
@@ -63,7 +62,6 @@ export type ProductRecord = {
   checkoutGuaranteeText: string;
   checkoutSupportText: string;
   checkoutHighlights: string;
-  checkoutBgColor: string;
   checkoutTestimonials: Array<{ name: string; role?: string; text: string; photo?: string }>;
   checkoutThankyouMessage: string;
   tipoEntregavel: "digital" | "fisico" | "evento" | "servico";
@@ -134,7 +132,6 @@ export function fromRow(r: Record<string, any>): ProductRecord {
     promoAssetMode: (r.promo_modo as "link" | "file") ?? "link",
     promoAssetUrl: r.promo_url ?? "",
     promoAssetName: r.promo_nome ?? "",
-    checkoutColor: r.checkout_cor ?? "#dc2626",
     checkoutBannerMode: (r.checkout_banner_modo as "link" | "file") ?? "link",
     checkoutBannerUrl: r.checkout_banner_url ?? "",
     checkoutBannerName: r.checkout_banner_nome ?? "",
@@ -144,7 +141,6 @@ export function fromRow(r: Record<string, any>): ProductRecord {
     checkoutGuaranteeText: r.checkout_garantia ?? "",
     checkoutSupportText: r.checkout_suporte ?? "",
     checkoutHighlights: r.checkout_highlights ?? "",
-    checkoutBgColor: r.checkout_cor_fundo ?? "#ffffff",
     checkoutTestimonials: Array.isArray(r.checkout_depoimentos) ? r.checkout_depoimentos : [],
     checkoutThankyouMessage: r.checkout_mensagem_obrigado ?? "",
     tipoEntregavel: (r.tipo_entregavel as ProductRecord["tipoEntregavel"]) ?? "digital",
@@ -200,7 +196,6 @@ function toRow(input: ProductInput, userId: string, empresaNome?: string) {
     promo_modo: input.promoAssetMode,
     promo_url: input.promoAssetUrl,
     promo_nome: input.promoAssetName,
-    checkout_cor: input.checkoutColor,
     checkout_banner_modo: input.checkoutBannerMode,
     checkout_banner_url: input.checkoutBannerUrl,
     checkout_banner_nome: input.checkoutBannerName,
@@ -210,7 +205,6 @@ function toRow(input: ProductInput, userId: string, empresaNome?: string) {
     checkout_garantia: input.checkoutGuaranteeText,
     checkout_suporte: input.checkoutSupportText,
     checkout_highlights: input.checkoutHighlights,
-    checkout_cor_fundo: input.checkoutBgColor,
     checkout_depoimentos: input.checkoutTestimonials.length > 0 ? input.checkoutTestimonials : null,
     checkout_mensagem_obrigado: input.checkoutThankyouMessage || null,
     tipo_entregavel: input.tipoEntregavel,
@@ -411,7 +405,6 @@ export function getEmptyProduct(): ProductInput {
     promoAssetMode: "link",
     promoAssetUrl: "",
     promoAssetName: "",
-    checkoutColor: "#dc2626",
     checkoutBannerMode: "link",
     checkoutBannerUrl: "",
     checkoutBannerName: "",
@@ -421,7 +414,6 @@ export function getEmptyProduct(): ProductInput {
     checkoutGuaranteeText: "",
     checkoutSupportText: "",
     checkoutHighlights: "",
-    checkoutBgColor: "#ffffff",
     checkoutTestimonials: [],
     checkoutThankyouMessage: "",
     tipoEntregavel: "digital",

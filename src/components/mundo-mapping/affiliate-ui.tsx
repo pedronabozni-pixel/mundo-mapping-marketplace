@@ -3,7 +3,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ReactNode, useState } from "react";
-import { MappingPartnersLogo } from "@/components/mundo-mapping/mapping-partners-logo";
 
 export type NavLink = {
   href: string;

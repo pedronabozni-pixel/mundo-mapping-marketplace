@@ -14,7 +14,7 @@ export const SUPABASE_ANON_KEY = clean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 // Runtime diagnostic — fires the first time a missing var is observed in the
 // browser. Helps distinguish "code bug" from "missing build-time env var".
 if (typeof window !== "undefined" && (!SUPABASE_URL || !SUPABASE_ANON_KEY)) {
-  // eslint-disable-next-line no-console
+   
   console.error(
     "[Supabase env] NEXT_PUBLIC_SUPABASE_URL/ANON_KEY ausentes no bundle do client.\n" +
     "Causa: as variáveis não estavam disponíveis durante `next build`.\n" +

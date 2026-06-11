@@ -80,8 +80,6 @@ export function ProductDetail({ product }: { product: ProductRecord }) {
   const [deleteInput, setDeleteInput] = useState("");
 
   const isCheckoutDefault = useMemo(() =>
-    product.checkoutColor === "#dc2626" &&
-    product.checkoutBgColor === "#ffffff" &&
     (product.checkoutCtaLabel === "Comprar agora" || !product.checkoutCtaLabel.trim()) &&
     !product.checkoutHeadline.trim() &&
     !product.checkoutSubheadline.trim() &&
@@ -153,7 +151,7 @@ export function ProductDetail({ product }: { product: ProductRecord }) {
             <div className="rounded-[24px] bg-[linear-gradient(145deg,#ffffff_0%,#f5f5f5_40%,#fee2e2_40%,#ffffff_100%)] p-5">
               <div className="flex h-[280px] items-end rounded-[20px] bg-[linear-gradient(145deg,#111827_0%,#ef4444_80%)] p-5">
                 <div className="w-full rounded-[18px] bg-white p-4">
-                  <div className="h-28 rounded-2xl" style={{ backgroundColor: product.checkoutColor }} />
+                  <div className="h-28 rounded-2xl" style={{ backgroundColor: "#C8102E" }} />
                   <p className="mt-4 text-lg font-semibold text-zinc-950">{product.name}</p>
                 </div>
               </div>
@@ -257,10 +255,6 @@ export function ProductDetail({ product }: { product: ProductRecord }) {
             <SectionCard subtitle="Personalização visual da página de compra." title="Checkout">
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-lg border border-zinc-200" style={{ backgroundColor: product.checkoutColor }} title="Cor principal" />
-                    <div className="h-8 w-8 rounded-lg border border-zinc-200" style={{ backgroundColor: product.checkoutBgColor }} title="Cor de fundo" />
-                  </div>
                   <StatusBadge label={isCheckoutDefault ? "Padrão" : "Personalizado"} tone={isCheckoutDefault ? "neutral" : "success"} />
                 </div>
                 <div className="rounded-xl border border-zinc-100 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">

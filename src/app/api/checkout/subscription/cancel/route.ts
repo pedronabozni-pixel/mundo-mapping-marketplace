@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -6,7 +6,7 @@ import { cancelSubscription, AsaasError } from "@/lib/asaas";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   const cookieStore = await cookies();
   const supabaseSession = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -57,14 +57,17 @@ function isUrl(v: string) {
 
 type PreviewMode = "desktop" | "mobile";
 
+// Paleta única da marca: a personalização de cor por produto foi removida
+// (decisão de produto). O preview usa a cor fixa da marca.
+const BRAND_COLOR = "#C8102E";
+const PREVIEW_BG = "#ffffff";
+
 export function CheckoutEditor({ product }: { product: ProductRecord }) {
   const { updateProduct } = useProductStore();
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [previewMode, setPreviewMode] = useState<PreviewMode>("desktop");
 
-  const [checkoutColor, setCheckoutColor] = useState(product.checkoutColor || "#dc2626");
-  const [checkoutBgColor, setCheckoutBgColor] = useState(product.checkoutBgColor || "#ffffff");
   const [checkoutHeadline, setCheckoutHeadline] = useState(isUrl(product.checkoutHeadline) ? "" : product.checkoutHeadline);
   const [checkoutSubheadline, setCheckoutSubheadline] = useState(isUrl(product.checkoutSubheadline) ? "" : product.checkoutSubheadline);
   const [checkoutCtaLabel, setCheckoutCtaLabel] = useState(product.checkoutCtaLabel || "Comprar agora");
@@ -86,8 +89,6 @@ export function CheckoutEditor({ product }: { product: ProductRecord }) {
   );
 
   const isDefault =
-    checkoutColor === "#dc2626" &&
-    checkoutBgColor === "#ffffff" &&
     checkoutCtaLabel === "Comprar agora" &&
     !checkoutHeadline.trim() &&
     !checkoutSubheadline.trim() &&
@@ -120,8 +121,6 @@ export function CheckoutEditor({ product }: { product: ProductRecord }) {
     try {
       await updateProduct(product.slug, {
         ...product,
-        checkoutColor,
-        checkoutBgColor,
         checkoutHeadline,
         checkoutSubheadline,
         checkoutCtaLabel,
@@ -177,33 +176,6 @@ export function CheckoutEditor({ product }: { product: ProductRecord }) {
               {feedback.msg}
             </div>
           ) : null}
-
-          <SectionCard subtitle="Cores aplicadas em botões, destaques e fundo da página." title="Aparência">
-            <div className="grid gap-5 md:grid-cols-2">
-              <Field label="Cor principal">
-                <div className="flex items-center gap-3">
-                  <input
-                    className="h-10 w-12 cursor-pointer rounded-lg border border-zinc-200 p-1"
-                    onChange={(e) => setCheckoutColor(e.target.value)}
-                    type="color"
-                    value={checkoutColor}
-                  />
-                  <Input onChange={setCheckoutColor} value={checkoutColor} />
-                </div>
-              </Field>
-              <Field label="Cor de fundo">
-                <div className="flex items-center gap-3">
-                  <input
-                    className="h-10 w-12 cursor-pointer rounded-lg border border-zinc-200 p-1"
-                    onChange={(e) => setCheckoutBgColor(e.target.value)}
-                    type="color"
-                    value={checkoutBgColor}
-                  />
-                  <Input onChange={setCheckoutBgColor} value={checkoutBgColor} />
-                </div>
-              </Field>
-            </div>
-          </SectionCard>
 
           <SectionCard subtitle="Textos exibidos na página de compra." title="Textos e CTA">
             <div className="grid gap-5 md:grid-cols-2">
@@ -331,12 +303,10 @@ export function CheckoutEditor({ product }: { product: ProductRecord }) {
                   <div className="absolute left-1/2 top-0 z-10 h-5 w-20 -translate-x-1/2 rounded-b-2xl bg-zinc-800" />
                   <div
                     className="max-h-[560px] overflow-y-auto rounded-[32px]"
-                    style={{ backgroundColor: checkoutBgColor }}
+                    style={{ backgroundColor: PREVIEW_BG }}
                   >
                     <CheckoutPreviewContent
                       benefits={previewBenefits}
-                      checkoutBgColor={checkoutBgColor}
-                      checkoutColor={checkoutColor}
                       checkoutCtaLabel={checkoutCtaLabel}
                       checkoutGuaranteeText={checkoutGuaranteeText}
                       checkoutHeadline={checkoutHeadline}
@@ -353,12 +323,10 @@ export function CheckoutEditor({ product }: { product: ProductRecord }) {
               /* ── Desktop frame ── */
               <div
                 className="overflow-hidden rounded-2xl border border-zinc-200 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.12)]"
-                style={{ backgroundColor: checkoutBgColor }}
+                style={{ backgroundColor: PREVIEW_BG }}
               >
                 <CheckoutPreviewContent
                   benefits={previewBenefits}
-                  checkoutBgColor={checkoutBgColor}
-                  checkoutColor={checkoutColor}
                   checkoutCtaLabel={checkoutCtaLabel}
                   checkoutGuaranteeText={checkoutGuaranteeText}
                   checkoutHeadline={checkoutHeadline}
@@ -379,8 +347,6 @@ export function CheckoutEditor({ product }: { product: ProductRecord }) {
 
 type PreviewProps = {
   product: ProductRecord;
-  checkoutColor: string;
-  checkoutBgColor: string;
   checkoutHeadline: string;
   checkoutSubheadline: string;
   checkoutCtaLabel: string;
@@ -393,7 +359,6 @@ type PreviewProps = {
 
 function CheckoutPreviewContent({
   product,
-  checkoutColor,
   checkoutHeadline,
   checkoutSubheadline,
   checkoutCtaLabel,
@@ -403,6 +368,7 @@ function CheckoutPreviewContent({
   benefits,
   testimonials,
 }: PreviewProps) {
+  const checkoutColor = BRAND_COLOR;
   return (
     <>
       {/* header */}

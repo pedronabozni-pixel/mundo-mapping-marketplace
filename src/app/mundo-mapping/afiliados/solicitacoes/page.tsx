@@ -135,7 +135,7 @@ export default function SolicitacoesPage() {
       .filter((p) => p.status === "aprovado")
       .map((p) => p.produto_id);
 
-    let linkMap: Record<string, string> = {};
+    const linkMap: Record<string, string> = {};
     if (approvedProductIds.length > 0) {
       const { data: links } = await supabase
         .from("links_afiliados")

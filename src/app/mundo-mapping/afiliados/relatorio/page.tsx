@@ -112,7 +112,7 @@ function MetricCard({ label, value, sub, icon, loading }: { label: string; value
   );
 }
 
-function UpgradeWall({ plan, onUpgrade }: { plan: Plan; onUpgrade: () => void }) {
+function UpgradeWall({ onUpgrade }: { plan: Plan; onUpgrade: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center p-12 text-center">
       <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl" style={{ background: "rgba(255,255,255,0.06)" }}>

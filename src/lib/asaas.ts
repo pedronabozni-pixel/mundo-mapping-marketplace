@@ -119,6 +119,9 @@ export function isPaymentApproved(status: string): boolean {
 // ─── Error mapping ────────────────────────────────────────────────────────────
 
 const CODE_MESSAGES: Record<string, string> = {
+  // Erro de configuração da conta Asaas (ex.: domínio do callback não cadastrado)
+  // — não é culpa do cartão do comprador.
+  invalid_object: "Pagamento com cartão indisponível no momento. Use PIX.",
   invalid_creditcard: "Cartão inválido. Verifique os dados e tente novamente.",
   invalid_creditcard_number: "Número de cartão inválido.",
   invalid_creditcard_holder: "Nome do titular inválido.",
@@ -131,33 +134,11 @@ const CODE_MESSAGES: Record<string, string> = {
   do_not_honor: "Pagamento não autorizado pelo banco.",
 };
 
-const DECLINE_MESSAGES: Record<string, string> = {
-  INSUFFICIENT_FUNDS: "Cartão sem limite disponível.",
-  NO_FUNDS: "Cartão sem limite disponível.",
-  EXPIRED_CARD: "Cartão expirado.",
-  INVALID_CARD: "Cartão inválido. Verifique os dados.",
-  BLOCKED: "Cartão bloqueado.",
-  DO_NOT_HONOR: "Pagamento não autorizado pelo banco.",
-};
-
 export function mapAsaasCode(code: string): string {
   return (
     CODE_MESSAGES[code.toLowerCase().replace(/-/g, "_")] ??
     "Pagamento recusado. Tente outro cartão ou use o PIX."
   );
-}
-
-export function mapDeclineReason(payment: AsaasPayment): string {
-  if (payment.failReasonCode) {
-    const msg = DECLINE_MESSAGES[payment.failReasonCode.toUpperCase()];
-    if (msg) return msg;
-  }
-  if (payment.deniedReason) {
-    const key = payment.deniedReason.toUpperCase().replace(/\s+/g, "_");
-    const msg = DECLINE_MESSAGES[key];
-    if (msg) return msg;
-  }
-  return "Pagamento recusado. Tente outro cartão ou use o PIX.";
 }
 
 // ─── Customers ────────────────────────────────────────────────────────────────
@@ -189,69 +170,6 @@ export async function findOrCreateCustomer(data: {
 }
 
 // ─── Payments ─────────────────────────────────────────────────────────────────
-
-/** Creates a credit card payment. Card data is never logged in this function. */
-export async function createCardPayment(data: {
-  customerId: string;
-  value: number;
-  installmentCount: number;
-  description?: string;
-  creditCard: {
-    holderName: string;
-    number: string;
-    expiryMonth: string;
-    expiryYear: string;
-    ccv: string;
-  };
-  holderInfo: {
-    name: string;
-    email: string;
-    cpfCnpj: string;
-    mobilePhone?: string;
-    postalCode?: string;
-    addressNumber?: string;
-  };
-  remoteIp?: string;
-}): Promise<AsaasPayment> {
-  const { installmentCount, value } = data;
-  const useInstallments = installmentCount > 1;
-
-  return asaasReq<AsaasPayment>("/payments", {
-    method: "POST",
-    body: JSON.stringify({
-      customer: data.customerId,
-      billingType: "CREDIT_CARD",
-      value,
-      dueDate: todayISO(),
-      description: data.description ?? "Compra",
-      ...(useInstallments && {
-        installmentCount,
-        installmentValue: Math.ceil((value / installmentCount) * 100) / 100,
-      }),
-      capture: true,
-      ...(data.remoteIp ? { remoteIp: data.remoteIp } : {}),
-      creditCard: {
-        holderName: data.creditCard.holderName,
-        number: digitsOnly(data.creditCard.number),
-        expiryMonth: data.creditCard.expiryMonth,
-        expiryYear: data.creditCard.expiryYear,
-        ccv: data.creditCard.ccv,
-      },
-      creditCardHolderInfo: {
-        name: data.holderInfo.name,
-        email: data.holderInfo.email,
-        cpfCnpj: digitsOnly(data.holderInfo.cpfCnpj),
-        mobilePhone: data.holderInfo.mobilePhone
-          ? digitsOnly(data.holderInfo.mobilePhone)
-          : undefined,
-        postalCode: data.holderInfo.postalCode
-          ? digitsOnly(data.holderInfo.postalCode)
-          : undefined,
-        addressNumber: data.holderInfo.addressNumber ?? undefined,
-      },
-    }),
-  });
-}
 
 /**
  * Creates a CREDIT_CARD charge WITHOUT card data, so Asaas returns an
@@ -408,11 +326,6 @@ export async function getSubscriptionPayments(subscriptionId: string): Promise<{
   return asaasReq<{ data: AsaasPayment[] }>(
     `/payments?subscription=${encodeURIComponent(subscriptionId)}`
   );
-}
-
-/** Returns a subscription by ID. */
-export async function getSubscription(subscriptionId: string): Promise<AsaasSubscription> {
-  return asaasReq<AsaasSubscription>(`/subscriptions/${encodeURIComponent(subscriptionId)}`);
 }
 
 /** Cancels (deletes) a subscription. */

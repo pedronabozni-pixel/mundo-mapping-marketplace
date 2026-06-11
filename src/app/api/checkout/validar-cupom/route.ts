@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
       valor_final,
       mensagem: `Cupom aplicado! Você economizou R$ ${valor_desconto.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
     });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ valido: false, mensagem: "Erro ao validar cupom." }, { status: 500 });
   }
 }

@@ -220,7 +220,8 @@ export async function POST(req: NextRequest) {
       pixQrCode = qr.encodedImage;
       pixExpirationDate = qr.expirationDate;
       break;
-    } catch (e) {
+    } catch {
+      // QR PIX indisponível nesta tentativa — segue para a próxima.
     }
   }
 

@@ -15,8 +15,6 @@ export type Produto = {
   checkout_subheadline: string | null;
   checkout_cta: string | null;
   checkout_garantia: string | null;
-  checkout_cor: string | null;
-  checkout_cor_fundo: string | null;
   checkout_highlights: string | null;
   checkout_depoimentos: Array<{ name: string; role?: string; text: string; photo?: string }> | null;
   checkout_mensagem_obrigado: string | null;
@@ -60,7 +58,7 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
     .select(
       `id, slug, nome, empresa_id, empresa_nome, preco, tipo_entregavel,
        checkout_headline, checkout_subheadline, checkout_cta, checkout_garantia,
-       checkout_cor, checkout_cor_fundo, checkout_highlights, checkout_depoimentos,
+       checkout_highlights, checkout_depoimentos,
        checkout_mensagem_obrigado, capa_url, comissao_tipo, comissao_valor,
        order_bump_ativo, order_bump_produto_id, order_bump_preco, order_bump_texto, order_bump_descricao,
        upsell_ativo, upsell_produto_id, upsell_preco, upsell_headline, upsell_timer_minutos`

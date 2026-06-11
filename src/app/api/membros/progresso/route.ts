@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ ok: true });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ ok: false, error: "Erro interno." }, { status: 500 });
   }
 }
