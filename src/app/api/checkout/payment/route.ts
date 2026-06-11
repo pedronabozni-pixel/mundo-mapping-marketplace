@@ -121,6 +121,7 @@ export async function POST(req: NextRequest) {
       });
       asaasCustomerId = customer.id;
     } catch (err) {
+      console.error("[asaas] customer error", asaasErrorInfo(err));
       return NextResponse.json({ ok: false, error: "Não foi possível processar o cliente." }, { status: 502 });
     }
 
@@ -177,6 +178,9 @@ export async function POST(req: NextRequest) {
           remoteIp,
         });
       } catch (err) {
+        // Observabilidade: o erro real do Asaas só existe aqui — logar antes de
+        // mapear para a mensagem genérica. NUNCA logar o payload (dados pessoais).
+        console.error("[asaas] card hosted error", asaasErrorInfo(err));
         // Cobrança não criada: remove o pedido órfão para não deixar lixo pendente.
         await supabase.from("pedidos").delete().eq("id", pedido.id);
         const msg = err instanceof AsaasError
@@ -222,6 +226,7 @@ export async function POST(req: NextRequest) {
         });
         qrCode = await getPixQrCode(asaasPayment.id);
       } catch (err) {
+        console.error("[asaas] pix error", asaasErrorInfo(err));
         return NextResponse.json({ ok: false, error: "Não foi possível gerar o PIX. Tente novamente." }, { status: 502 });
       }
 
@@ -269,6 +274,15 @@ export async function POST(req: NextRequest) {
 }
 
 // ── Internal helpers ──────────────────────────────────────────────────────────
+
+// Extrai só código/mensagem/status HTTP do erro para log — nunca o payload da
+// requisição (contém dados pessoais do comprador).
+function asaasErrorInfo(err: unknown) {
+  if (err instanceof AsaasError) {
+    return { code: err.code, message: err.message, httpStatus: err.httpStatus };
+  }
+  return { message: err instanceof Error ? err.message : String(err) };
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function incrementCupomUso(supabase: any, produto_id: string, cupom_codigo: string) {
