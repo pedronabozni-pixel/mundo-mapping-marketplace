@@ -397,7 +397,7 @@ function Navbar() {
       }}
     >
       <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-5 lg:px-10">
-        <Link href="/mundo-mapping/partners" data-hover aria-label="Mapping Partners — voltar para o topo">
+        <Link href="/mundo-mapping/partners" data-hover aria-label="Mapping Partners, voltar para o topo">
           <MappingPartnersLogo onDark size="md" subtitle="Mapping Partners" />
         </Link>
 
@@ -647,7 +647,7 @@ function Hero() {
 
           {/* Headline */}
           <h1 className="mp-hero-h1 mt-7 text-white text-[40px] sm:text-[52px] lg:text-[60px] xl:text-[68px]">
-            <span className="block"><SplitWords text="A maior rede de" delay={0.1} /></span>
+            <span className="block"><SplitWords text="A melhor rede de" delay={0.1} /></span>
             <span className="block overflow-hidden align-bottom">
               <motion.span
                 className="inline-block italic text-[var(--mp-accent)]"
@@ -668,7 +668,7 @@ function Hero() {
             transition={{ duration: 0.8, delay: 0.85 }}
             className="mt-7 max-w-md text-[15px] leading-[1.7] text-white/55 md:text-[16px]"
           >
-            16.000 creators validados. 80+ nichos. 1.950 cidades.
+            16.000 creators validados. +100 nichos. 1.950 cidades.
             A plataforma de afiliados de performance da Mundo Mapping.
           </motion.p>
 
@@ -727,7 +727,7 @@ function Hero() {
           <div className="relative">
             <PhoneMockup reduce={reduce} />
 
-            {/* Instagram card — top left */}
+            {/* Instagram card - top left */}
             <FloatingCard className="-left-16 top-8" delay={1.2} drift={false}>
               <div className="flex items-center gap-3">
                 <span
@@ -743,7 +743,7 @@ function Hero() {
               </div>
             </FloatingCard>
 
-            {/* TikTok card — right */}
+            {/* TikTok card - right */}
             <FloatingCard className="-right-20 top-1/2" delay={1.45} drift>
               <div className="flex items-center gap-3">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-black text-white">
@@ -756,7 +756,7 @@ function Hero() {
               </div>
             </FloatingCard>
 
-            {/* Commission card — bottom right */}
+            {/* Commission card - bottom right */}
             <FloatingCard className="-right-10 bottom-6" delay={1.7} drift={false}>
               <div className="flex items-center gap-3">
                 <span
@@ -808,11 +808,10 @@ function Hero() {
 function Marquee() {
   const items = [
     "16.000+ creators validados",
-    "80+ nichos",
+    "+100 nichos",
     "1.950 cidades",
     "R$ 8M+ em vendas",
     "+650 marcas ativas",
-    "20% de taxa de reprovação",
   ];
   const doubled = [...items, ...items];
 
@@ -833,7 +832,7 @@ function Marquee() {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-//  3b. CREATORS MARQUEE (rede ativa — handles rolando)
+//  3b. CREATORS MARQUEE (rede ativa - handles rolando)
 // ════════════════════════════════════════════════════════════════════════════
 
 function CreatorsMarquee() {
@@ -911,13 +910,13 @@ function Manifesto() {
           </h2>
           <div className="mt-12 grid gap-8 sm:grid-cols-2">
             <p className="text-[15px] leading-[1.8] text-white/60">
-              O Mapping Partners não é mais uma plataforma de creators. É a infraestrutura por trás dos
-              afiliados das maiores marcas do Brasil — com curadoria humana, validação técnica e wallet
-              automático via Asaas.
+              A Mapping Partners não é mais uma plataforma de creators. É a infraestrutura por trás dos
+              afiliados das maiores marcas do Brasil: curadoria humana, validação técnica e wallet
+              financeira automática.
             </p>
             <p className="text-[15px] leading-[1.8] text-white/60">
               Cada creator passa por uma análise rigorosa de audiência, engajamento e adequação ao nicho.
-              20% dos perfis são reprovados. Quem entra, vende.
+              Quem entra, vende.
             </p>
           </div>
         </Reveal>
@@ -933,7 +932,7 @@ function Manifesto() {
 function Metricas() {
   const stats = [
     { value: 16000, prefix: "+", suffix: "", label: "Creators validados", format: (n: number) => n.toLocaleString("pt-BR") },
-    { value: 80, prefix: "+", suffix: "", label: "Nichos cobertos", format: (n: number) => String(n) },
+    { value: 100, prefix: "+", suffix: "", label: "Nichos cobertos", format: (n: number) => String(n) },
     { value: 1950, prefix: "", suffix: "", label: "Cidades atendidas", format: (n: number) => n.toLocaleString("pt-BR") },
     { value: 8, prefix: "R$", suffix: "M+", label: "Em vendas geradas", format: (n: number) => String(n) },
   ];
@@ -1001,7 +1000,7 @@ function ComoFunciona() {
       n: "02",
       kicker: "Curadoria",
       title: "Receba creators validados",
-      desc: "20% dos perfis são reprovados. Quem aparece no seu dashboard tem audiência real, engajamento real e nicho compatível.",
+      desc: "Quem aparece no seu dashboard tem audiência real, engajamento real e nicho compatível.",
       icon: <Icon.Sparkle size={14} />,
     },
     {
@@ -1014,7 +1013,7 @@ function ComoFunciona() {
     {
       n: "04",
       kicker: "Pagamento",
-      title: "Wallet Asaas automático",
+      title: "Wallet financeira automática",
       desc: "Comissão cai direto na conta do creator no momento da venda. Risco zero, sem mensalidade obrigatória.",
       icon: <Icon.Wallet size={14} />,
     },
@@ -1110,8 +1109,8 @@ function DuasFrentes() {
     {
       tag: "Para creators",
       title: "Monetize sua audiência.",
-      desc: "Escolha produtos alinhados ao seu nicho, gere link de afiliado e receba comissão em wallet Asaas automaticamente — sem precisar de CNPJ.",
-      bullets: ["Marketplace de +650 marcas", "Wallet Asaas criada na hora", "Comissão direta na conta", "Comece sem custo"],
+      desc: "Escolha produtos alinhados ao seu nicho, gere link de afiliado e receba comissão na sua wallet financeira automaticamente, sem precisar de CNPJ.",
+      bullets: ["Marketplace de +650 marcas", "Wallet financeira criada na hora", "Comissão direta na conta", "Comece sem custo"],
       cta: { label: "Sou creator", href: "/mundo-mapping/influenciador/login" },
       accent: false,
     },
@@ -1201,8 +1200,8 @@ function Planos() {
       price: "Grátis",
       period: "",
       sub: "Comece sem custo",
-      fee: "Asaas + 2% por venda",
-      features: ["1 produto no marketplace", "Acesso à base de +16k creators", "Link de afiliado básico"],
+      fee: "2% por venda",
+      features: ["1 produto no marketplace", "Link de afiliado básico"],
       cta: "Começar grátis",
       href: "/mundo-mapping/empresa/login",
       highlight: false,
@@ -1212,9 +1211,10 @@ function Planos() {
       price: "R$ 117",
       period: "/mês",
       sub: "Mais popular",
-      fee: "Asaas + R$ 0,99 por venda",
+      fee: "R$ 0,99 por venda",
       features: [
         "Até 10 produtos",
+        "Acesso à base de +16k creators",
         "Dashboard de performance",
         "Curadoria automática por nicho",
         "Identidade dos creators",
@@ -1229,7 +1229,7 @@ function Planos() {
       price: "R$ 197",
       period: "/mês",
       sub: "Máxima performance",
-      fee: "Asaas + R$ 0,49 por venda",
+      fee: "R$ 0,49 por venda",
       features: [
         "Tudo do Partner",
         "Produtos ilimitados",
@@ -1258,7 +1258,7 @@ function Planos() {
               </h2>
             </div>
             <p className="mp-mono max-w-xs text-[13px] leading-[1.7] text-white/45">
-              Taxas adicionais sobre as do Asaas. Quanto maior o plano, menor a taxa por venda — e maior seu lucro.
+              Quanto maior o plano, menor a taxa por venda, maior o seu lucro.
             </p>
           </div>
         </Reveal>
