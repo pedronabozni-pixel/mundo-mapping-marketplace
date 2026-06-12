@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireEmpresaCreatorsSession } from "@/lib/creators-gate";
+import { requireEmpresaCreatorsSession, contarConvites24h } from "@/lib/creators-gate";
+import { LIMITE_CONVITES_DIA } from "@/lib/plano-creators";
 
 export const dynamic = "force-dynamic";
 
@@ -108,11 +109,22 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 
+  // Elite vê o saldo do limite diário de convites (a checagem que vale é a da
+  // rota de convite; aqui é informativo para o chip da vitrine).
+  let convitesRestantesHoje: number | undefined;
+  if (tier === "elite") {
+    const usados = await contarConvites24h(admin, gate.session.userId);
+    convitesRestantesHoje = Math.max(0, LIMITE_CONVITES_DIA - usados);
+  }
+
   return NextResponse.json({
     tier,
     total: count ?? 0,
     page,
     per_page: PER_PAGE,
     creators: data ?? [],
+    ...(convitesRestantesHoje !== undefined
+      ? { convites_restantes_hoje: convitesRestantesHoje, limite_convites_dia: LIMITE_CONVITES_DIA }
+      : {}),
   });
 }

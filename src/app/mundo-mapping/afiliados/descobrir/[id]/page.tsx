@@ -108,7 +108,7 @@ export default function PerfilCreatorPage() {
   const [data, setData] = useState<{ tier: "pago" | "elite"; creator: CreatorDetail } | null>(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
-  const [convite, setConvite] = useState<"idle" | "enviando" | "registrado" | "ja_convidado">("idle");
+  const [convite, setConvite] = useState<"idle" | "enviando" | "registrado" | "ja_convidado" | "limite">("idle");
 
   useEffect(() => {
     (async () => {
@@ -130,6 +130,11 @@ export default function PerfilCreatorPage() {
     try {
       const res = await fetch(`/api/empresa/creators/${id}/convidar`, { method: "POST" });
       const body = await res.json();
+      // Limite diário (server-side é a fonte da verdade): mostra estado próprio.
+      if (res.status === 429 && body?.limite) {
+        setConvite("limite");
+        return;
+      }
       if (!res.ok) throw new Error(body?.error ?? "erro");
       setConvite(body.ja_convidado ? "ja_convidado" : "registrado");
     } catch {
@@ -172,7 +177,12 @@ export default function PerfilCreatorPage() {
           ← Voltar para a base
         </Link>
         {isElite ? (
-          convite === "registrado" || convite === "ja_convidado" ? (
+          convite === "limite" ? (
+            <span className="flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-5 py-2.5 text-xs font-semibold text-[#555]">
+              <IconLock />
+              Limite diário atingido
+            </span>
+          ) : convite === "registrado" || convite === "ja_convidado" ? (
             <span className="rounded-xl px-5 py-2.5 text-xs font-bold" style={{ backgroundColor: "rgba(74,222,128,0.12)", color: "#4ADE80" }}>
               {convite === "registrado" ? "✓ Convite registrado" : "✓ Já convidado"}
             </span>

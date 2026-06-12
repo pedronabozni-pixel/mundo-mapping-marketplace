@@ -37,6 +37,8 @@ type ListResponse = {
   page?: number;
   per_page?: number;
   creators?: Creator[];
+  convites_restantes_hoje?: number;
+  limite_convites_dia?: number;
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -120,7 +122,7 @@ function CreatorBadge({ ativado }: { ativado: boolean | null }) {
 
 // ─── Card do creator ──────────────────────────────────────────────────────────
 
-function CreatorCard({ creator, tier }: { creator: Creator; tier: "pago" | "elite" }) {
+function CreatorCard({ creator, tier, limiteEsgotado }: { creator: Creator; tier: "pago" | "elite"; limiteEsgotado?: boolean }) {
   const seg = maiorAudiencia(creator);
   const local = [creator.cidade, creator.estado].filter(Boolean).join(" · ");
   return (
@@ -154,13 +156,20 @@ function CreatorCard({ creator, tier }: { creator: Creator; tier: "pago" | "elit
 
       <div className="mt-4">
         {tier === "elite" ? (
-          <Link
-            className="block w-full rounded-xl py-2.5 text-center text-xs font-bold text-white transition hover:opacity-90"
-            href={`/mundo-mapping/afiliados/descobrir/${creator.id}`}
-            style={{ backgroundColor: RED }}
-          >
-            Convidar para se afiliar
-          </Link>
+          limiteEsgotado ? (
+            <span className="flex w-full cursor-not-allowed items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] py-2.5 text-xs font-semibold text-[#555]">
+              <IconLock />
+              Limite diário atingido
+            </span>
+          ) : (
+            <Link
+              className="block w-full rounded-xl py-2.5 text-center text-xs font-bold text-white transition hover:opacity-90"
+              href={`/mundo-mapping/afiliados/descobrir/${creator.id}`}
+              style={{ backgroundColor: RED }}
+            >
+              Convidar para se afiliar
+            </Link>
+          )
         ) : (
           <Link
             className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] py-2.5 text-xs font-semibold text-[#888] transition hover:text-white"
@@ -372,6 +381,11 @@ export default function DescobrirCreatorsPage() {
             {total.toLocaleString("pt-BR")} creators
           </span>
         )}
+        {tier === "elite" && data?.convites_restantes_hoje !== undefined && (
+          <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-xs font-semibold text-[#888]">
+            Convites hoje: {(data.limite_convites_dia ?? 10) - data.convites_restantes_hoje}/{data.limite_convites_dia ?? 10}
+          </span>
+        )}
       </div>
 
       {erro && (
@@ -436,7 +450,12 @@ export default function DescobrirCreatorsPage() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {creators.map((c) => (
-                <CreatorCard creator={c} key={c.id} tier={tier} />
+                <CreatorCard
+                  creator={c}
+                  key={c.id}
+                  limiteEsgotado={tier === "elite" && data?.convites_restantes_hoje === 0}
+                  tier={tier}
+                />
               ))}
             </div>
           )}

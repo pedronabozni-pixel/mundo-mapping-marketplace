@@ -41,3 +41,15 @@ export async function requireEmpresaCreatorsSession(): Promise<GateResult> {
 
   return { ok: true, session: { userId: user.id, tier: getTierCreators(profile) } };
 }
+
+/** Convites registrados pela empresa nas últimas 24h (janela móvel). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function contarConvites24h(admin: any, empresaId: string): Promise<number> {
+  const desde = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { count } = await admin
+    .from("convites_creators")
+    .select("id", { count: "exact", head: true })
+    .eq("empresa_id", empresaId)
+    .gte("criado_em", desde);
+  return count ?? 0;
+}

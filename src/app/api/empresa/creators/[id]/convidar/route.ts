@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireEmpresaCreatorsSession } from "@/lib/creators-gate";
+import { requireEmpresaCreatorsSession, contarConvites24h } from "@/lib/creators-gate";
+import { LIMITE_CONVITES_DIA } from "@/lib/plano-creators";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,16 @@ export async function POST(
   const { id } = await params;
   const admin = createAdminClient();
 
+  // Limite diário SERVER-SIDE (o front desabilitar o botão é só cortesia):
+  // conta os convites da empresa nas últimas 24h ANTES de inserir.
+  const usados = await contarConvites24h(admin, gate.session.userId);
+  if (usados >= LIMITE_CONVITES_DIA) {
+    return NextResponse.json(
+      { ok: false, limite: true, mensagem: `Você atingiu o limite de ${LIMITE_CONVITES_DIA} convites por dia.` },
+      { status: 429 },
+    );
+  }
+
   // Confere existência do creator antes de registrar (colunas nomeadas).
   const { data: creator } = await admin
     .from("creators_legado")
@@ -39,11 +50,12 @@ export async function POST(
 
   if (error) {
     // 23505 = unique violation: esta empresa já convidou este creator.
+    // Não cria registro, logo NÃO consome o limite diário.
     if (error.code === "23505") {
-      return NextResponse.json({ ok: true, ja_convidado: true });
+      return NextResponse.json({ ok: true, ja_convidado: true, restantes: LIMITE_CONVITES_DIA - usados });
     }
     return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, ja_convidado: false });
+  return NextResponse.json({ ok: true, ja_convidado: false, restantes: LIMITE_CONVITES_DIA - usados - 1 });
 }
