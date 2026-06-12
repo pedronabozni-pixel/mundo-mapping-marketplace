@@ -15,6 +15,7 @@ export const affiliateNavLinks: NavLink[] = [
   { href: "/mundo-mapping/afiliados/produtos", label: "Meus produtos" },
   { href: "/mundo-mapping/afiliados/solicitacoes", label: "Solicitações" },
   { href: "/mundo-mapping/afiliados/creators", label: "Creators" },
+  { href: "/mundo-mapping/afiliados/descobrir", label: "Encontrar creators" },
   { href: "/mundo-mapping/afiliados/financeiro", label: "Financeiro" },
   { href: "/mundo-mapping/afiliados/relatorio", label: "Relatório" },
   { href: "/mundo-mapping/afiliados/perfil", label: "Perfil" },
@@ -52,6 +53,16 @@ function IconUsers() {
       <circle cx="9" cy="7" r="4" />
       <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
       <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+function IconUserSearch() {
+  return (
+    <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} viewBox="0 0 24 24">
+      <circle cx="9" cy="7" r="4" />
+      <path d="M2 21v-2a4 4 0 0 1 4-4h5" />
+      <circle cx="17" cy="16" r="3.5" />
+      <path d="m22 21-2.5-2.5" />
     </svg>
   );
 }
@@ -111,6 +122,7 @@ const sidebarItems: Array<{ href: string; label: string; Icon: () => ReactNode }
   { href: "/mundo-mapping/afiliados", label: "Dashboard", Icon: IconGrid },
   { href: "/mundo-mapping/afiliados/produtos", label: "Produtos", Icon: IconBox },
   { href: "/mundo-mapping/afiliados/creators", label: "Creators", Icon: IconUsers },
+  { href: "/mundo-mapping/afiliados/descobrir", label: "Encontrar creators", Icon: IconUserSearch },
   { href: "/mundo-mapping/afiliados/solicitacoes", label: "Solicitações", Icon: IconClipboard },
   { href: "/mundo-mapping/afiliados/financeiro", label: "Financeiro", Icon: IconDollar },
   { href: "/mundo-mapping/afiliados/relatorio", label: "Relatórios", Icon: IconBarChart },
