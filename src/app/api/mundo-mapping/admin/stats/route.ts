@@ -11,6 +11,8 @@ export async function GET() {
   const [
     { count: totalEmpresas },
     { count: totalInfluenciadores },
+    { count: legadoTotal },
+    { count: legadoAtivados },
     { data: linksData },
     { data: vendasData },
     { data: recentProfiles },
@@ -18,6 +20,8 @@ export async function GET() {
   ] = await Promise.all([
     admin.from("profiles").select("*", { count: "exact", head: true }).eq("user_type", "empresa"),
     admin.from("profiles").select("*", { count: "exact", head: true }).eq("user_type", "influenciador"),
+    admin.from("creators_legado").select("id", { count: "exact", head: true }),
+    admin.from("creators_legado").select("id", { count: "exact", head: true }).eq("ativado", true),
     admin.from("links_afiliados").select("cliques").eq("ativo", true),
     admin.from("vendas").select("comissao"),
     admin
@@ -39,6 +43,8 @@ export async function GET() {
   return NextResponse.json({
     totalEmpresas: totalEmpresas ?? 0,
     totalInfluenciadores: totalInfluenciadores ?? 0,
+    legadoTotal: legadoTotal ?? 0,
+    legadoAtivados: legadoAtivados ?? 0,
     totalLinksAtivos: links.length,
     totalCliques: links.reduce((s, l) => s + ((l.cliques as number) ?? 0), 0),
     totalVendas: vendas.length,

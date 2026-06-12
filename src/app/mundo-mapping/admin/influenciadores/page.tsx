@@ -243,6 +243,8 @@ export default function AdminInfluenciadoresPage() {
         )}
       </AdminSection>
 
+      <BaseLegadoSection />
+
       {confirm && (
         <ConfirmDialog
           danger={["desativar", "reprovar"].includes(confirm.action)}
@@ -253,5 +255,142 @@ export default function AdminInfluenciadoresPage() {
         />
       )}
     </div>
+  );
+}
+
+
+// ─── Base legado (Mundo Mapping) ──────────────────────────────────────────────
+// Visão do dono da base: e-mail é exibido; celular e ids do Asaas nunca chegam
+// (a rota admin/creators-legado não os seleciona).
+
+type LegadoRow = {
+  id: string;
+  nome: string | null;
+  email: string | null;
+  rede_principal: string | null;
+  instagram_seguidores: number | null;
+  tiktok_seguidores: number | null;
+  youtube_inscritos: number | null;
+  ativado: boolean | null;
+  ativado_em: string | null;
+};
+
+const LEGADO_PAGE_SIZE = 20;
+
+function fmtDataAtivacao(iso: string | null) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function maiorAudiencia(r: LegadoRow) {
+  return Math.max(r.instagram_seguidores ?? 0, r.tiktok_seguidores ?? 0, r.youtube_inscritos ?? 0);
+}
+
+function BaseLegadoSection() {
+  const [rows, setRows] = useState<LegadoRow[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [q, setQ] = useState("");
+  const [busca, setBusca] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+
+  const load = useCallback(async (p: number, termo: string) => {
+    setLoading(true);
+    setLoadError(false);
+    try {
+      const params = new URLSearchParams({ page: String(p) });
+      if (termo) params.set("q", termo);
+      const res = await fetch(`/api/mundo-mapping/admin/creators-legado?${params}`);
+      if (!res.ok) throw new Error(String(res.status));
+      const data = await res.json();
+      setRows(data.rows ?? []);
+      setTotal(data.total ?? 0);
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(page, busca); }, [page, busca, load]);
+
+  return (
+    <AdminSection
+      subtitle={`${total.toLocaleString("pt-BR")} creators importados da Mundo Mapping — ativados aparecem primeiro.`}
+      title="Base legado (Mundo Mapping)"
+    >
+      <div className="mb-4 flex flex-wrap gap-3">
+        <input
+          className="w-72 rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] px-4 py-2.5 text-sm text-[#aaa] placeholder:text-[#555] outline-none focus:border-[#C8102E]"
+          onChange={(e) => setQ(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { setPage(1); setBusca(q); } }}
+          placeholder="Buscar por nome ou e-mail…"
+          type="text"
+          value={q}
+        />
+        <button
+          className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] px-4 py-2 text-sm font-semibold text-[#aaa] transition hover:bg-[rgba(255,255,255,0.08)]"
+          onClick={() => { setPage(1); setBusca(q); }}
+          type="button"
+        >
+          Buscar
+        </button>
+      </div>
+
+      {loadError ? (
+        <div className="flex flex-col items-center gap-3 py-10">
+          <p className="text-sm text-[#888]">Erro ao carregar a base legado.</p>
+          <button
+            className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] px-4 py-2 text-sm font-semibold text-[#aaa] transition hover:bg-[rgba(255,255,255,0.08)]"
+            onClick={() => load(page, busca)}
+            type="button"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      ) : loading ? (
+        <div className="space-y-3">
+          {[...Array(6)].map((_, i) => <Skeleton className="h-12" key={i} />)}
+        </div>
+      ) : rows.length === 0 ? (
+        <p className="py-8 text-center text-sm text-[#555]">Nenhum creator encontrado na base legado.</p>
+      ) : (
+        <>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[rgba(255,255,255,0.06)] text-left text-xs font-semibold uppercase tracking-[0.1em] text-[#555]">
+                  <th className="pb-3">Nome</th>
+                  <th className="pb-3">Rede principal</th>
+                  <th className="pb-3 text-right">Seguidores</th>
+                  <th className="pb-3">Status</th>
+                  <th className="pb-3">Ativação</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
+                {rows.map((r) => (
+                  <tr key={r.id}>
+                    <td className="py-3">
+                      <p className="font-medium text-[#aaa]">{r.nome ?? "—"}</p>
+                      <p className="text-xs text-[#555]">{r.email ?? "—"}</p>
+                    </td>
+                    <td className="py-3 text-[#888]">{r.rede_principal ?? "—"}</td>
+                    <td className="py-3 text-right font-semibold text-[#aaa]">
+                      {maiorAudiencia(r) > 0 ? maiorAudiencia(r).toLocaleString("pt-BR") : "—"}
+                    </td>
+                    <td className="py-3">
+                      <AdminBadge label={r.ativado ? "Ativado" : "Não ativado"} tone={r.ativado ? "success" : "neutral"} />
+                    </td>
+                    <td className="py-3 text-xs text-[#888]">{fmtDataAtivacao(r.ativado_em)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <Pagination onChange={(p) => setPage(p)} page={page} pageSize={LEGADO_PAGE_SIZE} total={total} />
+        </>
+      )}
+    </AdminSection>
   );
 }

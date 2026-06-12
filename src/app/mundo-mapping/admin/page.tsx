@@ -6,6 +6,8 @@ import { AdminCard, AdminSection, Skeleton, AdminBadge, PlanBadge } from "@/comp
 type Stats = {
   totalEmpresas: number;
   totalInfluenciadores: number;
+  legadoTotal: number;
+  legadoAtivados: number;
   totalLinksAtivos: number;
   totalCliques: number;
   totalVendas: number;
@@ -64,6 +66,8 @@ export default function AdminDashboard() {
     setStats({
       totalEmpresas: json.totalEmpresas,
       totalInfluenciadores: json.totalInfluenciadores,
+      legadoTotal: json.legadoTotal ?? 0,
+      legadoAtivados: json.legadoAtivados ?? 0,
       totalLinksAtivos: json.totalLinksAtivos,
       totalCliques: json.totalCliques,
       totalVendas: json.totalVendas,
@@ -123,6 +127,12 @@ export default function AdminDashboard() {
           loading={loading}
           sub="Usuários com tipo influenciador"
           value={stats ? String(stats.totalInfluenciadores) : "0"}
+        />
+        <AdminCard
+          label="Base legado (Mundo Mapping)"
+          loading={loading}
+          sub={stats ? `${stats.legadoAtivados.toLocaleString("pt-BR")} já ativaram a conta` : "—"}
+          value={stats ? `${stats.legadoTotal.toLocaleString("pt-BR")} creators` : "0"}
         />
         <AdminCard
           label="Links de afiliado ativos"
