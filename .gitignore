@@ -11,3 +11,8 @@ tsconfig.tsbuildinfo
 public/uploads/store/
 .data/
 genesis-loja-clean/
+
+# Dumps da base legado (dados pessoais + hashes de senha) — NUNCA commitar
+mapping-dump-*.sql
+*.sql.gz
+dumps/
