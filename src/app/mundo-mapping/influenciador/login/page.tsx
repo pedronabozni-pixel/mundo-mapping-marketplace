@@ -6,6 +6,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
+import { formatPhone } from "@/lib/cpf";
 
 type Tab = "entrar" | "cadastrar";
 
@@ -136,6 +137,11 @@ export default function InfluenciadorLoginPage() {
       const confirm = fd.get("confirm") as string;
       if (password !== confirm) {
         setError("As senhas não coincidem.");
+        return;
+      }
+      const phoneDigits = ((fd.get("phone") as string) ?? "").replace(/\D/g, "");
+      if (phoneDigits.length < 10 || phoneDigits.length > 11) {
+        setError("Informe um celular válido com DDD.");
         return;
       }
       // Dupla checagem do legado no submit (cobre e-mail colado sem blur).
@@ -522,8 +528,12 @@ export default function InfluenciadorLoginPage() {
                   </label>
                   <input
                     className={inputCls}
+                    inputMode="tel"
+                    maxLength={15}
                     name="phone"
+                    onChange={(e) => { e.target.value = formatPhone(e.target.value); }}
                     placeholder="(11) 99999-9999"
+                    required
                   />
                 </div>
               </div>

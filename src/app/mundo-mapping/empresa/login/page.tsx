@@ -6,6 +6,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
+import { formatPhone } from "@/lib/cpf";
 
 type Tab = "entrar" | "cadastrar";
 
@@ -79,6 +80,11 @@ export default function EmpresaLoginPage() {
         setError("As senhas não coincidem.");
         return;
       }
+      const phoneDigits = ((fd.get("phone") as string) ?? "").replace(/\D/g, "");
+      if (phoneDigits.length < 10 || phoneDigits.length > 11) {
+        setError("Informe um celular válido com DDD.");
+        return;
+      }
       if (cpfCnpj) {
         const checkRes = await fetch("/api/auth/check-cpf-cnpj", {
           method: "POST",
@@ -126,6 +132,7 @@ export default function EmpresaLoginPage() {
               user_type: "empresa",
               full_name: fd.get("company_name") as string,
               cpf_cnpj: cpfCnpj || null,
+              phone: (fd.get("phone") as string) || null,
             },
           }),
         });
@@ -395,6 +402,21 @@ export default function EmpresaLoginPage() {
                   onChange={(e) => setCpfCnpj(formatCpfCnpj(e.target.value))}
                   placeholder="000.000.000-00 ou 00.000.000/0000-00"
                   value={cpfCnpj}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[12px] font-medium mb-2" style={{ color: "#888" }}>
+                  Celular
+                </label>
+                <input
+                  className={inputCls}
+                  inputMode="tel"
+                  maxLength={15}
+                  name="phone"
+                  onChange={(e) => { e.target.value = formatPhone(e.target.value); }}
+                  placeholder="(11) 99999-9999"
+                  required
                 />
               </div>
 
