@@ -289,6 +289,13 @@ async function handleSubscriptionCancelled(payment: AsaasPayment) {
     plano_status: "ativo",
   }).eq("id", profile.id);
 
+  // Downgrade para o plano grátis: produtos com aprovação manual ficam
+  // abertos na hora (grátis não pode exigir aprovação; espelha o trigger).
+  await supabase
+    .from("produtos")
+    .update({ aprovacao_modo: "automatic" })
+    .eq("empresa_id", profile.id)
+    .eq("aprovacao_modo", "manual");
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -548,16 +548,26 @@ export function ProductEditor({
               <Field helper="Quem deve ser priorizado para afiliação." label="Público ideal">
                 <Textarea onChange={(value) => patch("audience", value)} rows={6} value={form.audience} />
               </Field>
-              <Field label="Aprovação da afiliação">
-                <Select
-                  onChange={(value) => patch("approvalMode", value as ProductInput["approvalMode"])}
-                  options={[
-                    { label: "Manual", value: "manual" },
-                    { label: "Automática", value: "automatic" }
-                  ]}
-                  value={form.approvalMode}
-                />
-              </Field>
+              {loaded && plan === "associate" ? (
+                <Field label="Aprovação da afiliação">
+                  {/* Gating por plano: grátis não exige aprovação (trigger no banco força automatic) */}
+                  <p className="rounded-xl border border-[rgba(200,16,46,0.15)] px-4 py-3 text-sm leading-6 text-[#888]" style={{ background: "linear-gradient(135deg, rgba(200,16,46,0.08), rgba(200,16,46,0.02), transparent)" }}>
+                    No plano gratuito, seus produtos ficam abertos para todos os creators.
+                    Faça upgrade para exigir aprovação.
+                  </p>
+                </Field>
+              ) : (
+                <Field label="Aprovação da afiliação">
+                  <Select
+                    onChange={(value) => patch("approvalMode", value as ProductInput["approvalMode"])}
+                    options={[
+                      { label: "Manual", value: "manual" },
+                      { label: "Automática", value: "automatic" }
+                    ]}
+                    value={form.approvalMode}
+                  />
+                </Field>
+              )}
               <Field helper="Mínimo 2.000 seguidores — critério base da plataforma." label="Seguidores mínimos">
                 <Input min={2000} onChange={(value) => patch("minimumFollowers", Math.max(2000, Number(value) || 2000))} type="number" value={form.minimumFollowers} />
               </Field>

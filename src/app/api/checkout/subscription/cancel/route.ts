@@ -45,5 +45,13 @@ export async function POST() {
     plano_status: "ativo",
   }).eq("id", user.id);
 
+  // Downgrade para o plano grátis: produtos com aprovação manual ficam
+  // abertos na hora (grátis não pode exigir aprovação; espelha o trigger).
+  await supabase
+    .from("produtos")
+    .update({ aprovacao_modo: "automatic" })
+    .eq("empresa_id", user.id)
+    .eq("aprovacao_modo", "manual");
+
   return NextResponse.json({ success: true });
 }

@@ -385,7 +385,23 @@ export default function InfluencerShoppingPage() {
           .eq("creator_id", user.id),
       ]);
 
-      setProdutos((produtosData ?? []) as Produto[]);
+      // Normaliza o modo de afiliação pelo plano da empresa dona (server-side):
+      // produto de empresa grátis é sempre aberto, mesmo se a coluna disser
+      // 'manual' (legado). Se a rota falhar, mantém o valor da coluna.
+      let produtosNormalizados = (produtosData ?? []) as Produto[];
+      if (produtosNormalizados.length > 0) {
+        try {
+          const ids = produtosNormalizados.map((p) => p.id).join(",");
+          const res = await fetch(`/api/shopping/modo-afiliacao?ids=${encodeURIComponent(ids)}`);
+          if (res.ok) {
+            const { modos } = await res.json();
+            produtosNormalizados = produtosNormalizados.map((p) =>
+              modos?.[p.id] ? { ...p, aprovacao_modo: modos[p.id] } : p,
+            );
+          }
+        } catch { /* fail-safe: segue com o valor da coluna */ }
+      }
+      setProdutos(produtosNormalizados);
 
       const status: Record<string, AffStatus> = {};
       (myLinks ?? []).forEach((l) => { status[l.produto_id] = "has_link"; });

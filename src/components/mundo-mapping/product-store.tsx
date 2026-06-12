@@ -2,6 +2,7 @@
 
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { podeExigirAprovacao } from "@/lib/plano-creators";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -258,6 +259,7 @@ export function ProductStoreProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [empresaNome, setEmpresaNome] = useState<string | undefined>();
+  const [plano, setPlano] = useState<string | null>(null);
 
   const fetchProducts = useCallback(async (uid: string) => {
     const supabase = createClient();
@@ -278,10 +280,11 @@ export function ProductStoreProvider({ children }: { children: ReactNode }) {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name")
+        .select("full_name, plano")
         .eq("id", user.id)
         .single();
       setEmpresaNome(profile?.full_name ?? undefined);
+      setPlano(profile?.plano ?? null);
 
       await fetchProducts(user.id);
       setReady(true);
@@ -295,6 +298,9 @@ export function ProductStoreProvider({ children }: { children: ReactNode }) {
 
     async createProduct(input, publish = false) {
       if (!userId) throw new Error("Usuário não autenticado. Faça login novamente.");
+      // Gating por plano: grátis nunca persiste 'manual' (espelha o trigger
+      // force_automatic_for_free_plan, que é a fonte da verdade no banco).
+      if (!podeExigirAprovacao(plano)) input = { ...input, approvalMode: "automatic" };
       const supabase = createClient();
       const slug = ensureUniqueSlug(slugify(input.name), products);
       const { data, error } = await supabase
@@ -316,6 +322,8 @@ export function ProductStoreProvider({ children }: { children: ReactNode }) {
 
     async updateProduct(slug, input, publish = false) {
       if (!userId) throw new Error("Usuário não autenticado. Faça login novamente.");
+      // Mesmo gating do createProduct (ver comentário lá).
+      if (!podeExigirAprovacao(plano)) input = { ...input, approvalMode: "automatic" };
       const existing = products.find((p) => p.slug === slug);
       if (!existing) throw new Error("Produto não encontrado na sessão atual.");
       const supabase = createClient();
@@ -364,7 +372,7 @@ export function ProductStoreProvider({ children }: { children: ReactNode }) {
     },
 
     getProductBySlug: (slug) => products.find((p) => p.slug === slug),
-  }), [products, ready, userId, empresaNome]);
+  }), [products, ready, userId, empresaNome, plano]);
 
   return <ProductStoreContext.Provider value={value}>{children}</ProductStoreContext.Provider>;
 }
