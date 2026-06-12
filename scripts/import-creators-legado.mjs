@@ -53,7 +53,7 @@ const supabase = DRY_RUN
 
 /** Extrai a ordem das colunas do CREATE TABLE `nome` no dump de estrutura. */
 function parseCreateTableColumns(sql, table) {
-  const re = new RegExp("CREATE TABLE [`\"]?" + table + "[`\"]?\\s*\\(([\\s\\S]*?)\\)\\s*ENGINE", "i");
+  const re = new RegExp("CREATE TABLE (?:IF NOT EXISTS )?[`\"]?" + table + "[`\"]?\\s*\\(([\\s\\S]*?)\\)\\s*ENGINE", "i");
   const m = sql.match(re);
   if (!m) throw new Error(`CREATE TABLE ${table} não encontrado no dump de estrutura`);
   const cols = [];
