@@ -222,6 +222,9 @@ export function ProductEditor({
   const router = useRouter();
   const { createProduct, updateProduct, products } = useProductStore();
   const { plan, planLabel, limit, productCount, atLimit, loaded } = usePlanLimits();
+  // Link/checkout externo é exclusivo do Elite; demais planos vendem pelo
+  // checkout interno da Mapping (o save força a URL interna).
+  const isElite = loaded && plan === "elite";
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -255,9 +258,9 @@ export function ProductEditor({
       { label: "Regras de atribuição definidas", done: Boolean(form.attributionModel) && form.attributionWindowDays > 0 },
       { label: "Critérios de creator definidos", done: form.minimumFollowers >= 2000 },
       { label: "Materiais ou capa informados", done: Boolean(form.materialsSummary.trim() || form.coverAssetUrl || form.coverAssetName) },
-      { label: "URL do produto informada", done: Boolean(form.checkoutUrl.trim()) }
+      { label: isElite ? "URL do produto informada" : "Checkout Mapping ativo", done: !isElite || Boolean(form.checkoutUrl.trim()) }
     ],
-    [form]
+    [form, isElite]
   );
 
   function validateUrl(url: string): string | null {
@@ -280,7 +283,7 @@ export function ProductEditor({
 
   async function save(publish = false) {
     if (mode === "create" && atLimit) {
-      setFeedback({ msg: `Limite do plano ${planLabel} atingido. Faça upgrade para cadastrar mais produtos.`, type: "error" });
+      setFeedback({ msg: `Você atingiu o limite de ${limit} produto${limit !== 1 ? "s" : ""} do plano ${planLabel}.${plan !== "elite" ? " Faça upgrade para cadastrar mais produtos." : ""}`, type: "error" });
       return;
     }
 
@@ -316,8 +319,9 @@ export function ProductEditor({
       return;
     }
 
-    // URL obrigatória apenas ao publicar — rascunhos podem ser salvos sem ela
-    if (publish) {
+    // URL obrigatória apenas ao publicar — rascunhos podem ser salvos sem ela.
+    // Para não-Elite a URL é forçada pro checkout interno no save, então não valida.
+    if (publish && isElite) {
       const urlValidation = validateUrl(normalized.checkoutUrl);
       if (urlValidation) {
         setFeedback({ msg: urlValidation, type: "error" });
@@ -612,14 +616,23 @@ export function ProductEditor({
             <div className="space-y-5">
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="md:col-span-2">
-                  <Field label="URL do produto (destino do link de afiliado)">
-                    <Input onChange={(value) => patch("checkoutUrl", value)} placeholder="https://pay.hotmart.com/..." value={form.checkoutUrl} />
-                    {urlError ? (
-                      <p className="mt-1.5 text-sm font-medium text-red-600">{urlError}</p>
-                    ) : (
-                      <p className="mt-1.5 text-xs text-zinc-500">URL externa onde o produto é comprado (ex: Hotmart, Kiwify). O link de afiliado redireciona para ela.</p>
-                    )}
-                  </Field>
+                  {isElite ? (
+                    <Field label="URL do produto (destino do link de afiliado)">
+                      <Input onChange={(value) => patch("checkoutUrl", value)} placeholder="https://pay.hotmart.com/..." value={form.checkoutUrl} />
+                      {urlError ? (
+                        <p className="mt-1.5 text-sm font-medium text-red-600">{urlError}</p>
+                      ) : (
+                        <p className="mt-1.5 text-xs text-zinc-500">URL externa onde o produto é comprado (ex: Hotmart, Kiwify). O link de afiliado redireciona para ela.</p>
+                      )}
+                    </Field>
+                  ) : (
+                    <Field label="URL do produto (destino do link de afiliado)">
+                      <p className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm leading-6 text-zinc-600">
+                        Seu produto vende pelo checkout da Mapping Partners; o link de afiliado é gerado
+                        automaticamente. Checkout externo próprio é exclusivo do plano Elite.
+                      </p>
+                    </Field>
+                  )}
                 </div>
                 <Field label="Tipo de entregável">
                   <Select
@@ -855,7 +868,7 @@ export function ProductEditor({
                 <p className="mt-3"><strong className="text-zinc-900">Materiais:</strong> {form.materialsSummary || "Sem materiais informados."}</p>
                 <p className="mt-3"><strong className="text-zinc-900">Capa:</strong> {form.coverAssetMode === "link" ? form.coverAssetUrl || "Sem link informado." : form.coverAssetName || "Sem arquivo informado."}</p>
                 <p className="mt-3"><strong className="text-zinc-900">Materiais promocionais:</strong> {form.promoAssetMode === "link" ? form.promoAssetUrl || "Sem link informado." : form.promoAssetName || "Sem arquivo informado."}</p>
-                <p className="mt-3"><strong className="text-zinc-900">URL do produto:</strong> {form.checkoutUrl || "Não informada."}</p>
+                <p className="mt-3"><strong className="text-zinc-900">URL do produto:</strong> {isElite ? (form.checkoutUrl || "Não informada.") : "Checkout da Mapping (gerado automaticamente)"}</p>
               </div>
               <div className="rounded-2xl border border-zinc-200 p-4">
                 <p className="text-sm font-semibold text-zinc-900">Checklist de prontidão</p>

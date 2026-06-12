@@ -18,3 +18,9 @@ export function getTierCreators(profile: { plano?: string | null } | null | unde
 export function podeExigirAprovacao(plano: string | null | undefined): boolean {
   return plano === "partner" || plano === "elite";
 }
+
+// Checkout/link externo próprio (Hotmart, site da empresa etc.) é exclusivo
+// do Elite. Associate e Partner vendem pelo checkout interno da Mapping.
+export function podeUsarLinkExterno(plano: string | null | undefined): boolean {
+  return plano === "elite";
+}

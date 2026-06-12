@@ -2,7 +2,7 @@
 
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { podeExigirAprovacao } from "@/lib/plano-creators";
+import { podeExigirAprovacao, podeUsarLinkExterno } from "@/lib/plano-creators";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -303,6 +303,11 @@ export function ProductStoreProvider({ children }: { children: ReactNode }) {
       if (!podeExigirAprovacao(plano)) input = { ...input, approvalMode: "automatic" };
       const supabase = createClient();
       const slug = ensureUniqueSlug(slugify(input.name), products);
+      // Link externo é exclusivo do Elite: demais planos têm a URL forçada
+      // pro checkout interno, mesmo que algo venha preenchido do form.
+      if (!podeUsarLinkExterno(plano)) {
+        input = { ...input, checkoutUrl: `${window.location.origin}/checkout/${slug}` };
+      }
       const { data, error } = await supabase
         .from("produtos")
         .insert({
@@ -328,6 +333,10 @@ export function ProductStoreProvider({ children }: { children: ReactNode }) {
       if (!existing) throw new Error("Produto não encontrado na sessão atual.");
       const supabase = createClient();
       const nextSlug = ensureUniqueSlug(slugify(input.name), products, slug);
+      // Mesmo gating do createProduct: não-Elite vende pelo checkout interno.
+      if (!podeUsarLinkExterno(plano)) {
+        input = { ...input, checkoutUrl: `${window.location.origin}/checkout/${nextSlug}` };
+      }
       const { data, error } = await supabase
         .from("produtos")
         .update({

@@ -16,7 +16,7 @@ const PLAN_LABEL: Record<Plan, string> = {
 const PLAN_LIMITS: Record<Plan, number | null> = {
   associate: 1,
   partner: 10,
-  elite: null,
+  elite: 50,
 };
 
 const plans = [
@@ -54,7 +54,7 @@ const plans = [
     fee: "Taxa por venda: Asaas + R$0,49",
     features: [
       "Tudo do Partner",
-      "Produtos ilimitados",
+      "Até 50 produtos",
       "Curadoria humana de creators",
       "Materiais de venda personalizados",
       "Account manager dedicado",
@@ -220,9 +220,7 @@ export function EmpresaPlanBanner() {
             Plano {PLAN_LABEL[plan]}
           </span>
           <span className="text-sm" style={{ color: atLimit ? "#FBBF24" : "#888", fontWeight: atLimit ? 600 : 400 }}>
-            {limit === null
-              ? "Produtos ilimitados"
-              : `${productCount} de ${limit} produto${limit !== 1 ? "s" : ""} utilizado${limit !== 1 ? "s" : ""}${atLimit ? " · Limite atingido" : ""}`}
+            {`${productCount} de ${limit ?? 50} produto${(limit ?? 50) !== 1 ? "s" : ""} utilizado${(limit ?? 50) !== 1 ? "s" : ""}${atLimit ? " · Limite atingido" : ""}`}
           </span>
         </div>
         {plan !== "elite" && (

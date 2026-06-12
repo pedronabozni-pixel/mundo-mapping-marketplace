@@ -26,7 +26,7 @@ const PLAN_INFO: Record<string, { label: string; price: string; period: string; 
     period: "/mês",
     features: [
       "Tudo do Partner",
-      "Produtos ilimitados",
+      "Até 50 produtos",
       "Curadoria humana de creators",
       "Materiais de venda personalizados",
       "Account manager dedicado",

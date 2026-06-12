@@ -236,7 +236,7 @@ export default function MembrosLoginPage() {
           className="mt-20 text-center text-[11px]"
           style={{ letterSpacing: "0.05em", color: "#444" }}
         >
-          Sub-marca da Mundo Mapping
+          Do ecossistema da Mundo Mapping
         </p>
       </div>
     </div>

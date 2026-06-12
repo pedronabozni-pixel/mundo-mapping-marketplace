@@ -1232,7 +1232,7 @@ function Planos() {
       fee: "R$ 0,49 por venda",
       features: [
         "Tudo do Partner",
-        "Produtos ilimitados",
+        "Até 50 produtos",
         "Curadoria humana",
         "Materiais personalizados",
         "Account manager dedicado",
@@ -1420,7 +1420,7 @@ function Footer() {
     <footer className="border-t border-white/[0.06] bg-[#060606] px-6 py-12 lg:px-10">
       <div className="mx-auto grid max-w-[1400px] gap-10 md:grid-cols-[1.2fr_1fr_auto] md:items-start">
         <div>
-          <MappingPartnersLogo onDark size="sm" subtitle="Sub-marca da Mundo Mapping" />
+          <MappingPartnersLogo onDark size="sm" subtitle="Do ecossistema da Mundo Mapping" />
           <p className="mp-mono mt-5 max-w-xs text-[11px] leading-[1.8] text-white/35">
             partners@mundomapping.com<br/>
             São Paulo · Brasil

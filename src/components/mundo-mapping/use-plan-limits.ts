@@ -9,7 +9,7 @@ export type Plan = "associate" | "partner" | "elite";
 export const PLAN_LIMITS: Record<Plan, number | null> = {
   associate: 1,
   partner: 10,
-  elite: null,
+  elite: 50,
 };
 
 export const PLAN_LABEL: Record<Plan, string> = {

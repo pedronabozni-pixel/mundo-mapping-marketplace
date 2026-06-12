@@ -5,6 +5,15 @@ export const dynamic = "force-dynamic";
 
 const FALLBACK = "/mundo-mapping/partners";
 
+// Quando o destino é o checkout interno da Mapping (/checkout/<slug>), anexa
+// ?ref=<codigo> para preservar a atribuição da comissão — o checkout lê esse
+// parâmetro. Destinos externos (Hotmart etc.) passam intocados.
+function withRef(url: string, codigo: string): string {
+  if (!url.includes("/checkout/")) return url;
+  if (/[?&]ref=/.test(url)) return url;
+  return url + (url.includes("?") ? "&" : "?") + "ref=" + encodeURIComponent(codigo);
+}
+
 export default async function AffiliateRedirectPage({
   params,
 }: {
@@ -20,7 +29,7 @@ export default async function AffiliateRedirectPage({
   });
 
   if (!rpcError && rpcUrl) {
-    redirect(rpcUrl as string);
+    redirect(withRef(rpcUrl as string, codigo));
   }
 
   // RPC failed (likely missing EXECUTE grant) — fall back to direct SELECT so we
@@ -33,7 +42,7 @@ export default async function AffiliateRedirectPage({
     .maybeSingle();
 
   if (!selectError && link?.url_produto) {
-    redirect(link.url_produto as string);
+    redirect(withRef(link.url_produto as string, codigo));
   }
 
   redirect(FALLBACK);
