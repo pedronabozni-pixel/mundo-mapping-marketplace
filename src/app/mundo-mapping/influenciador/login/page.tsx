@@ -39,6 +39,9 @@ const PLATFORMS = [
   { platform: "Twitter / X", handleName: "twitter_handle", followersName: "twitter_followers",  followerLabel: "Seguidores" },
 ] as const;
 
+type LegadoRedes = Record<string, { handle: string; seguidores: number | null }>;
+type LegadoInfo = { nome: string | null; redes: LegadoRedes };
+
 export default function InfluenciadorLoginPage() {
   const [tab, setTab] = useState<Tab>("entrar");
   const [loading, setLoading] = useState(false);
@@ -46,6 +49,48 @@ export default function InfluenciadorLoginPage() {
   const [info, setInfo] = useState<string | null>(null);
   const [forgot, setForgot] = useState(false);
   const [hasAsaasAccount, setHasAsaasAccount] = useState(false);
+  // Base legado: quando o e-mail é reconhecido, o form vira "ativação"
+  // (banner + pré-preenchimento). O reconhecimento é só conveniência de UI —
+  // a herança real dos dados acontece no servidor, na criação do profile.
+  const [legado, setLegado] = useState<LegadoInfo | null>(null);
+
+  async function checkLegado(email: string, form: HTMLFormElement | null) {
+    const trimmed = (email ?? "").trim();
+    if (!trimmed.includes("@")) return;
+    try {
+      const res = await fetch("/api/influenciador/check-legado", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed }),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data?.reconhecido) { setLegado(null); return; }
+      const found: LegadoInfo = { nome: data.nome ?? null, redes: data.redes ?? {} };
+      setLegado(found);
+      if (form) prefillLegado(form, found);
+    } catch {
+      // rede/limite indisponível: cadastro segue normal, sem banner
+    }
+  }
+
+  // Preenche apenas campos VAZIOS (o que o usuário já digitou vence) —
+  // tudo continua editável.
+  function prefillLegado(form: HTMLFormElement, data: LegadoInfo) {
+    const set = (name: string, value: string | number | null | undefined) => {
+      const el = form.elements.namedItem(name);
+      if (el instanceof HTMLInputElement && !el.value && value != null && value !== "") {
+        el.value = String(value);
+      }
+    };
+    set("full_name", data.nome);
+    set("instagram_handle", data.redes.instagram?.handle?.replace(/^@/, ""));
+    set("instagram_followers", data.redes.instagram?.seguidores);
+    set("tiktok_handle", data.redes.tiktok?.handle?.replace(/^@/, ""));
+    set("tiktok_followers", data.redes.tiktok?.seguidores);
+    set("youtube_handle", data.redes.youtube?.handle?.replace(/^@/, ""));
+    set("youtube_subscribers", data.redes.youtube?.seguidores);
+  }
 
   function reset() {
     setError(null);
@@ -56,6 +101,7 @@ export default function InfluenciadorLoginPage() {
   function switchTab(t: Tab) {
     setTab(t);
     reset();
+    setLegado(null);
   }
 
   async function handleSignIn(e: React.FormEvent<HTMLFormElement>) {
@@ -84,13 +130,17 @@ export default function InfluenciadorLoginPage() {
     setLoading(true);
     try {
       const supabase = createClient();
-      const fd = new FormData(e.currentTarget);
+      const formEl = e.currentTarget;
+      const fd = new FormData(formEl);
       const password = fd.get("password") as string;
       const confirm = fd.get("confirm") as string;
       if (password !== confirm) {
         setError("As senhas não coincidem.");
         return;
       }
+      // Dupla checagem do legado no submit (cobre e-mail colado sem blur).
+      // Não bloqueia o cadastro — a herança real é server-side.
+      if (!legado) await checkLegado(fd.get("email") as string, formEl);
       const { data, error } = await supabase.auth.signUp({
         email: fd.get("email") as string,
         password,
@@ -389,6 +439,23 @@ export default function InfluenciadorLoginPage() {
           {/* Sign up */}
           {tab === "cadastrar" && (
             <form className="space-y-7" onSubmit={handleSignUp}>
+              {/* Banner de ativação da base legado */}
+              {legado && (
+                <div
+                  className="rounded-2xl px-4 py-4"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(200,16,46,0.08), rgba(200,16,46,0.02), transparent)",
+                    border: "1px solid rgba(200,16,46,0.15)",
+                  }}
+                >
+                  <p className="text-[14px] font-bold text-white">Achamos seu cadastro da Mundo Mapping! 🎉</p>
+                  <p className="mt-1 text-[13px] leading-relaxed" style={{ color: "#888" }}>
+                    Seu perfil já está aqui — nome e redes vieram do seu cadastro antigo e você pode
+                    ajustar o que quiser. Só falta criar uma senha.
+                  </p>
+                </div>
+              )}
+
               {/* Dados básicos */}
               <div>
                 <label className="block text-[12px] font-medium mb-2" style={{ color: "#888" }}>
@@ -404,6 +471,7 @@ export default function InfluenciadorLoginPage() {
                 <input
                   className={inputCls}
                   name="email"
+                  onBlur={(e) => checkLegado(e.target.value, e.target.form)}
                   type="email"
                   placeholder="seu@email.com"
                   required
