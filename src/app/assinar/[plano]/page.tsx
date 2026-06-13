@@ -227,10 +227,10 @@ export default function AssinarPage() {
         setIsLoggedIn(true);
         setEmail(user.email ?? "");
         // Pre-fill name/cpfCnpj from profile
-        supabase.from("profiles").select("full_name, company_name, cpf_cnpj").eq("id", user.id).single()
+        supabase.from("profiles").select("full_name, razao_social, cpf_cnpj").eq("id", user.id).single()
           .then(({ data }) => {
             if (data) {
-              setNome(data.company_name ?? data.full_name ?? "");
+              setNome(data.razao_social ?? data.full_name ?? "");
               setCpfCnpj(data.cpf_cnpj ?? "");
             }
           });

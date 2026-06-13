@@ -17,7 +17,7 @@ type Stats = {
 type RecentProfile = {
   id: string;
   full_name: string | null;
-  company_name: string | null;
+  razao_social: string | null;
   email: string | null;
   user_type: string;
   plano: string | null;
@@ -186,7 +186,7 @@ export default function AdminDashboard() {
                     <tr key={p.id}>
                       <td className="py-2.5">
                         <p className="font-medium text-[#aaa]">
-                          {p.user_type === "empresa" ? (p.company_name ?? p.full_name ?? "—") : (p.full_name ?? "—")}
+                          {p.user_type === "empresa" ? (p.razao_social ?? p.full_name ?? "—") : (p.full_name ?? "—")}
                         </p>
                         <p className="text-xs text-[#555]">{p.email ?? "—"}</p>
                       </td>

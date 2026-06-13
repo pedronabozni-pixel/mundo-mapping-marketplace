@@ -9,7 +9,7 @@ import {
 type Empresa = {
   id: string;
   full_name: string | null;
-  company_name: string | null;
+  razao_social: string | null;
   email: string | null;
   plano: string | null;
   status: string | null;
@@ -43,7 +43,7 @@ export default function AdminEmpresasPage() {
 
   const filtered = useMemo(() => {
     return empresas.filter((e) => {
-      const name = (e.company_name ?? e.full_name ?? "").toLowerCase();
+      const name = (e.razao_social ?? e.full_name ?? "").toLowerCase();
       const email = (e.email ?? "").toLowerCase();
       const q = search.toLowerCase();
       if (q && !name.includes(q) && !email.includes(q)) return false;
@@ -167,7 +167,7 @@ export default function AdminEmpresasPage() {
                     return (
                       <tr key={empresa.id}>
                         <td className="py-3">
-                          <p className="font-medium text-[#aaa]">{empresa.company_name ?? empresa.full_name ?? "—"}</p>
+                          <p className="font-medium text-[#aaa]">{empresa.razao_social ?? empresa.full_name ?? "—"}</p>
                           <p className="text-xs text-[#555]">{empresa.email ?? "—"}</p>
                         </td>
                         <td className="py-3"><PlanBadge plano={empresa.plano} /></td>
@@ -230,7 +230,7 @@ export default function AdminEmpresasPage() {
       {confirm && (
         <ConfirmDialog
           danger={confirm.action === "desativar"}
-          message={`Tem certeza que deseja ${confirm.action} a conta de "${confirm.empresa.company_name ?? confirm.empresa.email}"?`}
+          message={`Tem certeza que deseja ${confirm.action} a conta de "${confirm.empresa.razao_social ?? confirm.empresa.email}"?`}
           onCancel={() => setConfirm(null)}
           onConfirm={() => handleToggleStatus(confirm.empresa, confirm.action)}
           title={confirm.action === "desativar" ? "Desativar empresa" : "Ativar empresa"}

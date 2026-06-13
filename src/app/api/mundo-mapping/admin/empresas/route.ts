@@ -9,7 +9,7 @@ export async function GET() {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("profiles")
-    .select("id, full_name, company_name, email, plano, status, created_at")
+    .select("id, full_name, razao_social, email, plano, status, created_at")
     .eq("user_type", "empresa")
     .order("created_at", { ascending: false });
 

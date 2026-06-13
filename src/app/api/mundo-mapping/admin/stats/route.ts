@@ -26,7 +26,7 @@ export async function GET() {
     admin.from("vendas").select("comissao"),
     admin
       .from("profiles")
-      .select("id, full_name, company_name, email, user_type, plano, created_at")
+      .select("id, full_name, razao_social, email, user_type, plano, created_at")
       .neq("user_type", "admin")
       .order("created_at", { ascending: false })
       .limit(10),

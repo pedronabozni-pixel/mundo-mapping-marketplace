@@ -11,7 +11,7 @@ import {
 type Profile = {
   id: string;
   full_name: string | null;
-  company_name: string | null;
+  razao_social: string | null;
   email: string | null;
   plano: string | null;
   status: string | null;
@@ -63,7 +63,7 @@ export default function AdminEmpresaDetailPage() {
         { data: vendasData },
         { data: notasData },
       ] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, company_name, email, plano, status, created_at, phone, city, state").eq("id", id).single(),
+        supabase.from("profiles").select("id, full_name, razao_social, email, plano, status, created_at, phone, city, state").eq("id", id).single(),
         supabase.from("links_afiliados").select("id, creator_nome, produto_nome, cliques, ativo, criado_em").eq("empresa_id", id).order("criado_em", { ascending: false }).limit(20),
         supabase.from("vendas").select("id, creator_nome, produto_nome, comissao, status, criado_em").eq("empresa_id", id).order("criado_em", { ascending: false }).limit(20),
         supabase.from("anotacoes_admin").select("id, texto, autor_email, criado_em").eq("empresa_id", id).order("criado_em", { ascending: false }),
@@ -144,7 +144,7 @@ export default function AdminEmpresaDetailPage() {
             ← Empresas
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight text-white">
-            {profile.company_name ?? profile.full_name ?? "Empresa"}
+            {profile.razao_social ?? profile.full_name ?? "Empresa"}
           </h1>
           <p className="mt-1 text-sm text-[#888]">{profile.email}</p>
         </div>

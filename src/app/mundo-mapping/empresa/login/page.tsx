@@ -103,8 +103,7 @@ export default function EmpresaLoginPage() {
         options: {
           data: {
             user_type: "empresa",
-            full_name: fd.get("company_name") as string,
-            company_name: fd.get("company_name") as string,
+            full_name: fd.get("razao_social") as string,
             cpf_cnpj: cpfCnpj,
           },
           emailRedirectTo: `${window.location.origin}/mundo-mapping/empresa/dashboard`,
@@ -130,7 +129,8 @@ export default function EmpresaLoginPage() {
             profile: {
               email: fd.get("email") as string,
               user_type: "empresa",
-              full_name: fd.get("company_name") as string,
+              full_name: fd.get("razao_social") as string,
+              razao_social: fd.get("razao_social") as string,
               cpf_cnpj: cpfCnpj || null,
               phone: (fd.get("phone") as string) || null,
             },
@@ -386,7 +386,7 @@ export default function EmpresaLoginPage() {
                 </label>
                 <input
                   className={inputCls}
-                  name="company_name"
+                  name="razao_social"
                   placeholder="Empresa Ltda. ou seu nome"
                   required
                 />

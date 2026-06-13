@@ -207,10 +207,10 @@ export default function InfluenciadorPerfilPage() {
     setInfo(null);
     setError(null);
     try {
-      const supabase = createClient();
-      const { error: err } = await supabase.from("profiles").upsert(
-        {
-          id: userId,
+      const res = await fetch("/api/mundo-mapping/perfil/salvar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           avatar_url: avatarUrl,
           full_name: form.full_name,
           phone: form.phone,
@@ -227,10 +227,10 @@ export default function InfluenciadorPerfilPage() {
           twitter_followers: form.twitter_followers ? parseInt(form.twitter_followers) : null,
           niche: form.niche,
           wallet_id: form.wallet_id.trim() || null,
-        },
-        { onConflict: "id" }
-      );
-      if (err) setError(err.message);
+        }),
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) setError(out.error ?? "Erro ao salvar.");
       else setInfo("Perfil salvo com sucesso.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao salvar.");

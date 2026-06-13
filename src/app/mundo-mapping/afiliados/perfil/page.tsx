@@ -205,7 +205,7 @@ export default function EmpresaPerfilPage() {
         setDocIdUrl(profile.doc_identificacao_url ?? "");
         const next: FormState = {
           cpf_cnpj: profile.cpf_cnpj ?? "",
-          nome_fantasia: profile.company_name ?? "",
+          nome_fantasia: profile.full_name ?? "",
           razao_social: profile.razao_social ?? "",
           segmento: profile.segmento ?? "",
           receber_propostas: profile.receber_propostas ?? "",
@@ -257,16 +257,16 @@ export default function EmpresaPerfilPage() {
     setInfo(null);
     setError(null);
     try {
-      const supabase = createClient();
-      const { error: err } = await supabase.from("profiles").upsert(
-        {
-          id: userId,
+      const res = await fetch("/api/mundo-mapping/perfil/salvar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           logo_url: logoUrl,
           cartao_cnpj_url: cartaoCnpjUrl,
           comprovante_endereco_url: comprovanteUrl,
           doc_identificacao_url: docIdUrl,
           cpf_cnpj: form.cpf_cnpj,
-          company_name: form.nome_fantasia,
+          full_name: form.nome_fantasia,
           razao_social: form.razao_social,
           segmento: form.segmento,
           receber_propostas: form.receber_propostas,
@@ -285,10 +285,10 @@ export default function EmpresaPerfilPage() {
           cpf_responsavel: form.cpf_responsavel,
           data_nascimento: form.data_nascimento || null,
           email_responsavel: form.email_responsavel,
-        },
-        { onConflict: "id" }
-      );
-      if (err) setError(err.message);
+        }),
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) setError(out.error ?? "Erro ao salvar.");
       else {
         setInitialForm(form);
         setInfo("Perfil salvo com sucesso.");
