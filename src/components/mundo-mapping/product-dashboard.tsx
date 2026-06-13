@@ -198,7 +198,6 @@ export function ProductDashboard() {
   const [period, setPeriod] = useState("30 dias");
   const [realAffiliates, setRealAffiliates] = useState<number | null>(null);
   const [realComissao, setRealComissao] = useState<number | null>(null);
-  const [walletMissing, setWalletMissing] = useState(false);
   const [empresaName, setEmpresaName] = useState<string | null>(null);
   const [sparklineValues, setSparklineValues] = useState<number[]>([]);
   const [vendas30dCount, setVendas30dCount] = useState<number | null>(null);
@@ -214,12 +213,9 @@ export function ProductDashboard() {
       if (!user) return;
       const { data: profile } = await supabase
         .from("profiles")
-        .select("wallet_id, user_type, full_name")
+        .select("full_name")
         .eq("id", user.id)
         .single();
-      if (profile?.user_type === "empresa" && !profile.wallet_id) {
-        setWalletMissing(true);
-      }
       if (profile?.full_name) {
         setEmpresaName(profile.full_name);
       }
@@ -353,43 +349,6 @@ export function ProductDashboard() {
           )}
         </div>
       </div>
-
-      {/* ── Wallet missing banner ── */}
-      {walletMissing && (
-        <div
-          className="flex items-start gap-3 rounded-2xl px-5 py-4"
-          style={{
-            background: "rgba(251,191,36,0.06)",
-            border: "1px solid rgba(251,191,36,0.15)",
-          }}
-        >
-          <svg
-            className="mt-0.5 h-5 w-5 shrink-0"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            style={{ color: "#FBBF24" }}
-            viewBox="0 0 24 24"
-          >
-            <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <div>
-            <p className="text-sm font-semibold" style={{ color: "#FBBF24" }}>
-              Conta financeira não configurada
-            </p>
-            <p className="mt-1 text-sm leading-6" style={{ color: "#f59e0b" }}>
-              Seu cadastro financeiro junto ao Asaas não foi criado. Complete seus dados de perfil para poder publicar produtos.{" "}
-              <a
-                className="font-semibold underline underline-offset-2"
-                href="/mundo-mapping/afiliados/perfil"
-                style={{ color: "#FBBF24" }}
-              >
-                Ir para o perfil
-              </a>
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* ── Hero card ── */}
       <div

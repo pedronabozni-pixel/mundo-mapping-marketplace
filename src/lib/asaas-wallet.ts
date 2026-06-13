@@ -21,6 +21,10 @@ export interface AsaasWallet {
   email: string;
 }
 
+// TODO: trocar para POST /accounts (subconta + KYC) quando ativar split.
+// POST /v3/wallets não existe na API do Asaas (retorna 404). Mantida aqui para
+// ser retomada na implementação de subcontas; hoje não é chamada no caminho de
+// publicação/cadastro de empresa.
 export async function createAsaasWallet(input: CreateWalletInput): Promise<AsaasWallet> {
   const { apiKey, baseUrl } = getAsaasConfig();
 

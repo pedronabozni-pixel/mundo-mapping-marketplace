@@ -11,7 +11,7 @@ export async function POST() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("wallet_id, user_type")
+    .select("user_type")
     .eq("id", user.id)
     .single();
 
@@ -19,12 +19,7 @@ export async function POST() {
     return NextResponse.json({ error: "not_empresa" }, { status: 403 });
   }
 
-  if (!profile.wallet_id) {
-    return NextResponse.json(
-      { error: "Complete seus dados para publicar produtos" },
-      { status: 400 }
-    );
-  }
-
+  // Publicação NÃO depende mais de wallet_id do Asaas (a wallet/subconta será
+  // retomada depois com POST /accounts). user_type continua sendo exigido.
   return NextResponse.json({ ok: true });
 }

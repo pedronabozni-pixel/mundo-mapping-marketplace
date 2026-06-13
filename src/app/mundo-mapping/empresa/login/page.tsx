@@ -137,15 +137,7 @@ export default function EmpresaLoginPage() {
           }),
         });
         if (data.session) {
-          try {
-            await fetch("/api/mundo-mapping/empresas/create-wallet", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ access_token: data.session.access_token }),
-            });
-          } catch {
-            // Falha silenciosa — não bloqueia o cadastro
-          }
+          // Wallet/subconta Asaas será retomada depois (POST /accounts + KYC).
           window.location.href = "/mundo-mapping/afiliados";
         } else {
           setInfo("Conta criada! Verifique seu e-mail para confirmar antes de entrar.");

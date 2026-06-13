@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createAsaasWallet } from "@/lib/asaas-wallet";
 
 export default async function EmpresaDashboardPage() {
   const supabase = await createClient();
@@ -19,28 +18,7 @@ export default async function EmpresaDashboardPage() {
     { onConflict: "id", ignoreDuplicates: true }
   );
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("wallet_id, full_name, email, cpf_cnpj")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile?.wallet_id) {
-    try {
-      const wallet = await createAsaasWallet({
-        name: profile?.full_name ?? user.email ?? "Empresa",
-        email: profile?.email ?? user.email ?? "",
-        cpfCnpj: profile?.cpf_cnpj,
-      });
-      await supabase
-        .from("profiles")
-        .update({ wallet_id: wallet.id })
-        .eq("id", user.id);
-    } catch (err) {
-      // Qualquer erro Asaas — não bloqueia o acesso; banner âmbar no dashboard cobre o caso
-      console.error("[empresa/dashboard] wallet creation failed:", err instanceof Error ? err.message : err);
-    }
-  }
-
+  // Wallet/subconta Asaas será retomada depois (POST /accounts + KYC).
+  // A publicação de produto não depende mais dela.
   redirect("/mundo-mapping/afiliados");
 }
