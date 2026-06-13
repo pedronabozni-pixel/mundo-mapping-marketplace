@@ -1,13 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { PageHeader, ProductVisualCard, SectionCard } from "@/components/mundo-mapping/affiliate-ui";
 import { useProductStore } from "@/components/mundo-mapping/product-store";
 import { usePlanLimits } from "@/components/mundo-mapping/use-plan-limits";
+import { UpgradeModal } from "@/components/mundo-mapping/empresa-plan-banner";
 
 export function ProductListPage() {
   const { products, ready } = useProductStore();
-  const { atLimit, planLabel } = usePlanLimits();
+  const { atLimit, planLabel, plan } = usePlanLimits();
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   return (
     <>
@@ -20,9 +23,9 @@ export function ProductListPage() {
               </span>
               <p className="text-xs text-zinc-500">
                 Limite do plano <span className="font-semibold">{planLabel}</span> atingido —{" "}
-                <a className="font-semibold text-red-600 hover:underline" href="/mundo-mapping/afiliados/perfil">
+                <button className="font-semibold text-red-600 hover:underline" onClick={() => setUpgradeOpen(true)} type="button">
                   faça upgrade
-                </a>
+                </button>
               </p>
             </div>
           ) : (
@@ -78,6 +81,7 @@ export function ProductListPage() {
           )}
         </SectionCard>
       </div>
+      {upgradeOpen && <UpgradeModal currentPlan={plan} onClose={() => setUpgradeOpen(false)} />}
     </>
   );
 }

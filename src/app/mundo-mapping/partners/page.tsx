@@ -634,17 +634,6 @@ function Hero() {
       >
         {/* ── LEFT: copy ── */}
         <div>
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease }}
-            className="inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 backdrop-blur"
-          >
-            <span className={`h-2 w-2 rounded-full ${reduce ? "" : "mp-pulse-dot"}`} style={{ background: "#4ADE80" }} />
-            <span className="mp-mono text-[10px] uppercase tracking-[0.18em] text-white/70">+16.000 creators ativos</span>
-          </motion.div>
-
           {/* Headline */}
           <h1 className="mp-hero-h1 mt-7 text-white text-[40px] sm:text-[52px] lg:text-[60px] xl:text-[68px]">
             <span className="block"><SplitWords text="A melhor rede de" delay={0.1} /></span>

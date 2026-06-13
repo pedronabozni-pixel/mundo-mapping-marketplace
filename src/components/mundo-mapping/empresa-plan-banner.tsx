@@ -28,7 +28,6 @@ const plans = [
     fee: "Taxa por venda: Asaas + 2%",
     features: [
       "1 produto no marketplace",
-      "Acesso à base de +16k creators",
       "Link de afiliado básico",
     ],
   },
@@ -72,12 +71,12 @@ export function UpgradeModal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto px-4 py-8"
       onClick={(e) => e.target === e.currentTarget && onClose()}
       style={{ background: "rgba(0,0,0,0.7)" }}
     >
       <div
-        className="w-full max-w-4xl overflow-auto rounded-[24px] p-8"
+        className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[24px] p-8"
         style={{ background: "#111", border: "1px solid rgba(255,255,255,0.08)" }}
       >
         <div className="mb-6 flex items-start justify-between">
